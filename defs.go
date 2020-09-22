@@ -7,30 +7,238 @@ package table
 // Constants
 // ----------------------------------------------------------------------------
 
-// Separators
-const HORIZONTAL_SINGLE = '\u2500' // ─
-const HORIZONTAL_DOUBLE = '\u2550' // ═
-const HORIZONTAL_THICK = '\u2501'  // ━
+const none = 0
 
-const VERTICAL_SINGLE = '\u2502' // │
-const VERTICAL_DOUBLE = '\u2551' // ║
-const VERTICAL_THICK = '\u2503'  // ┃
+const horizontal_single = '\u2500' // ─
+const horizontal_double = '\u2550' // ═
+const horizontal_thick = '\u2501'  // ━
 
-var SPLITTER = map[rune]map[rune]rune{
-	VERTICAL_SINGLE: {
-		HORIZONTAL_SINGLE: '\u253c', // ┼
-		HORIZONTAL_DOUBLE: '\u256a', // ╪
-		HORIZONTAL_THICK:  '\u253f', // ┿
+const vertical_single = '\u2502' // │
+const vertical_double = '\u2551' // ║
+const vertical_thick = '\u2503'  // ┃
+
+// The splitter is defined as an association of four different runes: the west,
+// east, north and south runes of the splitter:
+//
+//        north
+// west  splitter  east
+//        south
+//
+// this creates an association of ASCII/UTF-8 characters defined by hand below.
+var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
+
+	none: {
+		none: {
+			none: {
+				none:            none,
+				vertical_single: none,
+				vertical_double: none,
+				vertical_thick:  none,
+			},
+			vertical_single: {
+				none:            none,
+				vertical_single: none,
+				vertical_double: none,
+				vertical_thick:  none,
+			},
+			vertical_double: {
+				none:            none,
+				vertical_single: none,
+				vertical_double: none,
+				vertical_thick:  none,
+			},
+			vertical_thick: {
+				none:            none,
+				vertical_single: none,
+				vertical_double: none,
+				vertical_thick:  none,
+			},
+		},
+		horizontal_single: {
+			none: {
+				none:            none,
+				vertical_single: '\u250c', // ┌
+				vertical_double: '\u2553', // ╓
+				vertical_thick:  '\u250e', // ┎
+			},
+			vertical_single: {
+				none:            '\u2514', // └
+				vertical_single: '\u251c', // ├
+				vertical_double: '\u251f', // ┟: south double not supported!
+				vertical_thick:  '\u251f', // ┟: south double not supported!
+			},
+			vertical_double: {
+				none:            '\u2559', // ╙
+				vertical_single: '\u251e', // ┞: north double not supported!
+				vertical_double: '\u255f', // ╟
+				vertical_thick:  '\u2520', // ┠: north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u2516', // ┖
+				vertical_single: '\u251e', // ┞
+				vertical_double: '\u2520', // ┠: south double not supported!
+				vertical_thick:  '\u2520', // ┠
+			},
+		},
+		horizontal_double: {
+			none: {
+				none:            none,
+				vertical_single: '\u2552', // ╒
+				vertical_double: '\u2554', // ╔
+				vertical_thick:  '\u250f', // ┏: east double not supported!
+			},
+			vertical_single: {
+				none:            '\u2558', // ╘
+				vertical_single: '\u255e', // ╞
+				vertical_double: '\u2522', // ┢: east/south double not supported!
+				vertical_thick:  '\u2522', // ┢: east double not supported!
+			},
+			vertical_double: {
+				none:            '\u255a', // ╚
+				vertical_single: '\u2521', // ┡: east/north double not supported!
+				vertical_double: '\u2560', // ╠
+				vertical_thick:  '\u2523', // ┣: east/north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u2517', // ┗: easth double not supported!
+				vertical_single: '\u2521', // ┡: east double not supported!
+				vertical_double: '\u2523', // ┣: east/south double not supported!
+				vertical_thick:  '\u2523', // ┣: east double not supported!
+			},
+		},
+		horizontal_thick: {
+			none: {
+				none:            none,
+				vertical_single: '\u250d', // ┍
+				vertical_double: '\u250f', // ┏: south double not supported!
+				vertical_thick:  '\u250f', // ┏: south double not supported!
+			},
+			vertical_single: {
+				none:            '\u2515', // ┕
+				vertical_single: '\u251d', // ┝
+				vertical_double: '\u2522', // ┢: south double not supported!
+				vertical_thick:  '\u2522', // ┢
+			},
+			vertical_double: {
+				none:            '\u2517', // ┗: north double not supported
+				vertical_single: '\u2521', // ┡: north double not supported!
+				vertical_double: '\u2523', // ┣: north/south double not supported!
+				vertical_thick:  '\u2523', // ┣: north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u2517', // ┗
+				vertical_single: '\u2521', // ┡
+				vertical_double: '\u2523', // ┣: south double not supported
+				vertical_thick:  '\u2523', // ┣
+			},
+		},
 	},
-	VERTICAL_DOUBLE: {
-		HORIZONTAL_SINGLE: '\u256b', // ╫
-		HORIZONTAL_DOUBLE: '\u256c', // ╬
-		HORIZONTAL_THICK:  '\u256b', // this combination does not exist!
-	},
-	VERTICAL_THICK: {
-		HORIZONTAL_SINGLE: '\u2542', // ╂
-		HORIZONTAL_DOUBLE: '\u254b', // this combination does not exist!
-		HORIZONTAL_THICK:  '\u254b', // ╋
+
+	horizontal_single: {
+		none: {
+			none: {
+				none:            '\u2500', // ─
+				vertical_single: '\u2510', // ┐
+				vertical_double: '\u2556', // ╖
+				vertical_thick:  '\u2512', // ┒
+			},
+			vertical_single: {
+				none:            '\u2518', // ┘
+				vertical_single: '\u2524', // ┤
+				vertical_double: '\u2527', // ┧: south double not supported!
+				vertical_thick:  '\u2527', // ┧: south double not supported!
+			},
+			vertical_double: {
+				none:            '\u255c', // ╜
+				vertical_single: '\u2526', // ┦: north double not supported!
+				vertical_double: '\u2562', // ╢: north/south double not supported!
+				vertical_thick:  '\u2528', // ┨: north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u251a', // ┚
+				vertical_single: '\u2526', // ┦
+				vertical_double: '\u2528', // ┨: south double not supported!
+				vertical_thick:  '\u2528', // ┨
+			},
+		},
+		horizontal_single: {
+			none: {
+				none:            '\u2500', // ─
+				vertical_single: '\u252c', // ┬
+				vertical_double: '\u2565', // ╥
+				vertical_thick:  '\u2530', // ┰
+			},
+			vertical_single: {
+				none:            '\u2534', // ┴
+				vertical_single: '\u253c', // ┼
+				vertical_double: '\u2541', // ╁: south double not supported!
+				vertical_thick:  '\u2541', // ╁: south double not supported!
+			},
+			vertical_double: {
+				none:            '\u2568', // ⢲: SHOULD NOT BE BRAILLE!!
+				vertical_single: '\u2540', // ╀: north double not supported!
+				vertical_double: '\u2542', // ╂: north/south double not supported!
+				vertical_thick:  '\u2542', // ╂: north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u2538', // ┸
+				vertical_single: '\u2540', // ╀
+				vertical_double: '\u2542', // ╂: south double not supported!
+				vertical_thick:  '\u2542', // ╂
+			},
+		},
+		horizontal_double: {
+			none: {
+				none:            '\u2534', // ┴
+				vertical_single: '\u253c', // ┼
+				vertical_double: '\u2541', // ╁: south double not supported!
+				vertical_thick:  '\u2541', // ╁: south double not supported!
+			},
+			vertical_single: {
+				none:            '\u2536', // ┶: east double not supported!
+				vertical_single: '\u253e', // ┾: east dobule not supported!
+				vertical_double: '\u2546', // ╆: east/south double not supported!
+				vertical_thick:  '\u2546', // ╆: east double not supported!
+			},
+			vertical_double: {
+				none:            '\u253a', // ┺: easth double not supported!
+				vertical_single: '\u2544', // ╄: east/north double not supported!
+				vertical_double: '\u254a', // ╊: east/north/south double not supported!
+				vertical_thick:  '\u254a', // ╊: east/north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u253a', // ┺: easth double not supported!
+				vertical_single: '\u2544', // ╄: east double not supported!
+				vertical_double: '\u254a', // ╊: east/south double not supported!
+				vertical_thick:  '\u254a', // ╊: east double not supported!
+			},
+		},
+		horizontal_thick: {
+			none: {
+				none:            '\u2534', // ┴
+				vertical_single: '\u253c', // ┼
+				vertical_double: '\u2541', // ╁: south double not supported!
+				vertical_thick:  '\u2541', // ╁: south double not supported!
+			},
+			vertical_single: {
+				none:            '\u2536', // ┶
+				vertical_single: '\u253e', // ┾
+				vertical_double: '\u2546', // ╆: south double not supported!
+				vertical_thick:  '\u2546', // ╆
+			},
+			vertical_double: {
+				none:            '\u2536', // ┶: north double not supported
+				vertical_single: '\u2544', // ╄: north double not supported!
+				vertical_double: '\u254a', // ╊: north/south double not supported!
+				vertical_thick:  '\u254a', // ╊: north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u253a', // ┺
+				vertical_single: '\u2544', // ╄
+				vertical_double: '\u254a', // ╊: south double not supported
+				vertical_thick:  '\u254a', // ╊
+			},
+		},
 	},
 }
 
@@ -83,7 +291,8 @@ type column struct {
 }
 
 // rows do not store the contents, which are given instead in data rows. A row
-// consists then of a number of lines for displaying its contents
+// consists then of a number of lines for displaying its contents. Horizontal
+// separators are represented as rows of height 1
 type row struct {
 	height int
 }

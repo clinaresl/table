@@ -1,6 +1,7 @@
 package table
 
 import (
+	"errors"
 	"unicode"
 	"unicode/utf8"
 )
@@ -82,5 +83,48 @@ func splitParagraph(str string, width int) (result []string) {
 		str = str[end+nxt:]
 	}
 
+	return
+}
+
+// return the rune that splits the four regions north-west, north-east,
+// south-west and south-east as stored in the map of splitters with no error. If
+// such splitter does not exist, it returns none with an error
+func getSingleSplitter(west, east, north, south rune) (rune, error) {
+
+	// check for the existence of the west rune. In case it does not exist,
+	// return an error
+	if _, ok := splitterUTF8[west]; !ok {
+		return none, errors.New("No splitter found")
+	}
+
+	// east
+	if _, ok := splitterUTF8[west][east]; !ok {
+		return none, errors.New("No splitter found")
+	}
+
+	// north
+	if _, ok := splitterUTF8[west][east][north]; !ok {
+		return none, errors.New("No splitter found")
+	}
+
+	// south
+	if _, ok := splitterUTF8[west][east][north][south]; !ok {
+		return none, errors.New("No splitter found")
+	}
+
+	// and return the corresponding splitter which, at this point, is guaranteed
+	// to exist
+	return splitterUTF8[west][east][north][south], nil
+}
+
+// return a slice with all runes in a string
+func getRunes(s string) (runes []rune) {
+
+	// for all runes in the string
+	for _, r := range s {
+
+		// add this rune to the slice of runes to return
+		runes = append(runes, r)
+	}
 	return
 }

@@ -95,6 +95,74 @@ func NewTable(spec string) (*Table, error) {
 // Methods
 // ----------------------------------------------------------------------------
 
+// -- Private
+
+// return the full sequence of splitters of a horizontal rule with a column
+// separator. This method simply processes each rune of the separator taking
+// into account other surrounding objects of the table. If one rune in the
+// column separator has a corresponding splitter then a substitution is
+// performed; otherwise, the given horizontal rule is used.
+func (t *Table) getFullSplitter(irow, jcol int, hrule rune, sep string) (splitters string) {
+
+	// define variables for storing the runes to the west, east, north and south
+	// of each rune in the column separator
+	var west, east, north, south rune
+
+	// get all runes in the input column separator
+	runes := getRunes(sep)
+
+	// To do this it is mandatory to compute all runes to the west, east, north
+	// and south in this specific order for each rune in the separator
+	for _, irune := range runes {
+
+		// west
+		if jcol == 0 {
+			west = none
+		} else {
+			west = hrule
+		}
+
+		// east. Note that a comparison is performed with the total number of
+		// columns instead of using GetNbColumns because this fully ignores the
+		// last column when it contains no text
+		if jcol < len(t.columns)-1 {
+			east = hrule
+		} else {
+			east = none
+		}
+
+		// north. The current separator is used as both the north and south
+		// separator in case it does not fall out of bounds
+		if irow > 0 {
+			north = irune
+		} else {
+			north = none
+		}
+		if irow < t.GetNbRows()-1 {
+			south = irune
+		} else {
+			south = none
+		}
+
+		// now, use the runes surrounding this one to access the splitter to use
+		if splitter, err := getSingleSplitter(west, east, north, south); err != nil {
+
+			// otherwise, add the horizontal rule
+			splitters += string(hrule)
+		} else {
+
+			// if a correct separator was returned, then add it to the string to
+			// return
+			splitters += string(splitter)
+		}
+	}
+
+	// and return the string computed so far
+	return
+}
+
+// -- Public
+
 // Add a new line of data to the bottom of the column. This function accepts an
 // arbitrary number of arguments that satisfy the null interface. If the number
 // of elements given exceeds the number of columns of the table an error is
@@ -152,6 +220,22 @@ func (t *Table) AddRow(cells ...interface{}) error {
 	return nil
 }
 
+// Add a single horizontal rule to the table
+func (t *Table) AddSingleRule() {
+
+	// rules are internally stored as a sequence of horizontal rules, one for
+	// each column predefined in the table
+	var icells []formatter
+	for i := 0; i < t.GetNbColumns(); i++ {
+		icells = append(icells, hrule(horizontal_single))
+	}
+
+	// and now add these rules to the contents to format and also an additional
+	// row with a height always equal to one
+	t.cells = append(t.cells, icells)
+	t.rows = append(t.rows, row{height: 1})
+}
+
 // Return the number of columns in a table which contain data.
 func (t *Table) GetNbColumns() int {
 
@@ -175,38 +259,74 @@ func (t *Table) GetNbRows() int {
 // its contents into a string
 func (t Table) String() (result string) {
 
-	// for each logical row
+	// for each logical row (including the horizontal rules)
 	for i, row := range t.rows {
 
-		// and each physical line of this row
-		for line := 0; line < row.height; line++ {
+		// the type of an entire logical row is equal to the type of its first
+		// item. Thus, to distinguish rules from contents the first element of
+		// this row is checked
+		switch val := t.cells[i][0].(type) {
 
-			// and each column in this line, intentionally skipping the last one
-			// in case it has no content
-			for j := 0; j < t.GetNbColumns(); j++ {
+		case hrule:
 
-				// Process the contents of this cell
-				contents := t.cells[i][j].Process(t.columns[j])
+			// Yes, I know!! Horizontal rules only take one line but ... who
+			// knows if this changes in the future?
+			for line := 0; line < row.height; line++ {
 
-				// get the text to show in this line. If this cell has no text
-				// in the line-th line then format the empty string, otherwise,
-				// use the text in contents
-				text := ""
-				if line < len(contents) {
-					text = contents[line]
+				// now, draw the horizontal rule for each column. Note that the
+				// true number of columns is used to take into account the last
+				// one even if it has no content
+				for j := 0; j < len(t.columns); j++ {
+
+					// add to the string the splitters of this column and next
+					// the horizontal rule as stored in the table
+					result += fmt.Sprintf("%v", t.getFullSplitter(i, j, rune(val), t.columns[j].sep))
+
+					// in case this is column has a horizontal rule attached show it as well
+					if j < t.GetNbColumns() {
+
+						// this is done by repeating the horizontal rule as many
+						// times as the width of this column
+						for k := 0; k < t.columns[j].width; k++ {
+							result += fmt.Sprintf("%c", t.cells[i][j])
+						}
+					}
 				}
-
-				// and print the contents of this column in the result
-				body := content(text).Format(t.columns[j])
-				result += fmt.Sprintf("%v%v", t.columns[j].sep, body)
+				result += "\n"
 			}
 
-			// in case a last column is given with no format, then add the
-			// separator, otherwise, just simply add the newline
-			if t.columns[len(t.columns)-1].hformat.alignment == 0 {
-				result += fmt.Sprintf("%v\n", t.columns[len(t.columns)-1].sep)
-			} else {
-				result += "\n"
+		case content:
+
+			// and each physical line of this row
+			for line := 0; line < row.height; line++ {
+
+				// and each column in this line, intentionally skipping the last one
+				// in case it has no content
+				for j := 0; j < t.GetNbColumns(); j++ {
+
+					// Process the contents of this cell
+					contents := t.cells[i][j].Process(t.columns[j])
+
+					// get the text to show in this line. If this cell has no text
+					// in the line-th line then format the empty string, otherwise,
+					// use the text in contents
+					text := ""
+					if line < len(contents) {
+						text = contents[line]
+					}
+
+					// and print the contents of this column in the result
+					body := content(text).Format(t.columns[j])
+					result += fmt.Sprintf("%v%v", t.columns[j].sep, body)
+				}
+
+				// in case a last column is given with no format, then add the
+				// separator, otherwise, just simply add the newline
+				if t.columns[len(t.columns)-1].hformat.alignment == 0 {
+					result += fmt.Sprintf("%v\n", t.columns[len(t.columns)-1].sep)
+				} else {
+					result += "\n"
+				}
 			}
 		}
 	}

@@ -67,6 +67,15 @@ func TestNewTable(t *testing.T) {
 					vformat: style{alignment: 't'}}}},
 			wantError: nil},
 
+		{args: args{"l l"},
+			wantTable: &Table{columns: []column{{
+				hformat: style{alignment: 'l'},
+				vformat: style{alignment: 't'}},
+				{sep: " ",
+					hformat: style{alignment: 'l'},
+					vformat: style{alignment: 't'}}}},
+			wantError: nil},
+
 		{args: args{"| c ||| c"},
 			wantTable: &Table{columns: []column{{sep: "│ ",
 				hformat: style{alignment: 'c'},
@@ -204,6 +213,75 @@ func TestTable_GetNbColumns(t *testing.T) {
 	}
 }
 
+func TestTable_getFullSplitter(t *testing.T) {
+	type args struct {
+		irow  int
+		jcol  int
+		hrule rune
+		sep   string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+
+		// upper-left corner
+		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
+			want: ""},
+		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "│"},
+			want: "┌"},
+
+		// upper-mid edge
+		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "│"},
+			want: "┬"},
+
+		// upper-right edge
+		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "│"},
+			want: "┐"},
+
+		// right-mid edge
+		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "│"},
+			want: "├"},
+
+		// center
+		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "│"},
+			want: "┼"},
+
+		// left-mid edge
+		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "│"},
+			want: "┤"},
+
+		// bottom-left corner
+		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "│"},
+			want: "└"},
+
+		// bottom-mid edge
+		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "│"},
+			want: "┴"},
+
+		// bottom-right edge
+		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "│"},
+			want: "┘"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// Admittdely, to test these splitters, a 2x2 table is sufficient
+			// but as we are not adding horizontal rules, a 3x2 table (with
+			// vertical separators) is used instead. Importantly, the last
+			// column has no text yet it has a separator
+			tr, _ := NewTable("l|l|")
+			tr.AddRow("cell (1,1)", "cell(1, 2)")
+			tr.AddRow("cell (2,1)", "cell(2, 2)")
+			tr.AddRow("cell (3,1)", "cell(3, 2)")
+			if got := tr.getFullSplitter(tt.args.irow, tt.args.jcol, tt.args.hrule, tt.args.sep); got != tt.want {
+				t.Errorf("Table.getFullSplitter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // ----------------------------------------------------------------------------
 // Examples
 // ----------------------------------------------------------------------------
@@ -212,7 +290,7 @@ func TestTable_GetNbColumns(t *testing.T) {
 // columns
 func ExampleTable_0() {
 
-	t, err := NewTable(" l l l")
+	t, err := NewTable("l l l")
 	if err != nil {
 		log.Fatalln(" NewTable: Fatal error!")
 	}
@@ -261,6 +339,25 @@ func ExampleTable_2() {
 	t.AddRow("")
 	t.AddRow("testflag", "testing flags")
 	t.AddRow("testfunc", "testing functions")
+	fmt.Printf("%v", t)
+	// Output: ""
+}
+
+// In the next example, some rows expand over various lines. By default, these
+// are vertically aligned to the top
+func ExampleTable_3() {
+
+	t, _ := NewTable("| l | r |")
+	t.AddSingleRule()
+	t.AddRow("Country", "Population")
+	t.AddSingleRule()
+	t.AddRow("China", "1,394,015,977")
+	t.AddRow("India", "1,326,093,247")
+	t.AddRow("United States", "329,877,505")
+	t.AddRow("Indonesia", "267,026,366")
+	t.AddRow("Pakistan", "233,500,636")
+	t.AddRow("Nigeria", "214,028,302")
+	t.AddSingleRule()
 	fmt.Printf("%v", t)
 	// Output: ""
 }
