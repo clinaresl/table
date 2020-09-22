@@ -226,6 +226,8 @@ func TestTable_getFullSplitter(t *testing.T) {
 		want string
 	}{
 
+		// horizontal single / vertical single
+
 		// upper-left corner
 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
 			want: ""},
@@ -263,6 +265,86 @@ func TestTable_getFullSplitter(t *testing.T) {
 		// bottom-right edge
 		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "│"},
 			want: "┘"},
+
+		// horizontal double / vertical single
+
+		// upper-left corner
+		{args: args{irow: 0, jcol: 0, hrule: '═', sep: ""},
+			want: ""},
+		{args: args{irow: 0, jcol: 0, hrule: '═', sep: "│"},
+			want: "╒"},
+
+		// upper-mid edge
+		{args: args{irow: 0, jcol: 1, hrule: '═', sep: "│"},
+			want: "╤"},
+
+		// upper-right edge
+		{args: args{irow: 0, jcol: 2, hrule: '═', sep: "│"},
+			want: "╕"},
+
+		// right-mid edge
+		{args: args{irow: 1, jcol: 0, hrule: '═', sep: "│"},
+			want: "╞"},
+
+		// center
+		{args: args{irow: 1, jcol: 1, hrule: '═', sep: "│"},
+			want: "╪"},
+
+		// left-mid edge
+		{args: args{irow: 1, jcol: 2, hrule: '═', sep: "│"},
+			want: "╡"},
+
+		// bottom-left corner
+		{args: args{irow: 2, jcol: 0, hrule: '═', sep: "│"},
+			want: "╘"},
+
+		// bottom-mid edge
+		{args: args{irow: 2, jcol: 1, hrule: '═', sep: "│"},
+			want: "\u2567"},
+
+		// bottom-right edge
+		{args: args{irow: 2, jcol: 2, hrule: '═', sep: "│"},
+			want: "╛"},
+
+		// horizontal single / vertical double
+
+		// upper-left corner
+		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
+			want: ""},
+		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "║"},
+			want: "╓"},
+
+		// upper-mid edge
+		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "║"},
+			want: "╥"},
+
+		// upper-right edge
+		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "║"},
+			want: "╖"},
+
+		// right-mid edge
+		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "║"},
+			want: "╟"},
+
+		// center
+		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "║"},
+			want: "╫"},
+
+		// left-mid edge
+		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "║"},
+			want: "╢"},
+
+		// bottom-left corner
+		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "║"},
+			want: "╙"},
+
+		// bottom-mid edge
+		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "║"},
+			want: "\u2568"},
+
+		// bottom-right edge
+		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "║"},
+			want: "╜"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -287,7 +369,7 @@ func TestTable_getFullSplitter(t *testing.T) {
 // ----------------------------------------------------------------------------
 
 // The following example ilustrates the creation of a simple table with three
-// columns
+// columns and a single row
 func ExampleTable_0() {
 
 	t, err := NewTable("l l l")
@@ -322,6 +404,11 @@ func ExampleTable_1() {
 	// Output: ""
 }
 
+// This example shows how to use the package table to show information like in a
+// help banner. In this case, the first column contains (some of) the commands
+// of the go tool and the right one shows a comment about their usage. Note that
+// to make sure that the entire table fits in the terminal, p is used as a
+// column specifier
 func ExampleTable_2() {
 
 	t, err := NewTable("l   p{25}")
@@ -343,11 +430,11 @@ func ExampleTable_2() {
 	// Output: ""
 }
 
-// In the next example, some rows expand over various lines. By default, these
-// are vertically aligned to the top
+// The following example shows how to add single rules to various parts of a
+// table
 func ExampleTable_3() {
 
-	t, _ := NewTable("| l | r |")
+	t, _ := NewTable("| l || r |")
 	t.AddSingleRule()
 	t.AddRow("Country", "Population")
 	t.AddSingleRule()

@@ -137,7 +137,7 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 	horizontal_single: {
 		none: {
 			none: {
-				none:            '\u2500', // ─
+				none:            none,
 				vertical_single: '\u2510', // ┐
 				vertical_double: '\u2556', // ╖
 				vertical_thick:  '\u2512', // ┒
@@ -151,7 +151,7 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 			vertical_double: {
 				none:            '\u255c', // ╜
 				vertical_single: '\u2526', // ┦: north double not supported!
-				vertical_double: '\u2562', // ╢: north/south double not supported!
+				vertical_double: '\u2562', // ╢:
 				vertical_thick:  '\u2528', // ┨: north double not supported!
 			},
 			vertical_thick: {
@@ -163,7 +163,7 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 		},
 		horizontal_single: {
 			none: {
-				none:            '\u2500', // ─
+				none:            none,
 				vertical_single: '\u252c', // ┬
 				vertical_double: '\u2565', // ╥
 				vertical_thick:  '\u2530', // ┰
@@ -175,9 +175,9 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 				vertical_thick:  '\u2541', // ╁: south double not supported!
 			},
 			vertical_double: {
-				none:            '\u2568', // ⢲: SHOULD NOT BE BRAILLE!!
+				none:            '\u2568', // (cannot be shown on Emacs :( )
 				vertical_single: '\u2540', // ╀: north double not supported!
-				vertical_double: '\u2542', // ╂: north/south double not supported!
+				vertical_double: '\u256b', // ╫
 				vertical_thick:  '\u2542', // ╂: north double not supported!
 			},
 			vertical_thick: {
@@ -189,7 +189,7 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 		},
 		horizontal_double: {
 			none: {
-				none:            '\u2534', // ┴
+				none:            none,
 				vertical_single: '\u253c', // ┼
 				vertical_double: '\u2541', // ╁: south double not supported!
 				vertical_thick:  '\u2541', // ╁: south double not supported!
@@ -215,7 +215,7 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 		},
 		horizontal_thick: {
 			none: {
-				none:            '\u2534', // ┴
+				none:            none,
 				vertical_single: '\u253c', // ┼
 				vertical_double: '\u2541', // ╁: south double not supported!
 				vertical_thick:  '\u2541', // ╁: south double not supported!
@@ -237,6 +237,113 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 				vertical_single: '\u2544', // ╄
 				vertical_double: '\u254a', // ╊: south double not supported
 				vertical_thick:  '\u254a', // ╊
+			},
+		},
+	},
+
+	horizontal_double: {
+		none: {
+			none: {
+				none:            none,
+				vertical_single: '\u2555', // ╕
+				vertical_double: '\u2557', // ╗
+				vertical_thick:  '\u2513', // ┓: west double not supported!
+			},
+			vertical_single: {
+				none:            '\u255b', // ╛
+				vertical_single: '\u2561', // ╡
+				vertical_double: '\u252a', // ┪: west/south double not supported!
+				vertical_thick:  '\u252a', // ┪: west double not supported!
+			},
+			vertical_double: {
+				none:            '\u255d', // ╝
+				vertical_single: '\u2529', // ┩: west/north double not supported!
+				vertical_double: '\u2563', // ╣
+				vertical_thick:  '\u252b', // ┫: west/north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u251b', // ┛: west double not supported!
+				vertical_single: '\u2529', // ┩: west double not supported!
+				vertical_double: '\u252a', // ┪: west/south double not supported!
+				vertical_thick:  '\u252a', // ┪: west double not supported!
+			},
+		},
+		horizontal_single: {
+			none: {
+				none:            none,
+				vertical_single: '\u252d', // ┭: west double not supported!
+				vertical_double: '\u2531', // ┱: west double not supported!
+				vertical_thick:  '\u2531', // ┱: west double not supported!
+			},
+			vertical_single: {
+				none:            '\u2535', // ┵: west double not supported!
+				vertical_single: '\u253d', // ┽: west double not supported!
+				vertical_double: '\u2545', // ╅: west/south double not supported!
+				vertical_thick:  '\u2545', // ╅: west double not supported!
+			},
+			vertical_double: {
+				none:            '\u2539', // ┹: west/north double not supported!
+				vertical_single: '\u2543', // ╃: west/north double not supported!
+				vertical_double: '\u2549', // ╉: west/north/south double not supported!
+				vertical_thick:  '\u2549', // ╉: west/north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u2539', // ┹: west double not supported!
+				vertical_single: '\u2543', // ╃: west double not supported!
+				vertical_double: '\u2549', // ╉: west/south double not supported!
+				vertical_thick:  '\u2549', // ╉: west double not supported!
+			},
+		},
+		horizontal_double: {
+			none: {
+				none:            none,
+				vertical_single: '\u2564', // ╤
+				vertical_double: '\u2566', // ╦
+				vertical_thick:  '\u2533', // ┳: west/east double not supported!
+			},
+			vertical_single: {
+				none:            '\u2567', // (cannot be shown on Emacs :( )
+				vertical_single: '\u256a', // ╪
+				vertical_double: '\u2548', // ╈: west/east/south double not supported!
+				vertical_thick:  '\u2548', // ╆: west/east double not supported!
+			},
+			vertical_double: {
+				none:            '\u2569', // ╩
+				vertical_single: '\u2547', // ╇: west/east/north double not supported!
+				vertical_double: '\u256c', // ╬
+				vertical_thick:  '\u254b', // ╋: west/east/north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u253b', // ┻: west/east double not supported!
+				vertical_single: '\u2547', // ╇: west/east double not supported!
+				vertical_double: '\u254b', // ╋: west/east/south double not supported!
+				vertical_thick:  '\u254b', // ╋: west/east double not supported!
+			},
+		},
+		horizontal_thick: {
+			none: {
+				none:            none,
+				vertical_single: '\u252f', // ┯: west double not supported!
+				vertical_double: '\u2533', // ┳: west/south double not supported
+				vertical_thick:  '\u2533', // ┳: west double not supported!
+			},
+			vertical_single: {
+				none:            '\u2537', // ┷: west double not supported!
+				vertical_single: '\u253f', // ┿: west double not supported!
+				vertical_double: '\u2548', // ╈: west/south double not supported!
+				vertical_thick:  '\u2548', // ╆: west double not supported!
+			},
+			vertical_double: {
+				none:            '\u253b', // ┻: west/north double not supported!
+				vertical_single: '\u2547', // ╇: west/north double not supported!
+				vertical_double: '\u254b', // ╋: west/north/south double not supported
+				vertical_thick:  '\u254b', // ╋: west/north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u253b', // ┻: west double not supported!
+				vertical_single: '\u2547', // ╇: west double not supported!
+				vertical_double: '\u254b', // ╋: west/south double not supported!
+				vertical_thick:  '\u254b', // ╋: west double not supported!
 			},
 		},
 	},

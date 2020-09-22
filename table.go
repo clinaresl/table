@@ -236,6 +236,22 @@ func (t *Table) AddSingleRule() {
 	t.rows = append(t.rows, row{height: 1})
 }
 
+// Add a double horizontal rule to the table
+func (t *Table) AddDoubleRule() {
+
+	// rules are internally stored as a sequence of horizontal rules, one for
+	// each column predefined in the table
+	var icells []formatter
+	for i := 0; i < t.GetNbColumns(); i++ {
+		icells = append(icells, hrule(horizontal_double))
+	}
+
+	// and now add these rules to the contents to format and also an additional
+	// row with a height always equal to one
+	t.cells = append(t.cells, icells)
+	t.rows = append(t.rows, row{height: 1})
+}
+
 // Return the number of columns in a table which contain data.
 func (t *Table) GetNbColumns() int {
 
