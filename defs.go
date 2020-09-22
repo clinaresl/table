@@ -347,6 +347,113 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 			},
 		},
 	},
+
+	horizontal_thick: {
+		none: {
+			none: {
+				none:            none,
+				vertical_single: '\u2511', // ┑
+				vertical_double: '\u2513', // ┓: south double not supported!
+				vertical_thick:  '\u2513', // ┓: west double not supported!
+			},
+			vertical_single: {
+				none:            '\u2519', // ┙
+				vertical_single: '\u2525', // ┥
+				vertical_double: '\u252a', // ┪: south double not supported!
+				vertical_thick:  '\u252a', // ┪
+			},
+			vertical_double: {
+				none:            '\u251b', // ┛: north double not supported!
+				vertical_single: '\u2529', // ┩: north double not supported!
+				vertical_double: '\u252b', // ┫: north/south double not supported!
+				vertical_thick:  '\u252b', // ┫: west/north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u251b', // ┛
+				vertical_single: '\u2529', // ┩
+				vertical_double: '\u252b', // ┫: south double not supported!
+				vertical_thick:  '\u252b', // ┫
+			},
+		},
+		horizontal_single: {
+			none: {
+				none:            none,
+				vertical_single: '\u252d', // ┭
+				vertical_double: '\u2531', // ┱: south double not supported!
+				vertical_thick:  '\u2531', // ┱
+			},
+			vertical_single: {
+				none:            '\u2535', // ┵
+				vertical_single: '\u253d', // ┽
+				vertical_double: '\u2545', // ╅
+				vertical_thick:  '\u2545', // ╅
+			},
+			vertical_double: {
+				none:            '\u2539', // ┹: north double not supported!
+				vertical_single: '\u2543', // ╃: north double not supported!
+				vertical_double: '\u2549', // ╉: north/south double not supported!
+				vertical_thick:  '\u2549', // ╉: north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u2539', // ┹
+				vertical_single: '\u2543', // ╃
+				vertical_double: '\u2549', // ╉: south double not supported!
+				vertical_thick:  '\u2549', // ╉
+			},
+		},
+		horizontal_double: {
+			none: {
+				none:            none,
+				vertical_single: '\u252f', // ┯: east double not supported!
+				vertical_double: '\u2533', // ┳: east/south double not supported!
+				vertical_thick:  '\u2533', // ┳: east double not supported!
+			},
+			vertical_single: {
+				none:            '\u2537', // ┷: east double not supported!
+				vertical_single: '\u253f', // ┿: east double not supported!
+				vertical_double: '\u2548', // ╈: east/south double not supported!
+				vertical_thick:  '\u2548', // ╆: east double not supported!
+			},
+			vertical_double: {
+				none:            '\u253b', // ┻: east/north double not supported!
+				vertical_single: '\u2547', // ╇: east/north double not supported!
+				vertical_double: '\u254b', // ╋: east/north/south double not supported!
+				vertical_thick:  '\u254b', // ╋: east/north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u253b', // ┻: east double not supported!
+				vertical_single: '\u2547', // ╇: east double not supported!
+				vertical_double: '\u254b', // ╋: east/south double not supported!
+				vertical_thick:  '\u254b', // ╋: east double not supported!
+			},
+		},
+		horizontal_thick: {
+			none: {
+				none:            none,
+				vertical_single: '\u252f', // ┯
+				vertical_double: '\u2533', // ┳: south double not supported
+				vertical_thick:  '\u2533', // ┳
+			},
+			vertical_single: {
+				none:            '\u2537', // ┷
+				vertical_single: '\u253f', // ┿
+				vertical_double: '\u2548', // ╈: south double not supported!
+				vertical_thick:  '\u2548', // ╆
+			},
+			vertical_double: {
+				none:            '\u253b', // ┻: north double not supported!
+				vertical_single: '\u2547', // ╇: north double not supported!
+				vertical_double: '\u254b', // ╋: north/south double not supported
+				vertical_thick:  '\u254b', // ╋: north double not supported!
+			},
+			vertical_thick: {
+				none:            '\u253b', // ┻
+				vertical_single: '\u2547', // ╇
+				vertical_double: '\u254b', // ╋: south double not supported!
+				vertical_thick:  '\u254b', // ╋
+			},
+		},
+	},
 }
 
 // the following regexp is used to mach an entire column specification string

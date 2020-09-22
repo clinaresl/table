@@ -345,6 +345,86 @@ func TestTable_getFullSplitter(t *testing.T) {
 		// bottom-right edge
 		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "║"},
 			want: "╜"},
+
+		// horizontal thick / vertical single
+
+		// upper-left corner
+		{args: args{irow: 0, jcol: 0, hrule: '━', sep: ""},
+			want: ""},
+		{args: args{irow: 0, jcol: 0, hrule: '━', sep: "│"},
+			want: "┍"},
+
+		// upper-mid edge
+		{args: args{irow: 0, jcol: 1, hrule: '━', sep: "│"},
+			want: "┯"},
+
+		// upper-right edge
+		{args: args{irow: 0, jcol: 2, hrule: '━', sep: "│"},
+			want: "┑"},
+
+		// right-mid edge
+		{args: args{irow: 1, jcol: 0, hrule: '━', sep: "│"},
+			want: "┝"},
+
+		// center
+		{args: args{irow: 1, jcol: 1, hrule: '━', sep: "│"},
+			want: "┿"},
+
+		// left-mid edge
+		{args: args{irow: 1, jcol: 2, hrule: '━', sep: "│"},
+			want: "┥"},
+
+		// bottom-left corner
+		{args: args{irow: 2, jcol: 0, hrule: '━', sep: "│"},
+			want: "┕"},
+
+		// bottom-mid edge
+		{args: args{irow: 2, jcol: 1, hrule: '━', sep: "│"},
+			want: "┷"},
+
+		// bottom-right edge
+		{args: args{irow: 2, jcol: 2, hrule: '━', sep: "│"},
+			want: "┙"},
+
+		// horizontal single / vertical thick
+
+		// upper-left corner
+		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
+			want: ""},
+		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "┃"},
+			want: "┎"},
+
+		// upper-mid edge
+		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "┃"},
+			want: "┰"},
+
+		// upper-right edge
+		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "┃"},
+			want: "┒"},
+
+		// right-mid edge
+		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "┃"},
+			want: "┠"},
+
+		// center
+		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "┃"},
+			want: "╂"},
+
+		// left-mid edge
+		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "┃"},
+			want: "┨"},
+
+		// bottom-left corner
+		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "┃"},
+			want: "┖"},
+
+		// bottom-mid edge
+		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "┃"},
+			want: "┸"},
+
+		// bottom-right edge
+		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "┃"},
+			want: "┚"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -434,7 +514,7 @@ func ExampleTable_2() {
 // table
 func ExampleTable_3() {
 
-	t, _ := NewTable("| l || r |")
+	t, _ := NewTable("| l | r |")
 	t.AddSingleRule()
 	t.AddRow("Country", "Population")
 	t.AddSingleRule()

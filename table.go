@@ -161,6 +161,22 @@ func (t *Table) getFullSplitter(irow, jcol int, hrule rune, sep string) (splitte
 	return
 }
 
+// Add the given horizontal rule to the table
+func (t *Table) addRule(rule hrule) {
+
+	// rules are internally stored as a sequence of horizontal rules, one for
+	// each column predefined in the table
+	var icells []formatter
+	for i := 0; i < t.GetNbColumns(); i++ {
+		icells = append(icells, hrule(rule))
+	}
+
+	// and now add these rules to the contents to format and also an additional
+	// row with a height always equal to one
+	t.cells = append(t.cells, icells)
+	t.rows = append(t.rows, row{height: 1})
+}
+
 // -- Public
 
 // Add a new line of data to the bottom of the column. This function accepts an
@@ -223,33 +239,19 @@ func (t *Table) AddRow(cells ...interface{}) error {
 // Add a single horizontal rule to the table
 func (t *Table) AddSingleRule() {
 
-	// rules are internally stored as a sequence of horizontal rules, one for
-	// each column predefined in the table
-	var icells []formatter
-	for i := 0; i < t.GetNbColumns(); i++ {
-		icells = append(icells, hrule(horizontal_single))
-	}
-
-	// and now add these rules to the contents to format and also an additional
-	// row with a height always equal to one
-	t.cells = append(t.cells, icells)
-	t.rows = append(t.rows, row{height: 1})
+	t.addRule(horizontal_single)
 }
 
 // Add a double horizontal rule to the table
 func (t *Table) AddDoubleRule() {
 
-	// rules are internally stored as a sequence of horizontal rules, one for
-	// each column predefined in the table
-	var icells []formatter
-	for i := 0; i < t.GetNbColumns(); i++ {
-		icells = append(icells, hrule(horizontal_double))
-	}
+	t.addRule(horizontal_double)
+}
 
-	// and now add these rules to the contents to format and also an additional
-	// row with a height always equal to one
-	t.cells = append(t.cells, icells)
-	t.rows = append(t.rows, row{height: 1})
+// Add a thick horizontal rule to the table
+func (t *Table) AddThickRule() {
+
+	t.addRule(horizontal_thick)
 }
 
 // Return the number of columns in a table which contain data.
