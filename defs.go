@@ -36,24 +36,24 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 		none: {
 			none: {
 				// none: none,
-				vertical_single: vertical_single,
-				vertical_double: vertical_double,
-				vertical_thick:  vertical_thick,
+				vertical_single: '\u2577', // ╷
+				vertical_double: '\u257b', // ╻: double heavy down not supported!
+				vertical_thick:  '\u257b', // ╻
 			},
 			vertical_single: {
-				none:            vertical_single,
+				none:            '\u2575', // ╵,
 				vertical_single: vertical_single,
 				vertical_double: none,
 				vertical_thick:  none,
 			},
 			vertical_double: {
-				none:            vertical_double,
+				none:            '\u2579', // ╹
 				vertical_single: none,
 				vertical_double: vertical_double,
 				vertical_thick:  none,
 			},
 			vertical_thick: {
-				none:            vertical_thick,
+				none:            '\u2579', // ╹
 				vertical_single: none,
 				vertical_double: none,
 				vertical_thick:  vertical_thick,
