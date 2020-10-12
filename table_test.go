@@ -213,236 +213,328 @@ func TestTable_GetNbColumns(t *testing.T) {
 	}
 }
 
-// func TestTable_getFullSplitter(t *testing.T) {
-// 	type args struct {
-// 		irow  int
-// 		jcol  int
-// 		hrule rune
-// 		sep   string
-// 	}
-// 	tests := []struct {
-// 		name string
-// 		args args
-// 		want string
-// 	}{
+func TestTable_getFullSplitter(t *testing.T) {
+	type args struct {
+		spec       string
+		rule       rune
+		irow, jcol int
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
 
-// 		// horizontal single / vertical single
+		// Only the fully supported cases with full rules are tested. Other
+		// weird combinations that include the double rule (either horizontal or
+		// vertical) or the usage of clines is not tested
 
-// 		// upper-left corner
-// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
-// 			want: ""},
-// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "│"},
-// 			want: "┌"},
+		// horizontal single / vertical single
 
-// 		// upper-mid edge
-// 		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "│"},
-// 			want: "┬"},
+		// upper-left corner
+		{args: args{spec: "|c|c|", rule: horizontal_single, irow: 0, jcol: 0},
+			want: "┌"},
 
-// 		// upper-right edge
-// 		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "│"},
-// 			want: "┐"},
+		// upper-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_single, irow: 0, jcol: 1},
+			want: "┬"},
 
-// 		// right-mid edge
-// 		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "│"},
-// 			want: "├"},
+		// upper-right corner
+		{args: args{spec: "|c|c|", rule: horizontal_single, irow: 0, jcol: 2},
+			want: "┐"},
 
-// 		// center
-// 		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "│"},
-// 			want: "┼"},
+		// right-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_single, irow: 2, jcol: 0},
+			want: "├"},
 
-// 		// left-mid edge
-// 		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "│"},
-// 			want: "┤"},
+		// center
+		{args: args{spec: "|c|c|", rule: horizontal_single, irow: 2, jcol: 1},
+			want: "┼"},
 
-// 		// bottom-left corner
-// 		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "│"},
-// 			want: "└"},
+		// left-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_single, irow: 2, jcol: 2},
+			want: "┤"},
 
-// 		// bottom-mid edge
-// 		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "│"},
-// 			want: "┴"},
+		// bottom-left corner
+		{args: args{spec: "|c|c|", rule: horizontal_single, irow: 4, jcol: 0},
+			want: "└"},
 
-// 		// bottom-right edge
-// 		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "│"},
-// 			want: "┘"},
+		// bottom-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_single, irow: 4, jcol: 1},
+			want: "┴"},
 
-// 		// horizontal double / vertical single
+		// bottom-right corner
+		{args: args{spec: "|c|c|", rule: horizontal_single, irow: 4, jcol: 2},
+			want: "┘"},
 
-// 		// upper-left corner
-// 		{args: args{irow: 0, jcol: 0, hrule: '═', sep: ""},
-// 			want: ""},
-// 		{args: args{irow: 0, jcol: 0, hrule: '═', sep: "│"},
-// 			want: "╒"},
+		// horizontal double / vertical single
 
-// 		// upper-mid edge
-// 		{args: args{irow: 0, jcol: 1, hrule: '═', sep: "│"},
-// 			want: "╤"},
+		// upper-left corner
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 0},
+			want: "╒"},
 
-// 		// upper-right edge
-// 		{args: args{irow: 0, jcol: 2, hrule: '═', sep: "│"},
-// 			want: "╕"},
+		// upper-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 1},
+			want: "╤"},
 
-// 		// right-mid edge
-// 		{args: args{irow: 1, jcol: 0, hrule: '═', sep: "│"},
-// 			want: "╞"},
+		// upper-right corner
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 2},
+			want: "╕"},
 
-// 		// center
-// 		{args: args{irow: 1, jcol: 1, hrule: '═', sep: "│"},
-// 			want: "╪"},
+		// right-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 0},
+			want: "╞"},
 
-// 		// left-mid edge
-// 		{args: args{irow: 1, jcol: 2, hrule: '═', sep: "│"},
-// 			want: "╡"},
+		// center
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 1},
+			want: "╪"},
 
-// 		// bottom-left corner
-// 		{args: args{irow: 2, jcol: 0, hrule: '═', sep: "│"},
-// 			want: "╘"},
+		// left-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 2},
+			want: "╡"},
 
-// 		// bottom-mid edge
-// 		{args: args{irow: 2, jcol: 1, hrule: '═', sep: "│"},
-// 			want: "\u2567"},
+		// bottom-left corner
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 0},
+			want: "╘"},
 
-// 		// bottom-right edge
-// 		{args: args{irow: 2, jcol: 2, hrule: '═', sep: "│"},
-// 			want: "╛"},
+		// bottom-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 1},
+			want: "\u2567"},
 
-// 		// horizontal single / vertical double
+		// bottom-right corner
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 2},
+			want: "╛"},
 
-// 		// upper-left corner
-// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
-// 			want: ""},
-// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "║"},
-// 			want: "╓"},
+		// horizontal thick / vertical single
 
-// 		// upper-mid edge
-// 		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "║"},
-// 			want: "╥"},
+		// upper-left corner
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 0},
+			want: "┍"},
 
-// 		// upper-right edge
-// 		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "║"},
-// 			want: "╖"},
+		// upper-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 1},
+			want: "┯"},
 
-// 		// right-mid edge
-// 		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "║"},
-// 			want: "╟"},
+		// upper-right corner
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 2},
+			want: "┑"},
 
-// 		// center
-// 		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "║"},
-// 			want: "╫"},
+		// right-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 0},
+			want: "┝"},
 
-// 		// left-mid edge
-// 		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "║"},
-// 			want: "╢"},
+		// center
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 1},
+			want: "┿"},
 
-// 		// bottom-left corner
-// 		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "║"},
-// 			want: "╙"},
+		// left-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 2},
+			want: "┥"},
 
-// 		// bottom-mid edge
-// 		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "║"},
-// 			want: "\u2568"},
+		// bottom-left corner
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 0},
+			want: "┕"},
 
-// 		// bottom-right edge
-// 		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "║"},
-// 			want: "╜"},
+		// bottom-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 1},
+			want: "┷"},
 
-// 		// horizontal thick / vertical single
+		// bottom-right corner
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 2},
+			want: "┙"},
 
-// 		// upper-left corner
-// 		{args: args{irow: 0, jcol: 0, hrule: '━', sep: ""},
-// 			want: ""},
-// 		{args: args{irow: 0, jcol: 0, hrule: '━', sep: "│"},
-// 			want: "┍"},
+		// horizontal double / vertical single
 
-// 		// upper-mid edge
-// 		{args: args{irow: 0, jcol: 1, hrule: '━', sep: "│"},
-// 			want: "┯"},
+		// upper-left corner
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 0},
+			want: "╒"},
 
-// 		// upper-right edge
-// 		{args: args{irow: 0, jcol: 2, hrule: '━', sep: "│"},
-// 			want: "┑"},
+		// upper-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 1},
+			want: "╤"},
 
-// 		// right-mid edge
-// 		{args: args{irow: 1, jcol: 0, hrule: '━', sep: "│"},
-// 			want: "┝"},
+		// upper-right corner
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 2},
+			want: "╕"},
 
-// 		// center
-// 		{args: args{irow: 1, jcol: 1, hrule: '━', sep: "│"},
-// 			want: "┿"},
+		// right-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 0},
+			want: "╞"},
 
-// 		// left-mid edge
-// 		{args: args{irow: 1, jcol: 2, hrule: '━', sep: "│"},
-// 			want: "┥"},
+		// center
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 1},
+			want: "╪"},
 
-// 		// bottom-left corner
-// 		{args: args{irow: 2, jcol: 0, hrule: '━', sep: "│"},
-// 			want: "┕"},
+		// left-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 2},
+			want: "╡"},
 
-// 		// bottom-mid edge
-// 		{args: args{irow: 2, jcol: 1, hrule: '━', sep: "│"},
-// 			want: "┷"},
+		// bottom-left corner
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 0},
+			want: "╘"},
 
-// 		// bottom-right edge
-// 		{args: args{irow: 2, jcol: 2, hrule: '━', sep: "│"},
-// 			want: "┙"},
+		// bottom-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 1},
+			want: "\u2567"},
 
-// 		// horizontal single / vertical thick
+		// bottom-right corner
+		{args: args{spec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 2},
+			want: "╛"},
 
-// 		// upper-left corner
-// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
-// 			want: ""},
-// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "┃"},
-// 			want: "┎"},
+		// horizontal double / vertical double
 
-// 		// upper-mid edge
-// 		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "┃"},
-// 			want: "┰"},
+		// upper-left corner
+		{args: args{spec: "||c||c||", rule: horizontal_double, irow: 0, jcol: 0},
+			want: "╔"},
 
-// 		// upper-right edge
-// 		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "┃"},
-// 			want: "┒"},
+		// upper-mid edge
+		{args: args{spec: "||c||c||", rule: horizontal_double, irow: 0, jcol: 1},
+			want: "╦"},
 
-// 		// right-mid edge
-// 		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "┃"},
-// 			want: "┠"},
+		// upper-right corner
+		{args: args{spec: "||c||c||", rule: horizontal_double, irow: 0, jcol: 2},
+			want: "╗"},
 
-// 		// center
-// 		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "┃"},
-// 			want: "╂"},
+		// right-mid edge
+		{args: args{spec: "||c||c||", rule: horizontal_double, irow: 2, jcol: 0},
+			want: "╠"},
 
-// 		// left-mid edge
-// 		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "┃"},
-// 			want: "┨"},
+		// center
+		{args: args{spec: "||c||c||", rule: horizontal_double, irow: 2, jcol: 1},
+			want: "╬"},
 
-// 		// bottom-left corner
-// 		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "┃"},
-// 			want: "┖"},
+		// left-mid edge
+		{args: args{spec: "||c||c||", rule: horizontal_double, irow: 2, jcol: 2},
+			want: "╣"},
 
-// 		// bottom-mid edge
-// 		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "┃"},
-// 			want: "┸"},
+		// bottom-left corner
+		{args: args{spec: "||c||c||", rule: horizontal_double, irow: 4, jcol: 0},
+			want: "╚"},
 
-// 		// bottom-right edge
-// 		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "┃"},
-// 			want: "┚"},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
+		// bottom-mid edge
+		{args: args{spec: "||c||c||", rule: horizontal_double, irow: 4, jcol: 1},
+			want: "╩"},
 
-// 			// Admittdely, to test these splitters, a 2x2 table is sufficient
-// 			// but as we are not adding horizontal rules, a 3x2 table (with
-// 			// vertical separators) is used instead. Importantly, the last
-// 			// column has no text yet it has a separator
-// 			tr, _ := NewTable("l|l|")
-// 			tr.AddRow("cell (1,1)", "cell(1, 2)")
-// 			tr.AddRow("cell (2,1)", "cell(2, 2)")
-// 			tr.AddRow("cell (3,1)", "cell(3, 2)")
-// 			if got := tr.getFullSplitter(tt.args.irow, tt.args.jcol, tt.args.hrule, tt.args.sep); got != tt.want {
-// 				t.Errorf("Table.getFullSplitter() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
+		// bottom-right corner
+		{args: args{spec: "||c||c||", rule: horizontal_double, irow: 4, jcol: 2},
+			want: "╝"},
+
+		// horizontal thick / vertical single
+
+		// upper-left corner
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 0},
+			want: "┍"},
+
+		// upper-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 1},
+			want: "┯"},
+
+		// upper-right corner
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 2},
+			want: "┑"},
+
+		// right-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 0},
+			want: "┝"},
+
+		// center
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 1},
+			want: "┿"},
+
+		// left-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 2},
+			want: "┥"},
+
+		// bottom-left corner
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 0},
+			want: "┕"},
+
+		// bottom-mid edge
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 1},
+			want: "┷"},
+
+		// bottom-right corner
+		{args: args{spec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 2},
+			want: "┙"},
+
+		// horizontal thick / vertical thick
+
+		// upper-left corner
+		{args: args{spec: "|||c|||c|||", rule: horizontal_thick, irow: 0, jcol: 0},
+			want: "┏"},
+
+		// upper-mid edge
+		{args: args{spec: "|||c|||c|||", rule: horizontal_thick, irow: 0, jcol: 1},
+			want: "┳"},
+
+		// upper-right corner
+		{args: args{spec: "|||c|||c|||", rule: horizontal_thick, irow: 0, jcol: 2},
+			want: "┓"},
+
+		// right-mid edge
+		{args: args{spec: "|||c|||c|||", rule: horizontal_thick, irow: 2, jcol: 0},
+			want: "┣"},
+
+		// center
+		{args: args{spec: "|||c|||c|||", rule: horizontal_thick, irow: 2, jcol: 1},
+			want: "╋"},
+
+		// left-mid edge
+		{args: args{spec: "|||c|||c|||", rule: horizontal_thick, irow: 2, jcol: 2},
+			want: "┫"},
+
+		// bottom-left corner
+		{args: args{spec: "|||c|||c|||", rule: horizontal_thick, irow: 4, jcol: 0},
+			want: "┗"},
+
+		// bottom-mid edge
+		{args: args{spec: "|||c|||c|||", rule: horizontal_thick, irow: 4, jcol: 1},
+			want: "┻"},
+
+		// bottom-right corner
+		{args: args{spec: "|||c|||c|||", rule: horizontal_thick, irow: 4, jcol: 2},
+			want: "┛"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// A 2x2 table (which contains all cases of splitters) is created
+			// with the given specification and the different splitters are
+			// tested at the locations given in every test case. For this, rules
+			// are added to all locations of the type given in the test case
+			tr, _ := NewTable(tt.args.spec)
+			switch tt.args.rule {
+			case horizontal_single:
+				tr.AddSingleRule()
+			case horizontal_double:
+				tr.AddDoubleRule()
+			case horizontal_thick:
+				tr.AddThickRule()
+			}
+			tr.AddRow("cell (1,1)", "cell(1, 2)")
+			switch tt.args.rule {
+			case horizontal_single:
+				tr.AddSingleRule()
+			case horizontal_double:
+				tr.AddDoubleRule()
+			case horizontal_thick:
+				tr.AddThickRule()
+			}
+			tr.AddRow("cell (2,1)", "cell(2, 2)")
+			switch tt.args.rule {
+			case horizontal_single:
+				tr.AddSingleRule()
+			case horizontal_double:
+				tr.AddDoubleRule()
+			case horizontal_thick:
+				tr.AddThickRule()
+			}
+			if got := tr.getFullSplitter(tt.args.irow, tt.args.jcol); got != tt.want {
+				t.Errorf("Table.getFullSplitter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
 // ----------------------------------------------------------------------------
 // Examples

@@ -37,7 +37,7 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 			none: {
 				// none: none,
 				vertical_single: '\u2577', // ╷
-				vertical_double: '\u257b', // ╻: double heavy down not supported!
+				vertical_double: '\u257b', // ╻: double half down not supported!
 				vertical_thick:  '\u257b', // ╻
 			},
 			vertical_single: {
@@ -47,7 +47,7 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 				vertical_thick:  none,
 			},
 			vertical_double: {
-				none:            '\u2579', // ╹
+				none:            '\u2579', // ╹: double half down not supported!
 				vertical_single: none,
 				vertical_double: vertical_double,
 				vertical_thick:  none,
