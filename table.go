@@ -102,31 +102,59 @@ func NewTable(spec string) (*Table, error) {
 // into account other surrounding objects of the table. If one rune in the
 // column separator has a corresponding splitter then a substitution is
 // performed; otherwise, the given horizontal rule is used.
-func (t *Table) getFullSplitter(irow, jcol int, hrule rune, sep string) (splitters string) {
+func (t *Table) getFullSplitter(irow, jcol int) (splitters string) {
 
 	// define variables for storing the runes to the west, east, north and south
 	// of each rune in the column separator
 	var west, east, north, south rune
 
-	// get all runes in the input column separator
-	runes := getRunes(sep)
+	// get the separator to process which is the one given in the j-th column
+	sep := t.columns[jcol].sep
+
+	// the following value should be equal to -1 if we have not found a vertical
+	// separator yet and 0 otherwise. It is used to decide what horizontal rule
+	// to use (either the one from the preceding the column or the one following
+	// immediately after) in case a rune found in the separator has to be
+	// substituted
+	offset := -1
+
+	// in addition, it is necessary to consider that the last column introduces
+	// an asymmetry which comes from the fact that it might contain or not a
+	// vertical separator (in spite of it containing data or not). If no
+	// vertical separator is present, then runes in the separator should be
+	// substituted by them if no splitter is found; otherwise, the horizontal
+	// separator used in the preceding column should be used instead
+	hasVerticalSeparator := containsVerticalSeparator(sep)
 
 	// To do this it is mandatory to compute all runes to the west, east, north
 	// and south in this specific order for each rune in the separator
-	for _, irune := range runes {
+	for _, irune := range getRunes(sep) {
+
+		// in case this rune is a vertical separator then make sure the offset
+		// is 0. Note that if the string used in the separator contains more
+		// than one vertical separator, the next column is considered
+		// immediately after the first vertical separator, in spite of the
+		// number of them
+		if isVerticalSeparator(irune) && offset == -1 {
+			offset = 0
+		}
 
 		// west
 		if jcol == 0 {
 			west = none
 		} else {
-			west = hrule
+			west = rune(t.cells[irow][jcol-1].(hrule))
+			if west == horizontal_blank {
+				west = none
+			}
 		}
 
-		// east. Note that a comparison is performed with the total number of
-		// columns instead of using GetNbColumns because this fully ignores the
-		// last column when it contains no text
-		if jcol < len(t.columns)-1 {
-			east = hrule
+		// east
+		if jcol < t.GetNbColumns() {
+			east = rune(t.cells[irow][jcol].(hrule))
+			if east == horizontal_blank {
+				east = none
+			}
 		} else {
 			east = none
 		}
@@ -135,11 +163,17 @@ func (t *Table) getFullSplitter(irow, jcol int, hrule rune, sep string) (splitte
 		// separator in case it does not fall out of bounds
 		if irow > 0 {
 			north = irune
+			// if north == horizontal_blank {
+			// 	north = none
+			// }
 		} else {
 			north = none
 		}
 		if irow < t.GetNbRows()-1 {
 			south = irune
+			// if south == horizontal_blank {
+			// 	south = none
+			// }
 		} else {
 			south = none
 		}
@@ -147,8 +181,20 @@ func (t *Table) getFullSplitter(irow, jcol int, hrule rune, sep string) (splitte
 		// now, use the runes surrounding this one to access the splitter to use
 		if splitter, err := getSingleSplitter(west, east, north, south); err != nil {
 
-			// otherwise, add the horizontal rule
-			splitters += string(hrule)
+			// if it turns out that no splitter is known for this combination of
+			// the west, east, north and south runes, then substitute it
+			// properly. In general, the rune used instead is the one used in
+			// the horizontal rule of either the preceding or next column
+			// (depending whether a vertical separator has been processed yet).
+			// Obviously, if the rune currently in process appears either before
+			// or after the table then use it instead for the substitution
+			if (offset == -1 && jcol == 0) ||
+				(jcol == len(t.columns)-1 &&
+					(!hasVerticalSeparator || offset == 0)) {
+				splitters += string(irune)
+			} else {
+				splitters += string(rune(t.cells[irow][jcol+offset].(hrule)))
+			}
 		} else {
 
 			// if a correct separator was returned, then add it to the string to
@@ -161,20 +207,56 @@ func (t *Table) getFullSplitter(irow, jcol int, hrule rune, sep string) (splitte
 	return
 }
 
-// Add the given horizontal rule to the table
-func (t *Table) addRule(rule hrule) {
+// Add the given horizontal rule to the table from a start column to and end
+// column. Any number of pairs (start, end) can be given. If no column is given,
+// the horizontal rule takes the entire width of the table. If the end column of
+// a pair goes beyond the width of the table, the horizontal rule is drawn up to
+// the last column
+//
+// In case it is not possible to process the given specification an informative
+// error is returned
+func (t *Table) addRule(rule hrule, cols ...int) error {
+
+	// obviously, the number of columns should be an even number
+	if len(cols)%2 != 0 {
+		return errors.New("An even number of columns must be given when adding a horizontal rule")
+	}
+
+	// if no columns are given, then take the entire width of the table
+	if len(cols) == 0 {
+		cols = []int{0, len(t.columns)}
+	}
 
 	// rules are internally stored as a sequence of horizontal rules, one for
-	// each column predefined in the table
+	// each column predefined in the table. First, make the horizontal rule to
+	// contain the blank
 	var icells []formatter
 	for i := 0; i < t.GetNbColumns(); i++ {
-		icells = append(icells, hrule(rule))
+		icells = append(icells, hrule(horizontal_blank))
+	}
+
+	// next, overwrite only those columns that are within a pair (start, end)
+	for i := 0; i < len(cols); i += 2 {
+
+		// if the end column is strictly less than the start column then return
+		// an error
+		if cols[i] > cols[i+1] {
+			return errors.New("The end column of a horizontal rule should be strictly larger or equal than the start column")
+		}
+
+		// and now update the horizontal rule of the columns between the start and end only
+		for j := cols[i]; j < cols[i+1] && j < t.GetNbColumns(); j++ {
+			icells[j] = rule
+		}
 	}
 
 	// and now add these rules to the contents to format and also an additional
 	// row with a height always equal to one
 	t.cells = append(t.cells, icells)
 	t.rows = append(t.rows, row{height: 1})
+
+	// and return no error
+	return nil
 }
 
 // -- Public
@@ -236,22 +318,37 @@ func (t *Table) AddRow(cells ...interface{}) error {
 	return nil
 }
 
-// Add a single horizontal rule to the table
-func (t *Table) AddSingleRule() {
+// Add a single horizontal rule to the table from a start column to and end
+// column. Any number of pairs (start, end) can be given. If no column is given,
+// the horizontal rule takes the entire width of the table.
+//
+// In case it is not possible to process the given specification an informative
+// error is returned
+func (t *Table) AddSingleRule(cols ...int) error {
 
-	t.addRule(horizontal_single)
+	return t.addRule(horizontal_single, cols...)
 }
 
-// Add a double horizontal rule to the table
-func (t *Table) AddDoubleRule() {
+// Add a double horizontal rule to the table from a start column to and end
+// column. Any number of pairs (start, end) can be given. If no column is given,
+// the horizontal rule takes the entire width of the table.
+//
+// In case it is not possible to process the given specification an informative
+// error is returned
+func (t *Table) AddDoubleRule(cols ...int) error {
 
-	t.addRule(horizontal_double)
+	return t.addRule(horizontal_double, cols...)
 }
 
-// Add a thick horizontal rule to the table
-func (t *Table) AddThickRule() {
+// Add a thick horizontal rule to the table from a start column to and end
+// column. Any number of pairs (start, end) can be given. If no column is given,
+// the horizontal rule takes the entire width of the table.
+//
+// In case it is not possible to process the given specification an informative
+// error is returned
+func (t *Table) AddThickRule(cols ...int) error {
 
-	t.addRule(horizontal_thick)
+	return t.addRule(horizontal_thick, cols...)
 }
 
 // Return the number of columns in a table which contain data.
@@ -283,7 +380,7 @@ func (t Table) String() (result string) {
 		// the type of an entire logical row is equal to the type of its first
 		// item. Thus, to distinguish rules from contents the first element of
 		// this row is checked
-		switch val := t.cells[i][0].(type) {
+		switch t.cells[i][0].(type) {
 
 		case hrule:
 
@@ -298,7 +395,7 @@ func (t Table) String() (result string) {
 
 					// add to the string the splitters of this column and next
 					// the horizontal rule as stored in the table
-					result += fmt.Sprintf("%v", t.getFullSplitter(i, j, rune(val), t.columns[j].sep))
+					result += fmt.Sprintf("%v", t.getFullSplitter(i, j))
 
 					// in case this is column has a horizontal rule attached show it as well
 					if j < t.GetNbColumns() {

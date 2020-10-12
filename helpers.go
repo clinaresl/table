@@ -17,6 +17,29 @@ func max(n, m int) int {
 	return m
 }
 
+// return true if and only if the given rune is recognized as a vertical
+// separator as defined in this package and false otherwise
+func isVerticalSeparator(r rune) bool {
+	return r == '│' || r == '║' || r == '┃'
+}
+
+// return true if and only if the given string contains a vertical separator as
+// defined in this package and false otherwise
+func containsVerticalSeparator(sep string) bool {
+
+	// for each rune in the given string
+	for _, r := range sep {
+
+		// if this rune is a vertical separator then return true immediately
+		if isVerticalSeparator(r) {
+			return true
+		}
+	}
+
+	// otherwise, return false
+	return false
+}
+
 // the following function returns a slice of strings with the same contents than
 // the input string (with some spaces removed) such that the length of each
 // string is the larger one less or equal than the given width

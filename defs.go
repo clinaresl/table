@@ -9,6 +9,7 @@ package table
 
 const none = 0
 
+const horizontal_blank = ' '
 const horizontal_single = '\u2500' // ─
 const horizontal_double = '\u2550' // ═
 const horizontal_thick = '\u2501'  // ━
@@ -25,33 +26,37 @@ const vertical_thick = '\u2503'  // ┃
 //        south
 //
 // this creates an association of ASCII/UTF-8 characters defined by hand below.
+//
+// note that some combinations below are commented out. This is important as
+// those combinations which are not recognized are then properly substituted by
+// the algorithm.
 var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 
 	none: {
 		none: {
 			none: {
-				none:            none,
-				vertical_single: none,
-				vertical_double: none,
-				vertical_thick:  none,
+				// none: none,
+				vertical_single: vertical_single,
+				vertical_double: vertical_double,
+				vertical_thick:  vertical_thick,
 			},
 			vertical_single: {
-				none:            none,
-				vertical_single: none,
+				none:            vertical_single,
+				vertical_single: vertical_single,
 				vertical_double: none,
 				vertical_thick:  none,
 			},
 			vertical_double: {
-				none:            none,
+				none:            vertical_double,
 				vertical_single: none,
-				vertical_double: none,
+				vertical_double: vertical_double,
 				vertical_thick:  none,
 			},
 			vertical_thick: {
-				none:            none,
+				none:            vertical_thick,
 				vertical_single: none,
 				vertical_double: none,
-				vertical_thick:  none,
+				vertical_thick:  vertical_thick,
 			},
 		},
 		horizontal_single: {
@@ -265,7 +270,7 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 				none:            '\u251b', // ┛: west double not supported!
 				vertical_single: '\u2529', // ┩: west double not supported!
 				vertical_double: '\u252a', // ┪: west/south double not supported!
-				vertical_thick:  '\u252a', // ┪: west double not supported!
+				vertical_thick:  '\u252b', // ┫: west double not supported!
 			},
 		},
 		horizontal_single: {
@@ -429,7 +434,7 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 		},
 		horizontal_thick: {
 			none: {
-				none:            none,
+				none:            horizontal_thick,
 				vertical_single: '\u252f', // ┯
 				vertical_double: '\u2533', // ┳: south double not supported
 				vertical_thick:  '\u2533', // ┳

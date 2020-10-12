@@ -213,236 +213,236 @@ func TestTable_GetNbColumns(t *testing.T) {
 	}
 }
 
-func TestTable_getFullSplitter(t *testing.T) {
-	type args struct {
-		irow  int
-		jcol  int
-		hrule rune
-		sep   string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
+// func TestTable_getFullSplitter(t *testing.T) {
+// 	type args struct {
+// 		irow  int
+// 		jcol  int
+// 		hrule rune
+// 		sep   string
+// 	}
+// 	tests := []struct {
+// 		name string
+// 		args args
+// 		want string
+// 	}{
 
-		// horizontal single / vertical single
+// 		// horizontal single / vertical single
 
-		// upper-left corner
-		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
-			want: ""},
-		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "│"},
-			want: "┌"},
+// 		// upper-left corner
+// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
+// 			want: ""},
+// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "│"},
+// 			want: "┌"},
 
-		// upper-mid edge
-		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "│"},
-			want: "┬"},
+// 		// upper-mid edge
+// 		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "│"},
+// 			want: "┬"},
 
-		// upper-right edge
-		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "│"},
-			want: "┐"},
+// 		// upper-right edge
+// 		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "│"},
+// 			want: "┐"},
 
-		// right-mid edge
-		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "│"},
-			want: "├"},
+// 		// right-mid edge
+// 		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "│"},
+// 			want: "├"},
 
-		// center
-		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "│"},
-			want: "┼"},
+// 		// center
+// 		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "│"},
+// 			want: "┼"},
 
-		// left-mid edge
-		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "│"},
-			want: "┤"},
+// 		// left-mid edge
+// 		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "│"},
+// 			want: "┤"},
 
-		// bottom-left corner
-		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "│"},
-			want: "└"},
+// 		// bottom-left corner
+// 		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "│"},
+// 			want: "└"},
 
-		// bottom-mid edge
-		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "│"},
-			want: "┴"},
+// 		// bottom-mid edge
+// 		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "│"},
+// 			want: "┴"},
 
-		// bottom-right edge
-		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "│"},
-			want: "┘"},
+// 		// bottom-right edge
+// 		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "│"},
+// 			want: "┘"},
 
-		// horizontal double / vertical single
+// 		// horizontal double / vertical single
 
-		// upper-left corner
-		{args: args{irow: 0, jcol: 0, hrule: '═', sep: ""},
-			want: ""},
-		{args: args{irow: 0, jcol: 0, hrule: '═', sep: "│"},
-			want: "╒"},
+// 		// upper-left corner
+// 		{args: args{irow: 0, jcol: 0, hrule: '═', sep: ""},
+// 			want: ""},
+// 		{args: args{irow: 0, jcol: 0, hrule: '═', sep: "│"},
+// 			want: "╒"},
 
-		// upper-mid edge
-		{args: args{irow: 0, jcol: 1, hrule: '═', sep: "│"},
-			want: "╤"},
+// 		// upper-mid edge
+// 		{args: args{irow: 0, jcol: 1, hrule: '═', sep: "│"},
+// 			want: "╤"},
 
-		// upper-right edge
-		{args: args{irow: 0, jcol: 2, hrule: '═', sep: "│"},
-			want: "╕"},
+// 		// upper-right edge
+// 		{args: args{irow: 0, jcol: 2, hrule: '═', sep: "│"},
+// 			want: "╕"},
 
-		// right-mid edge
-		{args: args{irow: 1, jcol: 0, hrule: '═', sep: "│"},
-			want: "╞"},
+// 		// right-mid edge
+// 		{args: args{irow: 1, jcol: 0, hrule: '═', sep: "│"},
+// 			want: "╞"},
 
-		// center
-		{args: args{irow: 1, jcol: 1, hrule: '═', sep: "│"},
-			want: "╪"},
+// 		// center
+// 		{args: args{irow: 1, jcol: 1, hrule: '═', sep: "│"},
+// 			want: "╪"},
 
-		// left-mid edge
-		{args: args{irow: 1, jcol: 2, hrule: '═', sep: "│"},
-			want: "╡"},
+// 		// left-mid edge
+// 		{args: args{irow: 1, jcol: 2, hrule: '═', sep: "│"},
+// 			want: "╡"},
 
-		// bottom-left corner
-		{args: args{irow: 2, jcol: 0, hrule: '═', sep: "│"},
-			want: "╘"},
+// 		// bottom-left corner
+// 		{args: args{irow: 2, jcol: 0, hrule: '═', sep: "│"},
+// 			want: "╘"},
 
-		// bottom-mid edge
-		{args: args{irow: 2, jcol: 1, hrule: '═', sep: "│"},
-			want: "\u2567"},
+// 		// bottom-mid edge
+// 		{args: args{irow: 2, jcol: 1, hrule: '═', sep: "│"},
+// 			want: "\u2567"},
 
-		// bottom-right edge
-		{args: args{irow: 2, jcol: 2, hrule: '═', sep: "│"},
-			want: "╛"},
+// 		// bottom-right edge
+// 		{args: args{irow: 2, jcol: 2, hrule: '═', sep: "│"},
+// 			want: "╛"},
 
-		// horizontal single / vertical double
+// 		// horizontal single / vertical double
 
-		// upper-left corner
-		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
-			want: ""},
-		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "║"},
-			want: "╓"},
+// 		// upper-left corner
+// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
+// 			want: ""},
+// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "║"},
+// 			want: "╓"},
 
-		// upper-mid edge
-		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "║"},
-			want: "╥"},
+// 		// upper-mid edge
+// 		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "║"},
+// 			want: "╥"},
 
-		// upper-right edge
-		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "║"},
-			want: "╖"},
+// 		// upper-right edge
+// 		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "║"},
+// 			want: "╖"},
 
-		// right-mid edge
-		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "║"},
-			want: "╟"},
+// 		// right-mid edge
+// 		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "║"},
+// 			want: "╟"},
 
-		// center
-		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "║"},
-			want: "╫"},
+// 		// center
+// 		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "║"},
+// 			want: "╫"},
 
-		// left-mid edge
-		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "║"},
-			want: "╢"},
+// 		// left-mid edge
+// 		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "║"},
+// 			want: "╢"},
 
-		// bottom-left corner
-		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "║"},
-			want: "╙"},
+// 		// bottom-left corner
+// 		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "║"},
+// 			want: "╙"},
 
-		// bottom-mid edge
-		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "║"},
-			want: "\u2568"},
+// 		// bottom-mid edge
+// 		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "║"},
+// 			want: "\u2568"},
 
-		// bottom-right edge
-		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "║"},
-			want: "╜"},
+// 		// bottom-right edge
+// 		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "║"},
+// 			want: "╜"},
 
-		// horizontal thick / vertical single
+// 		// horizontal thick / vertical single
 
-		// upper-left corner
-		{args: args{irow: 0, jcol: 0, hrule: '━', sep: ""},
-			want: ""},
-		{args: args{irow: 0, jcol: 0, hrule: '━', sep: "│"},
-			want: "┍"},
+// 		// upper-left corner
+// 		{args: args{irow: 0, jcol: 0, hrule: '━', sep: ""},
+// 			want: ""},
+// 		{args: args{irow: 0, jcol: 0, hrule: '━', sep: "│"},
+// 			want: "┍"},
 
-		// upper-mid edge
-		{args: args{irow: 0, jcol: 1, hrule: '━', sep: "│"},
-			want: "┯"},
+// 		// upper-mid edge
+// 		{args: args{irow: 0, jcol: 1, hrule: '━', sep: "│"},
+// 			want: "┯"},
 
-		// upper-right edge
-		{args: args{irow: 0, jcol: 2, hrule: '━', sep: "│"},
-			want: "┑"},
+// 		// upper-right edge
+// 		{args: args{irow: 0, jcol: 2, hrule: '━', sep: "│"},
+// 			want: "┑"},
 
-		// right-mid edge
-		{args: args{irow: 1, jcol: 0, hrule: '━', sep: "│"},
-			want: "┝"},
+// 		// right-mid edge
+// 		{args: args{irow: 1, jcol: 0, hrule: '━', sep: "│"},
+// 			want: "┝"},
 
-		// center
-		{args: args{irow: 1, jcol: 1, hrule: '━', sep: "│"},
-			want: "┿"},
+// 		// center
+// 		{args: args{irow: 1, jcol: 1, hrule: '━', sep: "│"},
+// 			want: "┿"},
 
-		// left-mid edge
-		{args: args{irow: 1, jcol: 2, hrule: '━', sep: "│"},
-			want: "┥"},
+// 		// left-mid edge
+// 		{args: args{irow: 1, jcol: 2, hrule: '━', sep: "│"},
+// 			want: "┥"},
 
-		// bottom-left corner
-		{args: args{irow: 2, jcol: 0, hrule: '━', sep: "│"},
-			want: "┕"},
+// 		// bottom-left corner
+// 		{args: args{irow: 2, jcol: 0, hrule: '━', sep: "│"},
+// 			want: "┕"},
 
-		// bottom-mid edge
-		{args: args{irow: 2, jcol: 1, hrule: '━', sep: "│"},
-			want: "┷"},
+// 		// bottom-mid edge
+// 		{args: args{irow: 2, jcol: 1, hrule: '━', sep: "│"},
+// 			want: "┷"},
 
-		// bottom-right edge
-		{args: args{irow: 2, jcol: 2, hrule: '━', sep: "│"},
-			want: "┙"},
+// 		// bottom-right edge
+// 		{args: args{irow: 2, jcol: 2, hrule: '━', sep: "│"},
+// 			want: "┙"},
 
-		// horizontal single / vertical thick
+// 		// horizontal single / vertical thick
 
-		// upper-left corner
-		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
-			want: ""},
-		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "┃"},
-			want: "┎"},
+// 		// upper-left corner
+// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: ""},
+// 			want: ""},
+// 		{args: args{irow: 0, jcol: 0, hrule: '─', sep: "┃"},
+// 			want: "┎"},
 
-		// upper-mid edge
-		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "┃"},
-			want: "┰"},
+// 		// upper-mid edge
+// 		{args: args{irow: 0, jcol: 1, hrule: '─', sep: "┃"},
+// 			want: "┰"},
 
-		// upper-right edge
-		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "┃"},
-			want: "┒"},
+// 		// upper-right edge
+// 		{args: args{irow: 0, jcol: 2, hrule: '─', sep: "┃"},
+// 			want: "┒"},
 
-		// right-mid edge
-		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "┃"},
-			want: "┠"},
+// 		// right-mid edge
+// 		{args: args{irow: 1, jcol: 0, hrule: '─', sep: "┃"},
+// 			want: "┠"},
 
-		// center
-		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "┃"},
-			want: "╂"},
+// 		// center
+// 		{args: args{irow: 1, jcol: 1, hrule: '─', sep: "┃"},
+// 			want: "╂"},
 
-		// left-mid edge
-		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "┃"},
-			want: "┨"},
+// 		// left-mid edge
+// 		{args: args{irow: 1, jcol: 2, hrule: '─', sep: "┃"},
+// 			want: "┨"},
 
-		// bottom-left corner
-		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "┃"},
-			want: "┖"},
+// 		// bottom-left corner
+// 		{args: args{irow: 2, jcol: 0, hrule: '─', sep: "┃"},
+// 			want: "┖"},
 
-		// bottom-mid edge
-		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "┃"},
-			want: "┸"},
+// 		// bottom-mid edge
+// 		{args: args{irow: 2, jcol: 1, hrule: '─', sep: "┃"},
+// 			want: "┸"},
 
-		// bottom-right edge
-		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "┃"},
-			want: "┚"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+// 		// bottom-right edge
+// 		{args: args{irow: 2, jcol: 2, hrule: '─', sep: "┃"},
+// 			want: "┚"},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
 
-			// Admittdely, to test these splitters, a 2x2 table is sufficient
-			// but as we are not adding horizontal rules, a 3x2 table (with
-			// vertical separators) is used instead. Importantly, the last
-			// column has no text yet it has a separator
-			tr, _ := NewTable("l|l|")
-			tr.AddRow("cell (1,1)", "cell(1, 2)")
-			tr.AddRow("cell (2,1)", "cell(2, 2)")
-			tr.AddRow("cell (3,1)", "cell(3, 2)")
-			if got := tr.getFullSplitter(tt.args.irow, tt.args.jcol, tt.args.hrule, tt.args.sep); got != tt.want {
-				t.Errorf("Table.getFullSplitter() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
+// 			// Admittdely, to test these splitters, a 2x2 table is sufficient
+// 			// but as we are not adding horizontal rules, a 3x2 table (with
+// 			// vertical separators) is used instead. Importantly, the last
+// 			// column has no text yet it has a separator
+// 			tr, _ := NewTable("l|l|")
+// 			tr.AddRow("cell (1,1)", "cell(1, 2)")
+// 			tr.AddRow("cell (2,1)", "cell(2, 2)")
+// 			tr.AddRow("cell (3,1)", "cell(3, 2)")
+// 			if got := tr.getFullSplitter(tt.args.irow, tt.args.jcol, tt.args.hrule, tt.args.sep); got != tt.want {
+// 				t.Errorf("Table.getFullSplitter() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }
 
 // ----------------------------------------------------------------------------
 // Examples
@@ -480,7 +480,7 @@ func ExampleTable_1() {
 	if err != nil {
 		log.Fatalln(" AddRow: Fatal error!")
 	}
-	fmt.Printf("%v", t)
+	fmt.Printf("Output:\n%v", t)
 	// Output: ""
 }
 
@@ -506,7 +506,7 @@ func ExampleTable_2() {
 	t.AddRow("")
 	t.AddRow("testflag", "testing flags")
 	t.AddRow("testfunc", "testing functions")
-	fmt.Printf("%v", t)
+	fmt.Printf("Output:\n%v", t)
 	// Output: ""
 }
 
@@ -514,8 +514,8 @@ func ExampleTable_2() {
 // table
 func ExampleTable_3() {
 
-	t, _ := NewTable("| l | r |")
-	t.AddSingleRule()
+	t, _ := NewTable("> * l | r * <")
+	t.AddThickRule()
 	t.AddRow("Country", "Population")
 	t.AddSingleRule()
 	t.AddRow("China", "1,394,015,977")
@@ -524,7 +524,185 @@ func ExampleTable_3() {
 	t.AddRow("Indonesia", "267,026,366")
 	t.AddRow("Pakistan", "233,500,636")
 	t.AddRow("Nigeria", "214,028,302")
-	t.AddSingleRule()
-	fmt.Printf("%v", t)
+	t.AddThickRule()
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+// Horizontal rules can also be drawn from one specific column to another and it
+// is possible to draw as many segments in the same line as required.
+func ExampleTable_4() {
+
+	t, _ := NewTable("|c|c|c|c|c|")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+// This example is symmetrical to the previous one
+func ExampleTable_5() {
+
+	t, _ := NewTable("|c|c|c|c|c|")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+// ----------------------------------------------------------------------------
+func ExampleTable_6() {
+
+	t, _ := NewTable("||c||c||c||c||c||")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+func ExampleTable_7() {
+
+	t, _ := NewTable("||c||c||c||c||c||")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+// ----------------------------------------------------------------------------
+func ExampleTable_8() {
+
+	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+func ExampleTable_9() {
+
+	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+// Horizontal rules can also be drawn from one specific column to another and it
+// is possible to draw as many segments in the same line as required.
+func ExampleTable_10() {
+
+	t, _ := NewTable("|c|c|c|c|c|")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+// This example is symmetrical to the previous one
+func ExampleTable_11() {
+
+	t, _ := NewTable("|c|c|c|c|c|")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+// ----------------------------------------------------------------------------
+func ExampleTable_12() {
+
+	t, _ := NewTable("||c||c||c||c||c||")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+func ExampleTable_13() {
+
+	t, _ := NewTable("||c||c||c||c||c||")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+// ----------------------------------------------------------------------------
+func ExampleTable_14() {
+
+	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
+func ExampleTable_15() {
+
+	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
 	// Output: ""
 }
