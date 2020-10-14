@@ -14,7 +14,7 @@ import (
 
 func TestNewTable(t *testing.T) {
 	type args struct {
-		spec string
+		colspec, rowspec string
 	}
 	tests := []struct {
 		name      string
@@ -24,42 +24,52 @@ func TestNewTable(t *testing.T) {
 	}{
 
 		// invalid column specifications
-		{args: args{""},
+		{args: args{"", ""},
 			wantTable: &Table{},
 			wantError: errors.New("invalid column specification")},
 
-		{args: args{"|"},
+		{args: args{"|", ""},
 			wantTable: &Table{},
 			wantError: errors.New("invalid column specification")},
+
+		{args: args{"c", "bb"},
+			wantTable: &Table{},
+			wantError: errors.New("The number of columns given in the row specification (2) must be less or equal than 1, the number of columns given in the column specification")},
+
+		{args: args{"c", "x"},
+			wantTable: &Table{},
+			wantError: errors.New("'x' is an incorrect vertical format")},
 
 		// correct column specifications
-		{args: args{"c"},
+
+		// horizontal style / no vertical style
+		{args: args{"c", ""},
 			wantTable: &Table{columns: []column{{hformat: style{alignment: 'c'},
 				vformat: style{alignment: 't'}}}},
 			wantError: nil},
 
-		{args: args{"l"},
+		{args: args{"l", ""},
 			wantTable: &Table{columns: []column{{hformat: style{alignment: 'l'},
 				vformat: style{alignment: 't'}}}},
 			wantError: nil},
 
-		{args: args{"r"},
+		{args: args{"r", ""},
 			wantTable: &Table{columns: []column{{hformat: style{alignment: 'r'},
 				vformat: style{alignment: 't'}}}},
 			wantError: nil},
 
-		{args: args{"p{10}"},
+		{args: args{"p{10}", ""},
 			wantTable: &Table{columns: []column{{hformat: style{alignment: 'p', arg: 10},
 				vformat: style{alignment: 't'}}}},
 			wantError: nil},
 
-		{args: args{"|c"},
+		{args: args{"|c", ""},
 			wantTable: &Table{columns: []column{{sep: "│",
 				hformat: style{alignment: 'c'},
 				vformat: style{alignment: 't'}}}},
 			wantError: nil},
 
-		{args: args{"cc"},
+		{args: args{"cc", ""},
 			wantTable: &Table{columns: []column{{
 				hformat: style{alignment: 'c'},
 				vformat: style{alignment: 't'}},
@@ -67,7 +77,7 @@ func TestNewTable(t *testing.T) {
 					vformat: style{alignment: 't'}}}},
 			wantError: nil},
 
-		{args: args{"l l"},
+		{args: args{"l l", ""},
 			wantTable: &Table{columns: []column{{
 				hformat: style{alignment: 'l'},
 				vformat: style{alignment: 't'}},
@@ -76,7 +86,7 @@ func TestNewTable(t *testing.T) {
 					vformat: style{alignment: 't'}}}},
 			wantError: nil},
 
-		{args: args{"| c ||| c"},
+		{args: args{"| c ||| c", ""},
 			wantTable: &Table{columns: []column{{sep: "│ ",
 				hformat: style{alignment: 'c'},
 				vformat: style{alignment: 't'}},
@@ -85,7 +95,7 @@ func TestNewTable(t *testing.T) {
 					vformat: style{alignment: 't'}}}},
 			wantError: nil},
 
-		{args: args{"| c ||| l || p{4} ||| p{100}  rr|"},
+		{args: args{"| c ||| l || p{4} ||| p{100}  rr|", ""},
 			wantTable: &Table{columns: []column{{sep: "│ ",
 				hformat: style{alignment: 'c'},
 				vformat: style{alignment: 't'}},
@@ -106,12 +116,122 @@ func TestNewTable(t *testing.T) {
 					vformat: style{alignment: 't'}},
 				{sep: "│"}}},
 			wantError: nil},
+
+		// horizontal style / vertical style
+		{args: args{"c", "t"},
+			wantTable: &Table{columns: []column{{hformat: style{alignment: 'c'},
+				vformat: style{alignment: 't'}}}},
+			wantError: nil},
+
+		{args: args{"l", "c"},
+			wantTable: &Table{columns: []column{{hformat: style{alignment: 'l'},
+				vformat: style{alignment: 'c'}}}},
+			wantError: nil},
+
+		{args: args{"r", "b"},
+			wantTable: &Table{columns: []column{{hformat: style{alignment: 'r'},
+				vformat: style{alignment: 'b'}}}},
+			wantError: nil},
+
+		{args: args{"p{10}", "c"},
+			wantTable: &Table{columns: []column{{hformat: style{alignment: 'p', arg: 10},
+				vformat: style{alignment: 'c'}}}},
+			wantError: nil},
+
+		{args: args{"|c", "t"},
+			wantTable: &Table{columns: []column{{sep: "│",
+				hformat: style{alignment: 'c'},
+				vformat: style{alignment: 't'}}}},
+			wantError: nil},
+
+		{args: args{"cc", "cb"},
+			wantTable: &Table{columns: []column{{
+				hformat: style{alignment: 'c'},
+				vformat: style{alignment: 'c'}},
+				{hformat: style{alignment: 'c'},
+					vformat: style{alignment: 'b'}}}},
+			wantError: nil},
+
+		{args: args{"l l", "tb"},
+			wantTable: &Table{columns: []column{{
+				hformat: style{alignment: 'l'},
+				vformat: style{alignment: 't'}},
+				{sep: " ",
+					hformat: style{alignment: 'l'},
+					vformat: style{alignment: 'b'}}}},
+			wantError: nil},
+
+		{args: args{"| c ||| c", "ct"},
+			wantTable: &Table{columns: []column{{sep: "│ ",
+				hformat: style{alignment: 'c'},
+				vformat: style{alignment: 'c'}},
+				{sep: " ┃ ",
+					hformat: style{alignment: 'c'},
+					vformat: style{alignment: 't'}}}},
+			wantError: nil},
+
+		{args: args{"| c ||| l || p{4} ||| p{100}  rr|", "tcb"},
+			wantTable: &Table{columns: []column{{sep: "│ ",
+				hformat: style{alignment: 'c'},
+				vformat: style{alignment: 't'}},
+				{sep: " ┃ ",
+					hformat: style{alignment: 'l'},
+					vformat: style{alignment: 'c'}},
+				{sep: " ║ ",
+					hformat: style{alignment: 'p', arg: 4},
+					vformat: style{alignment: 'b'}},
+				{sep: " ┃ ",
+					hformat: style{alignment: 'p', arg: 100},
+					vformat: style{alignment: 't'}},
+				{sep: "  ",
+					hformat: style{alignment: 'r'},
+					vformat: style{alignment: 't'}},
+				{sep: "",
+					hformat: style{alignment: 'r'},
+					vformat: style{alignment: 't'}},
+				{sep: "│",
+					hformat: style{},
+					vformat: style{}}}},
+			wantError: nil},
+
+		{args: args{"| c ||| l || p{4} ||| p{100}  rr|", "tcbbct"},
+			wantTable: &Table{columns: []column{{sep: "│ ",
+				hformat: style{alignment: 'c'},
+				vformat: style{alignment: 't'}},
+				{sep: " ┃ ",
+					hformat: style{alignment: 'l'},
+					vformat: style{alignment: 'c'}},
+				{sep: " ║ ",
+					hformat: style{alignment: 'p', arg: 4},
+					vformat: style{alignment: 'b'}},
+				{sep: " ┃ ",
+					hformat: style{alignment: 'p', arg: 100},
+					vformat: style{alignment: 'b'}},
+				{sep: "  ",
+					hformat: style{alignment: 'r'},
+					vformat: style{alignment: 'c'}},
+				{sep: "",
+					hformat: style{alignment: 'r'},
+					vformat: style{alignment: 't'}},
+				{sep: "│",
+					hformat: style{},
+					vformat: style{}}}},
+			wantError: nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			// create a new table
-			got, err := NewTable(tt.args.spec)
+			// prepare the args to create a new table. At least, the colspec
+			// shall be given and optionally, if a rowspec is given it should be
+			// added
+			specs := make([]string, 2)
+			specs[0] = tt.args.colspec
+			if tt.args.rowspec != "" {
+				specs[1] = tt.args.rowspec
+			}
+
+			// create a new table with the given arguments
+			got, err := NewTable(specs...)
 
 			// verify that the new table is built as expected
 			if !reflect.DeepEqual(got, tt.wantTable) {
@@ -553,7 +673,8 @@ func ExampleTable_0() {
 		log.Fatalln(" AddRow: Fatal error!")
 	}
 	fmt.Printf("%v", t)
-	// Output: ""
+	// Output: Black lives matter
+	//
 }
 
 // In the next example, some rows expand over various lines. By default, these
@@ -573,7 +694,14 @@ func ExampleTable_1() {
 		log.Fatalln(" AddRow: Fatal error!")
 	}
 	fmt.Printf("Output:\n%v", t)
-	// Output: ""
+	// Output:
+	// Output:
+	// │  Year  ║     Year     ┃     Year     │
+	// │  1979  ║     2013     ┃     2018     │
+	// │ Ariane ║     Gaia     ┃    Aeolus    │
+	// │        ║ Proba Series ┃ Bepicolombo  │
+	// │        ║    Swarm     ┃ Metop Series │
+	//
 }
 
 // This example shows how to use the package table to show information like in a
@@ -593,20 +721,34 @@ func ExampleTable_2() {
 	t.AddRow("doc", "show documentation for package or symbol")
 	t.AddRow("env", "print Go environment information")
 	t.AddRow("fix", "update packages to use new APIs")
-	t.AddRow("")
 	t.AddRow("...", "...")
-	t.AddRow("")
 	t.AddRow("testflag", "testing flags")
 	t.AddRow("testfunc", "testing functions")
 	fmt.Printf("Output:\n%v", t)
-	// Output: ""
+	// Output:
+	// Output:
+	// bug        start a bug report
+	// build      compile packages and
+	//            dependencies
+	// clean      remove object files and
+	//            cached files
+	// doc        show documentation for
+	//            package or symbol
+	// env        print Go environment
+	//            information
+	// fix        update packages to use
+	//            new APIs
+	// ...        ...
+	// testflag   testing flags
+	// testfunc   testing functions
+	//
 }
 
 // The following example shows how to add single rules to various parts of a
 // table
 func ExampleTable_3() {
 
-	t, _ := NewTable("> * l | r * <")
+	t, _ := NewTable("l | r ")
 	t.AddThickRule()
 	t.AddRow("Country", "Population")
 	t.AddSingleRule()
@@ -618,7 +760,7 @@ func ExampleTable_3() {
 	t.AddRow("Nigeria", "214,028,302")
 	t.AddThickRule()
 	fmt.Printf("Output:\n%v", t)
-	// Output: ""
+	// Output:
 }
 
 // Horizontal rules can also be drawn from one specific column to another and it

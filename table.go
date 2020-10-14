@@ -14,12 +14,12 @@ import (
 // Functions
 // ----------------------------------------------------------------------------
 
-// NewTable creates a new table from the column specification. The column
-// specification consists of a string which specifies the separator and style of
-// each column, i.e., the horizontal alignment. By default, all rows are
-// vertically aligned to the top.
+// NewTable creates a new table from the column specification and optionally, a
+// row specification.
 //
-// The different available alignments are given below:
+// The column specification consists of a string which specifies the separator
+// and style of each column, i.e., the horizontal alignment. The different
+// available horizontal alignments are given below:
 //
 // 1. 'l': the contents of the column are ragged left
 //
@@ -34,32 +34,66 @@ import (
 // exceed NUMBER columns and the contents are ragged left/centered/ragged right
 // respectively
 //
+// In addition, the column speciication might contain other characters which are
+// then added to the contents as well.
+//
+// If a second string is given, then it is interpreted as the row specification.
+// The different available vertical alignments are given below:
+//
+// 1. 't': the contents of the row are aligned to the top
+//
+// 2. 'c': the contents of the row are vertically centered
+//
+// 3. 'b': the contents of the row are aligned to the bottom
+//
+// By default, all rows are vertically aligned to the top, so that in case a row
+// specification is given, then it has to refer to as many columns as the column
+// specification given first or less ---the rest being aligned to the top.
+// Otherwise, an error is returned. In contraposition to the column
+// specification, the row specification can use only the specifiers given above
+// and only those. Otherwise, an error is returned.
+//
 // It returns a pointer to a table which can then be used to access its
-// services. In case the column specification could not be processed it returns
-// an error.
-func NewTable(spec string) (*Table, error) {
+// services. In case either the column or row specification could not be
+// processed it returns an error.
+func NewTable(spec ...string) (*Table, error) {
+
+	// error-checking
+	if len(spec) == 0 || len(spec) > 2 {
+		return &Table{}, errors.New("NewTable accepts only either one or two string arguments")
+	}
 
 	// -- initialization
 	var columns []column
+	var colspec, rowspec string
+
+	// capture the args given by the user. Note that at this point spec contains
+	// either one or two strings only
+	if len(spec) >= 1 {
+		colspec = spec[0]
+	}
+	if len(spec) == 2 {
+		rowspec = spec[1]
+	}
 
 	// first things first, verify that the given column specification is
 	// syntactically correct
-	re := regexp.MustCompile(specRegexAll)
-	if !re.MatchString(spec) {
+	re := regexp.MustCompile(colSpecRegexAll)
+	if !re.MatchString(colspec) {
 		return &Table{}, errors.New("invalid column specification")
 	}
 
 	// the specification of the table is processed with a regular expression
 	// which should be used to consume the whole string
-	re = regexp.MustCompile(specRegex)
+	re = regexp.MustCompile(colSpecRegex)
 	for {
 
 		// get the next column and, if none is found, then exit
-		recol := re.FindStringIndex(spec)
+		recol := re.FindStringIndex(colspec)
 		if recol == nil {
 			break
 		}
-		nxtcol, err := newColumn(spec[recol[0]:recol[1]])
+		nxtcol, err := newColumn(colspec[recol[0]:recol[1]])
 		if err != nil {
 			return &Table{}, err
 		}
@@ -68,15 +102,17 @@ func NewTable(spec string) (*Table, error) {
 		columns = append(columns, *nxtcol)
 
 		// and now move forward in the column specification string
-		spec = spec[recol[1]:]
+		colspec = colspec[recol[1]:]
 	}
 
 	// maybe the column specification string is not empty here. Any remainings
 	// are interpreted as the separator of a last column which contains no text
-	if spec != "" {
+	// and which have no format
+	if colspec != "" {
 		columns = append(columns,
-			column{sep: spec,
-				hformat: style{}})
+			column{sep: colspec,
+				hformat: style{},
+				vformat: style{}})
 	}
 
 	// Before returning, process the separators of all columns to make the
@@ -85,6 +121,23 @@ func NewTable(spec string) (*Table, error) {
 		columns[j].sep = strings.ReplaceAll(columns[j].sep, "|||", "┃")
 		columns[j].sep = strings.ReplaceAll(columns[j].sep, "||", "║")
 		columns[j].sep = strings.ReplaceAll(columns[j].sep, "|", "│")
+	}
+
+	// Now, process all the vertical separators in case any has been given
+	if vertFmt, err := getVerticalStyles(rowspec); err != nil {
+		return &Table{}, err
+	} else {
+
+		// first, verify that the number of vertical specifiers is less or equal
+		// than the number of columns given in the column specification, if any
+		// was given
+		if len(vertFmt) > 0 && len(vertFmt) > len(columns) {
+			return &Table{}, fmt.Errorf("The number of columns given in the row specification (%v) must be less or equal than %v, the number of columns given in the column specification",
+				len(vertFmt), len(columns))
+		}
+		for j, jstyle := range vertFmt {
+			columns[j].vformat = jstyle
+		}
 	}
 
 	// Note that the only information initialized in the creation of a table are

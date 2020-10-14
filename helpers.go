@@ -2,6 +2,7 @@ package table
 
 import (
 	"errors"
+	"fmt"
 	"unicode"
 	"unicode/utf8"
 )
@@ -150,4 +151,26 @@ func getRunes(s string) (runes []rune) {
 		runes = append(runes, r)
 	}
 	return
+}
+
+// return a slice of vertical specifications as a slice of styles. In case the
+// row specification is incorrect, an error is returned and the contents of the
+// result are undetermined
+func getVerticalStyles(rowspec string) ([]style, error) {
+
+	var result []style
+
+	// while the row specification is not empty. Yeah, the row specification
+	// should not consist of runes but just simple ascii characters. Still, we
+	// traverse the string as runes
+	for _, rune := range rowspec {
+		switch rune {
+		case 't', 'b', 'c':
+			result = append(result, style{alignment: byte(rune)})
+		default:
+			return result, fmt.Errorf("'%v' is an incorrect vertical format", string(rune))
+		}
+	}
+
+	return result, nil
 }

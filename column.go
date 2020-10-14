@@ -19,7 +19,7 @@ func newColumn(spec string) (*column, error) {
 
 	// first things first, verify that the given (single) column specification
 	// is syntactically correct
-	re := regexp.MustCompile(specRegex)
+	re := regexp.MustCompile(colSpecRegex)
 	if !re.MatchString(spec) {
 		return &column{}, errors.New("invalid (single) column specification")
 	}

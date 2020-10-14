@@ -462,11 +462,11 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 }
 
 // the following regexp is used to mach an entire column specification string
-const specRegexAll = `^([^clrCLRp]*(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\}))+`
+const colSpecRegexAll = `^([^clrCLRp]*(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\}))+`
 
 // and the following regexp is used to match the specification of a single
 // column
-const specRegex = `^[^clrCLRp]*(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\})`
+const colSpecRegex = `^[^clrCLRp]*(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\})`
 
 // to extract the format of a single column the following regexp is used
 const columnSpecRegex = `(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\})`
@@ -489,10 +489,9 @@ const newlineRegex = `\n`
 //
 // A table consists of a slice of columns, each one consisting of a separator
 // and a content following immediately after, and a number of rows where the
-// height of each row and its formatting style are stored. Note that the last
-// separator (if any) is stored as a column without content. They also store the
-// cells of the table as a bidimensional matrix of contents that can be
-// processed and formatted.
+// height of each row are stored. Note that the last separator (if any) is
+// stored as a column without content. They also store the cells of the table as
+// a bidimensional matrix of contents that can be processed and formatted.
 type Table struct {
 	columns []column
 	rows    []row
