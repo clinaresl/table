@@ -941,18 +941,19 @@ func ExampleTable_15() {
 	// Output: ""
 }
 
-// The following table tests the vertical formatting
+// The following table tests the vertical formatting and also ANSI color escape
+// sequences in some contents
 func ExampleTable_16() {
 
 	t, err := NewTable("| c | c | c |", "cb")
 	if err != nil {
 		log.Fatalln(" NewTable: Fatal error!")
 	}
-	t.AddRow("Player", "Year", "Tournament")
+	t.AddRow("\033[38;2;206;10;0mPlayer\033[0m", "\033[38;2;10;206;0mYear\033[0m", "\033[38;2;100;0;206mTournament\033[0m")
 	t.AddSingleRule()
-	t.AddRow("Rafa Nadal", "2010", "French Open\nWimbledon\nUS Open")
+	t.AddRow("\033[38;5;206mRafa\033[0m \033[31;1;4mNadal\033[0m", "2010", "French Open\nWimbledon\nUS Open")
 	t.AddSingleRule()
-	t.AddRow("Roger Federer", "2007", "Australian Open\nWimbledon\nUS Open")
+	t.AddRow("Roger Federer", "2007", "\033[38;2;255;82;197;48;2;155;106;0mAustralian Open\033[0m\nWimbledon\nUS Open")
 	t.AddSingleRule()
 
 	fmt.Printf("Output:\n%v", t)

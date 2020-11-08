@@ -353,7 +353,7 @@ func (t *Table) AddRow(cells ...interface{}) error {
 			if t.columns[i].hformat.alignment == 'p' {
 				t.columns[i].width = t.columns[i].hformat.arg
 			} else {
-				t.columns[i].width = max(t.columns[i].width, len(line))
+				t.columns[i].width = max(t.columns[i].width, countPrintableRuneInString(line))
 			}
 		}
 	}
@@ -479,16 +479,8 @@ func (t Table) String() (result string) {
 					// vertically formatted as required
 					contents := t.cells[i][j].Process(t.columns[j], row.height)
 
-					// get the text to show in this line. If this cell has no text
-					// in the line-th line then format the empty string, otherwise,
-					// use the text in contents
-					text := ""
-					if line < len(contents) {
-						text = contents[line]
-					}
-
 					// and print the contents of this column in the result
-					body := content(text).Format(t.columns[j])
+					body := content(contents[line]).Format(t.columns[j])
 					result += fmt.Sprintf("%v%v", t.columns[j].sep, body)
 				}
 

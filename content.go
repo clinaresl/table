@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
-	"unicode/utf8"
 )
 
 // Contents are formatters and therefore, they provide methods for both
@@ -23,12 +22,13 @@ func (c content) Process(col column, nbrows int) (result []string) {
 		col.hformat.alignment == 'L' ||
 		col.hformat.alignment == 'R' {
 		result = splitParagraph(string(c), col.hformat.arg)
-	}
+	} else {
 
-	// if, on the other hand, a newline character has been provided, split the
-	// content as well according to the newline characters
-	re := regexp.MustCompile(newlineRegex)
-	result = re.Split(string(c), -1)
+		// if, on the other hand, a newline character has been provided, split the
+		// content as well according to the newline characters
+		re := regexp.MustCompile(newlineRegex)
+		result = re.Split(string(c), -1)
+	}
 
 	// if the number of physical rows is strictly positive, then proceed to
 	// vertical format these contents
@@ -73,10 +73,10 @@ func (c content) Format(col column) string {
 
 	// compute the prefix to use for representing the contents of this column
 	if unicode.ToLower(rune(col.hformat.alignment)) == 'c' {
-		prefix = strings.Repeat(" ", (col.width-utf8.RuneCountInString(string(c)))/2)
+		prefix = strings.Repeat(" ", (col.width-countPrintableRuneInString(string(c)))/2)
 	}
 	if unicode.ToLower(rune(col.hformat.alignment)) == 'r' {
-		prefix = strings.Repeat(" ", col.width-utf8.RuneCountInString(string(c)))
+		prefix = strings.Repeat(" ", col.width-countPrintableRuneInString(string(c)))
 	}
 
 	// compute the suffix to use for representing the contents of this column
@@ -85,11 +85,11 @@ func (c content) Format(col column) string {
 		// note that in this case an additional character is added, i.e.,
 		// centered strings are ragged left in case the difference is and odd
 		// number
-		suffix = strings.Repeat(" ", (col.width-utf8.RuneCountInString(string(c)))/2)
-		suffix += strings.Repeat(" ", (col.width-utf8.RuneCountInString(string(c)))%2)
+		suffix = strings.Repeat(" ", (col.width-countPrintableRuneInString(string(c)))/2)
+		suffix += strings.Repeat(" ", (col.width-countPrintableRuneInString(string(c)))%2)
 	}
 	if unicode.ToLower(rune(col.hformat.alignment)) == 'l' || col.hformat.alignment == 'p' {
-		suffix = strings.Repeat(" ", col.width-utf8.RuneCountInString(string(c)))
+		suffix = strings.Repeat(" ", col.width-countPrintableRuneInString(string(c)))
 	}
 
 	// and return the concatenation of the prefix, the content and the suffix

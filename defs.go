@@ -478,6 +478,9 @@ const pRegex = `^(C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\})$`
 // to split strings using the newline as a separator
 const newlineRegex = `\n`
 
+// the following regexp is used to start and end ANSI color escape sequences
+const ansiColorRegex = `\033([\[;]\d+)+m`
+
 // ----------------------------------------------------------------------------
 // Types
 // ----------------------------------------------------------------------------

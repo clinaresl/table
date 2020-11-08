@@ -3,6 +3,7 @@ package table
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"unicode"
 	"unicode/utf8"
 )
@@ -39,6 +40,26 @@ func containsVerticalSeparator(sep string) bool {
 
 	// otherwise, return false
 	return false
+}
+
+// Return the number of runes in the given string which are printable
+func countPrintableRuneInString(s string) (count int) {
+
+	// first things first, remove all ANSI color escape sequences
+	re := regexp.MustCompile(ansiColorRegex)
+	s = re.ReplaceAllString(s, "")
+
+	// Initialize the counter
+	count = 0
+
+	// and now, count all both printable and graphic runes in the resulting
+	// string after removing the ANSI color escape sequences
+	for _, r := range s {
+		if unicode.IsGraphic(r) && unicode.IsPrint(r) {
+			count += 1
+		}
+	}
+	return
 }
 
 // the following function returns a slice of strings with the same contents than
