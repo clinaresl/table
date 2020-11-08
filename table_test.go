@@ -940,3 +940,21 @@ func ExampleTable_15() {
 	fmt.Printf("Output:\n%v", t)
 	// Output: ""
 }
+
+// The following table tests the vertical formatting
+func ExampleTable_16() {
+
+	t, err := NewTable("| c | c | c |", "cb")
+	if err != nil {
+		log.Fatalln(" NewTable: Fatal error!")
+	}
+	t.AddRow("Player", "Year", "Tournament")
+	t.AddSingleRule()
+	t.AddRow("Rafa Nadal", "2010", "French Open\nWimbledon\nUS Open")
+	t.AddSingleRule()
+	t.AddRow("Roger Federer", "2007", "Australian Open\nWimbledon\nUS Open")
+	t.AddSingleRule()
+
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}

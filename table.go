@@ -339,8 +339,9 @@ func (t *Table) AddRow(cells ...interface{}) error {
 		icells[i] = content(text)
 
 		// process the contents of this cell, and update the number of physical
-		// rows required to show this line
-		contents := icells[i].Process(t.columns[i])
+		// rows required to show this line. As the number of physical rows is
+		// unknown at this stage, a value equal to zero is given.
+		contents := icells[i].Process(t.columns[i], 0)
 		height = max(height, len(contents))
 
 		// in addition update the number of physical columns required to draw
@@ -465,15 +466,18 @@ func (t Table) String() (result string) {
 
 		case content:
 
-			// and each physical line of this row
+			// for each physical line of this row
 			for line := 0; line < row.height; line++ {
 
 				// and each column in this line, intentionally skipping the last one
 				// in case it has no content
 				for j := 0; j < t.GetNbColumns(); j++ {
 
-					// Process the contents of this cell
-					contents := t.cells[i][j].Process(t.columns[j])
+					// Process the contents of this cell. Note that at this
+					// point the number of physical rows is known and thus it is
+					// given to the Processor so that the contents are
+					// vertically formatted as required
+					contents := t.cells[i][j].Process(t.columns[j], row.height)
 
 					// get the text to show in this line. If this cell has no text
 					// in the line-th line then format the empty string, otherwise,

@@ -90,7 +90,7 @@ func Test_content_Process(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.c.Process(tt.args.col); !reflect.DeepEqual(got, tt.want) {
+			if got := tt.c.Process(tt.args.col, 0); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("content.Process() = %v, want %v", got, tt.want)
 			}
 		})

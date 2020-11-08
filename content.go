@@ -11,8 +11,10 @@ import (
 // processing and formatting
 //
 // Processing a content involves splitting it across several rows if needed so
-// that it satisfies the format of the column where it has to be shown
-func (c content) Process(col column) []string {
+// that it satisfies the format of the column where it has to be shown. In
+// addition, if the number of rows is strictly positive, then the content is
+// vertically formatted
+func (c content) Process(col column, nbrows int) (result []string) {
 
 	// if a paragraph alignment (p, C, L, R) modifier is used for this specific
 	// column, then split it the content
@@ -20,13 +22,44 @@ func (c content) Process(col column) []string {
 		col.hformat.alignment == 'C' ||
 		col.hformat.alignment == 'L' ||
 		col.hformat.alignment == 'R' {
-		return splitParagraph(string(c), col.hformat.arg)
+		result = splitParagraph(string(c), col.hformat.arg)
 	}
 
 	// if, on the other hand, a newline character has been provided, split the
 	// content as well according to the newline characters
 	re := regexp.MustCompile(newlineRegex)
-	return re.Split(string(c), -1)
+	result = re.Split(string(c), -1)
+
+	// if the number of physical rows is strictly positive, then proceed to
+	// vertical format these contents
+	if nbrows > 0 {
+
+		var prefix, suffix int
+		if unicode.ToLower(rune(col.vformat.alignment)) == 'c' {
+			prefix = (nbrows - len(result)) / 2
+		}
+		if unicode.ToLower(rune(col.vformat.alignment)) == 'b' {
+			prefix = nbrows - len(result)
+		}
+
+		if unicode.ToLower(rune(col.vformat.alignment)) == 't' {
+			suffix = nbrows - len(result)
+		}
+		if unicode.ToLower(rune(col.vformat.alignment)) == 'c' {
+			suffix = (nbrows - len(result)) / 2
+			suffix += (nbrows - len(result)) % 2
+		}
+
+		// and now add the corresponding number of blank lines as required
+		for iline := 0; iline < prefix; iline++ {
+			result = prepend("", result)
+		}
+		for iline := 0; iline < suffix; iline++ {
+			result = append(result, "")
+		}
+	}
+
+	return
 }
 
 // Formatting a cell implies adding blank characters to a physical line so that

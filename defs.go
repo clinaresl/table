@@ -533,11 +533,13 @@ type hrule rune
 // Tables can draw cells provided that they can be both processed and formatted:
 //
 // Processing a cell means splitting its contents across several (physical) rows
-// so that it satisfies the format of the column where it has to be shown
+// so that it satisfies the format of the column where it has to be shown. In
+// addition, if the number of rows is strictly positive, then the content is
+// vertically formatted
 //
 // Formatting a cell implies adding blank characters to a physical line so that
 // it satisfies the format of the column where it has to be shown
 type formatter interface {
-	Process(col column) []string
+	Process(col column, nbrows int) []string
 	Format(col column) string
 }

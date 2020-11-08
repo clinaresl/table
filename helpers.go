@@ -174,3 +174,15 @@ func getVerticalStyles(rowspec string) ([]style, error) {
 
 	return result, nil
 }
+
+// The following function prepends the given argument to the slice given second
+func prepend(item string, data []string) []string {
+
+	// just add an item to the slice, copy all items shifting them all by one
+	// position to the right and overwrite the first item
+	data = append(data, item)
+	copy(data[1:], data)
+	data[0] = item
+
+	return data
+}
