@@ -1,6 +1,9 @@
 package table
 
-import "log"
+import (
+	"log"
+	"strings"
+)
 
 // Horizontal rules are formatters and therefore, they provide methods for both
 // processing and formatting
@@ -21,10 +24,5 @@ func (h hrule) Process(col column, nbrows int) []string {
 // horizontal rule as many times as required so that it takes the width of the
 // column
 func (h hrule) Format(col column) string {
-	rule := ""
-	for i := 0; i < col.width; i++ {
-		rule += string(h)
-	}
-
-	return rule
+	return strings.Repeat(string(h), col.width)
 }

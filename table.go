@@ -164,6 +164,13 @@ func (t *Table) getFullSplitter(irow, jcol int) (splitters string) {
 	// get the separator to process which is the one given in the j-th column
 	sep := t.columns[jcol].sep
 
+	// search for ANSI color escape sequences
+	re := regexp.MustCompile(ansiColorRegex)
+	colindexes := re.FindAllStringIndex(sep, -1)
+
+	// locate at the first color and annotate how many have been found
+	colind, nbcolors := 0, len(colindexes)
+
 	// the following value should be equal to -1 if we have not found a vertical
 	// separator yet and 0 otherwise. It is used to decide what horizontal rule
 	// to use (either the one from the preceding the column or the one following
@@ -181,7 +188,27 @@ func (t *Table) getFullSplitter(irow, jcol int) (splitters string) {
 
 	// To do this it is mandatory to compute all runes to the west, east, north
 	// and south in this specific order for each rune in the separator
-	for _, irune := range getRunes(sep) {
+	for idx, irune := range getRunes(sep) {
+
+		// ANSI color escape sequences have to be directly copied to the
+		// splitters
+		if colind < nbcolors && idx >= colindexes[colind][0] {
+
+			// if the ANSI color escape sequence starts right here then copy it
+			// to the splitter
+			if idx == colindexes[colind][0] {
+				splitters += sep[colindexes[colind][0]:colindexes[colind][1]]
+			}
+
+			// if this position ends the entire ANSI color sequence, then move
+			// to the next color
+			if idx == colindexes[colind][1]-1 {
+				colind += 1
+			}
+
+			// and skip the treatment of this rune (character)
+			continue
+		}
 
 		// in case this rune is a vertical separator then make sure the offset
 		// is 0. Note that if the string used in the separator contains more
@@ -216,17 +243,11 @@ func (t *Table) getFullSplitter(irow, jcol int) (splitters string) {
 		// separator in case it does not fall out of bounds
 		if irow > 0 {
 			north = irune
-			// if north == horizontal_blank {
-			// 	north = none
-			// }
 		} else {
 			north = none
 		}
 		if irow < t.GetNbRows()-1 {
 			south = irune
-			// if south == horizontal_blank {
-			// 	south = none
-			// }
 		} else {
 			south = none
 		}

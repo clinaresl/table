@@ -942,10 +942,10 @@ func ExampleTable_15() {
 }
 
 // The following table tests the vertical formatting and also ANSI color escape
-// sequences in some contents
+// sequences both for the contents and the separators
 func ExampleTable_16() {
 
-	t, err := NewTable("| c | c | c |", "cb")
+	t, err := NewTable("\033[38;2;160;10;10m| c \033[38;2;10;160;10m| c \033[38;2;80;80;160m| c \033[38;2;160;80;40m|\033[0m", "cb")
 	if err != nil {
 		log.Fatalln(" NewTable: Fatal error!")
 	}
