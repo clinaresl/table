@@ -150,137 +150,6 @@ func NewTable(spec ...string) (*Table, error) {
 
 // -- Private
 
-// return the full sequence of splitters of a horizontal rule with a column
-// separator. This method simply processes each rune of the separator taking
-// into account other surrounding objects of the table. If one rune in the
-// column separator has a corresponding splitter then a substitution is
-// performed; otherwise, the given horizontal rule is used.
-func (t *Table) getFullSplitter(irow, jcol int) (splitters string) {
-
-	// define variables for storing the runes to the west, east, north and south
-	// of each rune in the column separator
-	var west, east, north, south rune
-
-	// get the separator to process which is the one given in the j-th column
-	sep := t.columns[jcol].sep
-
-	// search for ANSI color escape sequences
-	re := regexp.MustCompile(ansiColorRegex)
-	colindexes := re.FindAllStringIndex(sep, -1)
-
-	// locate at the first color and annotate how many have been found
-	colind, nbcolors := 0, len(colindexes)
-
-	// the following value should be equal to -1 if we have not found a vertical
-	// separator yet and 0 otherwise. It is used to decide what horizontal rule
-	// to use (either the one from the preceding the column or the one following
-	// immediately after) in case a rune found in the separator has to be
-	// substituted
-	offset := -1
-
-	// in addition, it is necessary to consider that the last column introduces
-	// an asymmetry which comes from the fact that it might contain or not a
-	// vertical separator (in spite of it containing data or not). If no
-	// vertical separator is present, then runes in the separator should be
-	// substituted by them if no splitter is found; otherwise, the horizontal
-	// separator used in the preceding column should be used instead
-	hasVerticalSeparator := containsVerticalSeparator(sep)
-
-	// To do this it is mandatory to compute all runes to the west, east, north
-	// and south in this specific order for each rune in the separator
-	for idx, irune := range getRunes(sep) {
-
-		// ANSI color escape sequences have to be directly copied to the
-		// splitters
-		if colind < nbcolors && idx >= colindexes[colind][0] {
-
-			// if the ANSI color escape sequence starts right here then copy it
-			// to the splitter
-			if idx == colindexes[colind][0] {
-				splitters += sep[colindexes[colind][0]:colindexes[colind][1]]
-			}
-
-			// if this position ends the entire ANSI color sequence, then move
-			// to the next color
-			if idx == colindexes[colind][1]-1 {
-				colind += 1
-			}
-
-			// and skip the treatment of this rune (character)
-			continue
-		}
-
-		// in case this rune is a vertical separator then make sure the offset
-		// is 0. Note that if the string used in the separator contains more
-		// than one vertical separator, the next column is considered
-		// immediately after the first vertical separator, in spite of the
-		// number of them
-		if isVerticalSeparator(irune) && offset == -1 {
-			offset = 0
-		}
-
-		// west
-		if jcol == 0 {
-			west = none
-		} else {
-			west = rune(t.cells[irow][jcol-1].(hrule))
-			if west == horizontal_blank {
-				west = none
-			}
-		}
-
-		// east
-		if jcol < t.GetNbColumns() {
-			east = rune(t.cells[irow][jcol].(hrule))
-			if east == horizontal_blank {
-				east = none
-			}
-		} else {
-			east = none
-		}
-
-		// north. The current separator is used as both the north and south
-		// separator in case it does not fall out of bounds
-		if irow > 0 {
-			north = irune
-		} else {
-			north = none
-		}
-		if irow < t.GetNbRows()-1 {
-			south = irune
-		} else {
-			south = none
-		}
-
-		// now, use the runes surrounding this one to access the splitter to use
-		if splitter, err := getSingleSplitter(west, east, north, south); err != nil {
-
-			// if it turns out that no splitter is known for this combination of
-			// the west, east, north and south runes, then substitute it
-			// properly. In general, the rune used instead is the one used in
-			// the horizontal rule of either the preceding or next column
-			// (depending whether a vertical separator has been processed yet).
-			// Obviously, if the rune currently in process appears either before
-			// or after the table then use it instead for the substitution
-			if (offset == -1 && jcol == 0) ||
-				(jcol == len(t.columns)-1 &&
-					(!hasVerticalSeparator || offset == 0)) {
-				splitters += string(irune)
-			} else {
-				splitters += string(rune(t.cells[irow][jcol+offset].(hrule)))
-			}
-		} else {
-
-			// if a correct separator was returned, then add it to the string to
-			// return
-			splitters += string(splitter)
-		}
-	}
-
-	// and return the string computed so far
-	return
-}
-
 // Add the given horizontal rule to the table from a start column to and end
 // column. Any number of pairs (start, end) can be given. If no column is given,
 // the horizontal rule takes the entire width of the table. If the end column of
@@ -303,7 +172,7 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 
 	// rules are internally stored as a sequence of horizontal rules, one for
 	// each column predefined in the table. First, make the horizontal rule to
-	// contain the blank
+	// contain the blank.
 	var icells []formatter
 	for i := 0; i < t.GetNbColumns(); i++ {
 		icells = append(icells, hrule(horizontal_blank))
@@ -322,6 +191,11 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 		for j := cols[i]; j < cols[i+1] && j < t.GetNbColumns(); j++ {
 			icells[j] = rule
 		}
+	}
+
+	// in case this table contains a last column with no data, add an empty rule
+	if len(t.columns) > 0 && t.columns[len(t.columns)-1].hformat.alignment == 0 {
+		icells = append(icells, hrule(0))
 	}
 
 	// and now add these rules to the contents to format and also an additional
@@ -349,20 +223,20 @@ func (t *Table) AddRow(cells ...interface{}) error {
 	}
 
 	// otherwise, process all cells given and add them to the table as cells
-	// which can be formatted. 'i' is the column index and height is
-	// the number of physical rows required to draw this row
-	var i, height int
-	icells := make([]formatter, t.GetNbColumns())
-	for ; i < t.GetNbColumns() && i < len(cells); i++ {
+	// which can be formatted. 'j' is the column index and height is the number
+	// of physical rows required to draw this row
+	var j, height int
+	icells := make([]formatter, len(t.columns))
+	for ; j < t.GetNbColumns() && j < len(cells); j++ {
 
 		// add the content of the i-th column with a string that represents it
-		text := fmt.Sprintf("%v", cells[i])
-		icells[i] = content(text)
+		text := fmt.Sprintf("%v", cells[j])
+		icells[j] = content(text)
 
 		// process the contents of this cell, and update the number of physical
-		// rows required to show this line. As the number of physical rows is
-		// unknown at this stage, a value equal to zero is given.
-		contents := icells[i].Process(t.columns[i], 0)
+		// rows required to show this line. Note that this row is added to the
+		// bottom of this table
+		contents := icells[j].Process(t, len(t.rows), j)
 		height = max(height, len(contents))
 
 		// in addition update the number of physical columns required to draw
@@ -371,17 +245,19 @@ func (t *Table) AddRow(cells ...interface{}) error {
 
 			// if this column is a pagraph then use the width defined.
 			// Otherwise, take the maximum width among all columns
-			if t.columns[i].hformat.alignment == 'p' {
-				t.columns[i].width = t.columns[i].hformat.arg
+			if t.columns[j].hformat.alignment == 'p' {
+				t.columns[j].width = t.columns[j].hformat.arg
 			} else {
-				t.columns[i].width = max(t.columns[i].width, countPrintableRuneInString(line))
+				t.columns[j].width = max(t.columns[j].width, countPrintableRuneInString(string(line.(content))))
 			}
 		}
 	}
 
-	// now, if not all columns were given then automatically add empty cells
-	for ; i < t.GetNbColumns(); i++ {
-		icells[i] = content("")
+	// now, if not all columns were given then automatically add empty cells.
+	// Note that an empty cell is added also to the last column even if it
+	// contains no data
+	for ; j < len(t.columns); j++ {
+		icells[j] = content("")
 	}
 
 	// add this cells to this table, along with the number of physical rows
@@ -469,18 +345,11 @@ func (t Table) String() (result string) {
 				for j := 0; j < len(t.columns); j++ {
 
 					// add to the string the splitters of this column and next
-					// the horizontal rule as stored in the table
-					result += fmt.Sprintf("%v", t.getFullSplitter(i, j))
-
-					// in case this is column has a horizontal rule attached show it as well
-					if j < t.GetNbColumns() {
-
-						// this is done by repeating the horizontal rule as many
-						// times as the width of this column
-						for k := 0; k < t.columns[j].width; k++ {
-							result += fmt.Sprintf("%c", t.cells[i][j])
-						}
-					}
+					// the horizontal rule as stored in the table. Mind the
+					// trick: the first formatter returned by Process is
+					// transformed via a type assertion into a content so that
+					// it can be casted into a string
+					result += string(t.cells[i][0].Process(&t, i, j)[0].(content))
 				}
 				result += "\n"
 			}
@@ -490,28 +359,17 @@ func (t Table) String() (result string) {
 			// for each physical line of this row
 			for line := 0; line < row.height; line++ {
 
-				// and each column in this line, intentionally skipping the last one
-				// in case it has no content
-				for j := 0; j < t.GetNbColumns(); j++ {
+				// and each column in this line
+				for j := 0; j < len(t.columns); j++ {
 
-					// Process the contents of this cell. Note that at this
-					// point the number of physical rows is known and thus it is
-					// given to the Processor so that the contents are
-					// vertically formatted as required
-					contents := t.cells[i][j].Process(t.columns[j], row.height)
+					// Process the contents of this cell
+					contents := t.cells[i][j].Process(&t, i, j)
 
 					// and print the contents of this column in the result
-					body := content(contents[line]).Format(t.columns[j])
-					result += fmt.Sprintf("%v%v", t.columns[j].sep, body)
+					result += fmt.Sprintf("%v%v", t.columns[j].sep,
+						contents[line].(content).Format(&t, i, j))
 				}
-
-				// in case a last column is given with no format, then add the
-				// separator, otherwise, just simply add the newline
-				if t.columns[len(t.columns)-1].hformat.alignment == 0 {
-					result += fmt.Sprintf("%v\n", t.columns[len(t.columns)-1].sep)
-				} else {
-					result += "\n"
-				}
+				result += "\n"
 			}
 		}
 	}

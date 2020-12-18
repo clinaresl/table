@@ -42,6 +42,15 @@ func containsVerticalSeparator(sep string) bool {
 	return false
 }
 
+// Just cast a slice of strings into a slice of contents
+func strToContent(input []string) (output []content) {
+
+	for _, str := range input {
+		output = append(output, content(str))
+	}
+	return
+}
+
 // Return the number of runes in the given string which are printable
 func countPrintableRuneInString(s string) (count int) {
 
@@ -196,8 +205,9 @@ func getVerticalStyles(rowspec string) ([]style, error) {
 	return result, nil
 }
 
-// The following function prepends the given argument to the slice given second
-func prepend(item string, data []string) []string {
+// The following function prepends the given argument to the slice of contents
+// given second
+func prepend(item content, data []content) []content {
 
 	// just add an item to the slice, copy all items shifting them all by one
 	// position to the right and overwrite the first item

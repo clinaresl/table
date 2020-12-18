@@ -534,15 +534,25 @@ type content string
 type hrule rune
 
 // Tables can draw cells provided that they can be both processed and formatted:
-//
-// Processing a cell means splitting its contents across several (physical) rows
-// so that it satisfies the format of the column where it has to be shown. In
-// addition, if the number of rows is strictly positive, then the content is
-// vertically formatted
-//
-// Formatting a cell implies adding blank characters to a physical line so that
-// it satisfies the format of the column where it has to be shown
+// cells are first formatted to generate the physical lines required to display
+// its contents in the form of formatters, which are then formatted one by one
+// to generate a single string which is shown on the table.
 type formatter interface {
-	Process(col column, nbrows int) []string
-	Format(col column) string
+
+	// Processing a cell means transforming logical rows into physical ones by
+	// splitting its contents across several (physical) rows, and also adding
+	// blank lines so that the result satisfies the vertical format of the
+	// column where it has to be shown, if and only if the height of the
+	// corresponding row is larger than the number of physical rows necessary to
+	// display the contents of the cell. To properly process a cell it is
+	// necessary to get a pointer to the table, and also the integer indices to
+	// the row and column of the cell
+	Process(t *Table, irow, jcol int) []formatter
+
+	// Cells are also formatted (physical) line by line where each physical line
+	// is the result of processing cell (irow, jcol) and should be given in the
+	// receiver of this method. Each invocation returns a string where each
+	// (physical) line is forrmatted according to the horizontal format
+	// specification of the j-th column.
+	Format(t *Table, irow, jcol int) string
 }
