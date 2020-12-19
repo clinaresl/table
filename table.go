@@ -209,11 +209,12 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 
 // Add a new line of data to the bottom of the column. This function accepts an
 // arbitrary number of arguments that satisfy the null interface. The content
-// shown on the table is the result of a Sprintf operation over it.
+// shown on the table is the output of a Sprintf operation over each argument.
 //
 // If the number of arguments is less than the number of columns, the last cells
-// are left empty. If the number of elements given exceeds the number of columns
-// of the table an error is immediately issued
+// are left empty, unless no argument is given at all in which case no row is
+// inserted. Finally, if the number of elements given exceeds the number of
+// columns an error is immediately issued
 func (t *Table) AddRow(cells ...interface{}) error {
 
 	// if the number of elements given exceeds the number of columns then
@@ -231,8 +232,7 @@ func (t *Table) AddRow(cells ...interface{}) error {
 	for ; j < t.GetNbColumns() && j < len(cells); j++ {
 
 		// add the content of the i-th column with a string that represents it
-		text := fmt.Sprintf("%v", cells[j])
-		icells[j] = content(text)
+		icells[j] = content(fmt.Sprintf("%v", cells[j]))
 
 		// process the contents of this cell, and update the number of physical
 		// rows required to show this line. Note that this row is added to the
@@ -344,7 +344,13 @@ func (t Table) String() (result string) {
 				// and print the contents of this column in the result
 				result += fmt.Sprintf("%v", contents[line].Format(&t, i, j))
 			}
-			result += "\n"
+
+			// add a new line unless this is the last physical line of the table
+			// and it is not a horizontal rule
+			if i < len(t.rows)-1 ||
+				(i == len(t.rows)-1 && line < row.height-1) {
+				result += "\n"
+			}
 		}
 	}
 

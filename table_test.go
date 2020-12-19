@@ -636,3 +636,61 @@ func ExampleTable_16() {
 	fmt.Printf("Output:\n%v", t)
 	// Output:
 }
+
+// const (
+// 	bsquare = 2592
+
+// 	wking   = 2654
+// 	wqueen  = 2655
+// 	wrook   = 2656
+// 	wbishop = 2657
+// 	wknight = 2658
+// 	wpawn   = 2659
+
+// 	bking   = 265a
+// 	bqueen  = 265b
+// 	brook   = 265c
+// 	bbishop = 265d
+// 	bknight = 265e
+// 	bpawn   = 265f
+// )
+
+// Tables are stringers and AddRow adds the output of a Sprintf operation. As a
+// result, tables can be nested
+func ExampleTable_17() {
+
+	board1, _ := NewTable("||cccccccc||")
+	board1.AddDoubleRule()
+	board1.AddRow("\u265c", "\u265e", "\u265d", "\u265b", "\u265a", "\u265d", "", "\u265c")
+	board1.AddRow("\u265f", "\u265f", "\u265f", "\u265f", "\u2592", "\u265f", "\u265f", "\u265f")
+	board1.AddRow("", "\u2592", "", "\u2592", "", "\u265e", "", "\u2592")
+	board1.AddRow("\u2592", "", "\u2592", "", "\u265f", "", "\u2592", "")
+	board1.AddRow("", "\u2592", "", "\u2592", "\u2659", "\u2659", "", "\u2592")
+	board1.AddRow("\u2592", "", "\u2658", "", "\u2592", "", "\u2592", "")
+	board1.AddRow("\u2659", "\u2659", "\u2659", "\u2659", "", "\u2592", "\u2659", "\u2659")
+	board1.AddRow("\u2656", "", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656")
+	board1.AddDoubleRule()
+
+	board2, _ := NewTable("||cccccccc||")
+	board2.AddDoubleRule()
+	board2.AddRow("\u265c", "\u265e", "\u265d", "\u265b", "\u265a", "\u265d", "\u265e", "\u265c")
+	board2.AddRow("\u265f", "\u265f", "\u265f", "", "\u265f", "\u265f", "\u265f", "\u265f")
+	board2.AddRow("", "\u2592", "", "\u2592", "", "\u2592", "", "\u2592")
+	board2.AddRow("\u2592", "", "\u2592", "", "\u2592", "", "\u2592", "")
+	board2.AddRow("", "\u2592", "", "\u2659", "\u265f", "\u2592", "", "\u2592")
+	board2.AddRow("\u2592", "", "\u2592", "", "\u2592", "\u2659", "\u2592", "")
+	board2.AddRow("\u2659", "\u2659", "\u2659", "\u2592", "", "\u2592", "\u2659", "\u2659")
+	board2.AddRow("\u2656", "\u2658", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656")
+	board2.AddDoubleRule()
+
+	t, _ := NewTable("| c | c  c |", "cct")
+	t.AddSingleRule()
+	t.AddRow("ECO Code", "Moves", "Board")
+	t.AddSingleRule()
+	t.AddRow("C26 Vienna Game: Vienna Gambit", "1.e4 e5 2.♘c3 ♞6 3.f4", board1)
+	t.AddRow("D00 Blackmar-Diemer Gambit: Gedult Gambit", "1.e4 d5 2.d4 exd4 3.f3", board2)
+	t.AddSingleRule()
+
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
