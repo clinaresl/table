@@ -325,35 +325,45 @@ func (t *Table) GetNbRows() int {
 
 // Tables are stringers and thus they provide a method to conveniently transform
 // its contents into a string
-func (t Table) String() (result string) {
+func (t Table) String() string {
 
 	// Thanks to the definition of formatters, all can be printed the same way
 
-	// for each logical row
-	for i, row := range t.rows {
+	// Initialization --- tables are formatted iterating over columns and thus
+	// the content of each row is stored separately in a slice of strings which
+	// are then concatenated
+	var output []string
 
-		// and for each physical line of this row
-		for line := 0; line < row.height; line++ {
+	// for each logical column
+	for j := 0; j < len(t.columns); j++ {
 
-			// and each column in this physical line
-			for j := 0; j < len(t.columns); j++ {
+		// initialize the index of the output string that should get the
+		// contents of the next physical line
+		idx := 0
 
-				// Process the contents of this cell
-				contents := t.cells[i][j].Process(&t, i, j)
+		// for each logical row
+		for i, row := range t.rows {
 
-				// and print the contents of this column in the result
-				result += fmt.Sprintf("%v", contents[line].Format(&t, i, j))
-			}
+			// Process the contents of this cell
+			contents := t.cells[i][j].Process(&t, i, j)
 
-			// add a new line unless this is the last physical line of the table
-			// and it is not a horizontal rule
-			if i < len(t.rows)-1 ||
-				(i == len(t.rows)-1 && line < row.height-1) {
-				result += "\n"
+			// and now for each physical row of this line
+			for line := 0; line < row.height; line++ {
+
+				// add this line to the output
+				if idx >= len(output) {
+					output = append(output, fmt.Sprintf("%v", contents[line].Format(&t, i, j)))
+				} else {
+					output[idx] += fmt.Sprintf("%v", contents[line].Format(&t, i, j))
+				}
+
+				// and move to the next line
+				idx += 1
 			}
 		}
 	}
 
-	// and return the string computed so far
-	return
+	// and return the concatenation of all strings in the output string with no
+	// separator
+	return strings.Join(output, "\n")
 }
