@@ -637,24 +637,6 @@ func ExampleTable_16() {
 	// Output:
 }
 
-// const (
-// 	bsquare = 2592
-
-// 	wking   = 2654
-// 	wqueen  = 2655
-// 	wrook   = 2656
-// 	wbishop = 2657
-// 	wknight = 2658
-// 	wpawn   = 2659
-
-// 	bking   = 265a
-// 	bqueen  = 265b
-// 	brook   = 265c
-// 	bbishop = 265d
-// 	bknight = 265e
-// 	bpawn   = 265f
-// )
-
 // Tables are stringers and AddRow adds the output of a Sprintf operation. As a
 // result, tables can be nested
 func ExampleTable_17() {
@@ -690,6 +672,36 @@ func ExampleTable_17() {
 	t.AddRow("C26 Vienna Game: Vienna Gambit", "1.e4 e5 2.♘c3 ♞6 3.f4", board1)
 	t.AddRow("D00 Blackmar-Diemer Gambit: Gedult Gambit", "1.e4 d5 2.d4 exd4 3.f3", board2)
 	t.AddSingleRule()
+
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
+
+// Tables are stringers and AddRow adds the output of a Sprintf operation. As a
+// result, tables can be also stacked
+func ExampleTable_18() {
+
+	example, _ := NewTable("|||c|||c|||c|||c|||c|||")
+	example.AddDoubleRule(1, 2, 3, 4)
+	example.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	example.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	example.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	example.AddDoubleRule(1, 2, 3, 4)
+	example.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	example.AddDoubleRule(0, 1, 2, 3, 4, 5)
+
+	code, _ := NewTable("l")
+	code.AddRow("t, _ := NewTable(\"|||c|||c|||c|||c|||c|||\")")
+	code.AddRow("example.AddDoubleRule(1, 2, 3, 4)")
+	code.AddRow("example.AddRow(\"(1, 1)\", \"(1, 2)\", \"(1, 3)\", \"(1, 4)\", \"(1, 5)\")")
+	code.AddRow("example.AddDoubleRule(0, 1, 2, 3, 4, 5)")
+	code.AddRow("example.AddRow(\"(2, 1)\", \"(2, 2)\", \"(2, 3)\", \"(2, 4)\", \"(2, 5)\")")
+	code.AddRow("example.AddDoubleRule(1, 2, 3, 4)")
+	code.AddRow("example.AddRow(\"(3, 1)\", \"(3, 2)\", \"(3, 3)\", \"(3, 4)\", \"(3, 5)\")")
+	code.AddRow("example.AddDoubleRule(0, 1, 2, 3, 4, 5)")
+
+	t, _ := NewTable("c | l")
+	t.AddRow(example, code)
 
 	fmt.Printf("Output:\n%v", t)
 	// Output:
