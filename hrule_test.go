@@ -24,267 +24,267 @@ func Test_hrule_Process(t *testing.T) {
 
 		// horizontal single / vertical single
 		{args: args{colspec: "|c|c|", rule: horizontal_single, irow: 0, jcol: 0},
-			want: []formatter{content("┌")}},
+			want: []formatter{hrule("┌")}},
 
 		// upper-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_single, irow: 0, jcol: 1},
-			want: []formatter{content("┬")}},
+			want: []formatter{hrule("┬")}},
 
 		// upper-right corner
 		{args: args{colspec: "|c|c|", rule: horizontal_single, irow: 0, jcol: 2},
-			want: []formatter{content("┐")}},
+			want: []formatter{hrule("┐")}},
 
 		// right-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_single, irow: 2, jcol: 0},
-			want: []formatter{content("├")}},
+			want: []formatter{hrule("├")}},
 
 		// center
 		{args: args{colspec: "|c|c|", rule: horizontal_single, irow: 2, jcol: 1},
-			want: []formatter{content("┼")}},
+			want: []formatter{hrule("┼")}},
 
 		// left-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_single, irow: 2, jcol: 2},
-			want: []formatter{content("┤")}},
+			want: []formatter{hrule("┤")}},
 
 		// bottom-left corner
 		{args: args{colspec: "|c|c|", rule: horizontal_single, irow: 4, jcol: 0},
-			want: []formatter{content("└")}},
+			want: []formatter{hrule("└")}},
 
 		// bottom-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_single, irow: 4, jcol: 1},
-			want: []formatter{content("┴")}},
+			want: []formatter{hrule("┴")}},
 
 		// bottom-right corner
 		{args: args{colspec: "|c|c|", rule: horizontal_single, irow: 4, jcol: 2},
-			want: []formatter{content("┘")}},
+			want: []formatter{hrule("┘")}},
 
 		// horizontal double / vertical single
 
 		// upper-left corner
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 0},
-			want: []formatter{content("╒")}},
+			want: []formatter{hrule("╒")}},
 
 		// upper-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 1},
-			want: []formatter{content("╤")}},
+			want: []formatter{hrule("╤")}},
 
 		// upper-right corner
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 2},
-			want: []formatter{content("╕")}},
+			want: []formatter{hrule("╕")}},
 
 		// right-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 0},
-			want: []formatter{content("╞")}},
+			want: []formatter{hrule("╞")}},
 
 		// center
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 1},
-			want: []formatter{content("╪")}},
+			want: []formatter{hrule("╪")}},
 
 		// left-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 2},
-			want: []formatter{content("╡")}},
+			want: []formatter{hrule("╡")}},
 
 		// bottom-left corner
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 0},
-			want: []formatter{content("╘")}},
+			want: []formatter{hrule("╘")}},
 
 		// bottom-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 1},
-			want: []formatter{content("\u2567")}},
+			want: []formatter{hrule("\u2567")}},
 
 		// bottom-right corner
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 2},
-			want: []formatter{content("╛")}},
+			want: []formatter{hrule("╛")}},
 
 		// horizontal thick / vertical single
 
 		// upper-left corner
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 0},
-			want: []formatter{content("┍")}},
+			want: []formatter{hrule("┍")}},
 
 		// upper-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 1},
-			want: []formatter{content("┯")}},
+			want: []formatter{hrule("┯")}},
 
 		// upper-right corner
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 2},
-			want: []formatter{content("┑")}},
+			want: []formatter{hrule("┑")}},
 
 		// right-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 0},
-			want: []formatter{content("┝")}},
+			want: []formatter{hrule("┝")}},
 
 		// center
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 1},
-			want: []formatter{content("┿")}},
+			want: []formatter{hrule("┿")}},
 
 		// left-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 2},
-			want: []formatter{content("┥")}},
+			want: []formatter{hrule("┥")}},
 
 		// bottom-left corner
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 0},
-			want: []formatter{content("┕")}},
+			want: []formatter{hrule("┕")}},
 
 		// bottom-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 1},
-			want: []formatter{content("┷")}},
+			want: []formatter{hrule("┷")}},
 
 		// bottom-right corner
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 2},
-			want: []formatter{content("┙")}},
+			want: []formatter{hrule("┙")}},
 
 		// horizontal double / vertical single
 
 		// upper-left corner
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 0},
-			want: []formatter{content("╒")}},
+			want: []formatter{hrule("╒")}},
 
 		// upper-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 1},
-			want: []formatter{content("╤")}},
+			want: []formatter{hrule("╤")}},
 
 		// upper-right corner
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 0, jcol: 2},
-			want: []formatter{content("╕")}},
+			want: []formatter{hrule("╕")}},
 
 		// right-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 0},
-			want: []formatter{content("╞")}},
+			want: []formatter{hrule("╞")}},
 
 		// center
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 1},
-			want: []formatter{content("╪")}},
+			want: []formatter{hrule("╪")}},
 
 		// left-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 2, jcol: 2},
-			want: []formatter{content("╡")}},
+			want: []formatter{hrule("╡")}},
 
 		// bottom-left corner
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 0},
-			want: []formatter{content("╘")}},
+			want: []formatter{hrule("╘")}},
 
 		// bottom-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 1},
-			want: []formatter{content("\u2567")}},
+			want: []formatter{hrule("\u2567")}},
 
 		// bottom-right corner
 		{args: args{colspec: "|c|c|", rule: horizontal_double, irow: 4, jcol: 2},
-			want: []formatter{content("╛")}},
+			want: []formatter{hrule("╛")}},
 
 		// horizontal double / vertical double
 
 		// upper-left corner
 		{args: args{colspec: "||c||c||", rule: horizontal_double, irow: 0, jcol: 0},
-			want: []formatter{content("╔")}},
+			want: []formatter{hrule("╔")}},
 
 		// upper-mid edge
 		{args: args{colspec: "||c||c||", rule: horizontal_double, irow: 0, jcol: 1},
-			want: []formatter{content("╦")}},
+			want: []formatter{hrule("╦")}},
 
 		// upper-right corner
 		{args: args{colspec: "||c||c||", rule: horizontal_double, irow: 0, jcol: 2},
-			want: []formatter{content("╗")}},
+			want: []formatter{hrule("╗")}},
 
 		// right-mid edge
 		{args: args{colspec: "||c||c||", rule: horizontal_double, irow: 2, jcol: 0},
-			want: []formatter{content("╠")}},
+			want: []formatter{hrule("╠")}},
 
 		// center
 		{args: args{colspec: "||c||c||", rule: horizontal_double, irow: 2, jcol: 1},
-			want: []formatter{content("╬")}},
+			want: []formatter{hrule("╬")}},
 
 		// left-mid edge
 		{args: args{colspec: "||c||c||", rule: horizontal_double, irow: 2, jcol: 2},
-			want: []formatter{content("╣")}},
+			want: []formatter{hrule("╣")}},
 
 		// bottom-left corner
 		{args: args{colspec: "||c||c||", rule: horizontal_double, irow: 4, jcol: 0},
-			want: []formatter{content("╚")}},
+			want: []formatter{hrule("╚")}},
 
 		// bottom-mid edge
 		{args: args{colspec: "||c||c||", rule: horizontal_double, irow: 4, jcol: 1},
-			want: []formatter{content("╩")}},
+			want: []formatter{hrule("╩")}},
 
 		// bottom-right corner
 		{args: args{colspec: "||c||c||", rule: horizontal_double, irow: 4, jcol: 2},
-			want: []formatter{content("╝")}},
+			want: []formatter{hrule("╝")}},
 
 		// horizontal thick / vertical single
 
 		// upper-left corner
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 0},
-			want: []formatter{content("┍")}},
+			want: []formatter{hrule("┍")}},
 
 		// upper-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 1},
-			want: []formatter{content("┯")}},
+			want: []formatter{hrule("┯")}},
 
 		// upper-right corner
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 0, jcol: 2},
-			want: []formatter{content("┑")}},
+			want: []formatter{hrule("┑")}},
 
 		// right-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 0},
-			want: []formatter{content("┝")}},
+			want: []formatter{hrule("┝")}},
 
 		// center
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 1},
-			want: []formatter{content("┿")}},
+			want: []formatter{hrule("┿")}},
 
 		// left-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 2, jcol: 2},
-			want: []formatter{content("┥")}},
+			want: []formatter{hrule("┥")}},
 
 		// bottom-left corner
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 0},
-			want: []formatter{content("┕")}},
+			want: []formatter{hrule("┕")}},
 
 		// bottom-mid edge
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 1},
-			want: []formatter{content("┷")}},
+			want: []formatter{hrule("┷")}},
 
 		// bottom-right corner
 		{args: args{colspec: "|c|c|", rule: horizontal_thick, irow: 4, jcol: 2},
-			want: []formatter{content("┙")}},
+			want: []formatter{hrule("┙")}},
 
 		// horizontal thick / vertical thick
 
 		// upper-left corner
 		{args: args{colspec: "|||c|||c|||", rule: horizontal_thick, irow: 0, jcol: 0},
-			want: []formatter{content("┏")}},
+			want: []formatter{hrule("┏")}},
 
 		// upper-mid edge
 		{args: args{colspec: "|||c|||c|||", rule: horizontal_thick, irow: 0, jcol: 1},
-			want: []formatter{content("┳")}},
+			want: []formatter{hrule("┳")}},
 
 		// upper-right corner
 		{args: args{colspec: "|||c|||c|||", rule: horizontal_thick, irow: 0, jcol: 2},
-			want: []formatter{content("┓")}},
+			want: []formatter{hrule("┓")}},
 
 		// right-mid edge
 		{args: args{colspec: "|||c|||c|||", rule: horizontal_thick, irow: 2, jcol: 0},
-			want: []formatter{content("┣")}},
+			want: []formatter{hrule("┣")}},
 
 		// center
 		{args: args{colspec: "|||c|||c|||", rule: horizontal_thick, irow: 2, jcol: 1},
-			want: []formatter{content("╋")}},
+			want: []formatter{hrule("╋")}},
 
 		// left-mid edge
 		{args: args{colspec: "|||c|||c|||", rule: horizontal_thick, irow: 2, jcol: 2},
-			want: []formatter{content("┫")}},
+			want: []formatter{hrule("┫")}},
 
 		// bottom-left corner
 		{args: args{colspec: "|||c|||c|||", rule: horizontal_thick, irow: 4, jcol: 0},
-			want: []formatter{content("┗")}},
+			want: []formatter{hrule("┗")}},
 
 		// bottom-mid edge
 		{args: args{colspec: "|||c|||c|||", rule: horizontal_thick, irow: 4, jcol: 1},
-			want: []formatter{content("┻")}},
+			want: []formatter{hrule("┻")}},
 
 		// bottom-right corner
 		{args: args{colspec: "|||c|||c|||", rule: horizontal_thick, irow: 4, jcol: 2},
-			want: []formatter{content("┛")}},
+			want: []formatter{hrule("┛")}},
 	}
 
 	for _, tt := range tests {

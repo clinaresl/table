@@ -4,6 +4,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 // Processing a cell means transforming logical rows into physical ones by
@@ -86,7 +87,7 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 		if jcol == 0 {
 			west = none
 		} else {
-			west = rune(t.cells[irow][jcol-1].(hrule))
+			west, _ = utf8.DecodeRuneInString(string(t.cells[irow][jcol-1].(hrule)))
 			if west == horizontal_blank {
 				west = none
 			}
@@ -94,7 +95,7 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 
 		// east
 		if jcol < t.GetNbColumns() {
-			east = rune(t.cells[irow][jcol].(hrule))
+			east, _ = utf8.DecodeRuneInString(string(t.cells[irow][jcol].(hrule)))
 			if east == horizontal_blank {
 				east = none
 			}
@@ -130,7 +131,9 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 					(!hasVerticalSeparator || offset == 0)) {
 				splitters += string(irune)
 			} else {
-				splitters += string(rune(t.cells[irow][jcol+offset].(hrule)))
+				brkrule, _ := utf8.DecodeRuneInString(string(t.cells[irow][jcol+offset].(hrule)))
+				splitters += string(brkrule)
+				//splitters += string(rune(t.cells[irow][jcol+offset].(hrule)[0]))
 			}
 		} else {
 
@@ -142,9 +145,9 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 
 	// and return the string computed so far but in the form of a slice
 	// containing only one line. Mind the trick: the splitters (which are a
-	// standard string) are casted into a content to enable the creation of a
-	// slice of formatters
-	return []formatter{content(splitters)}
+	// standard string) are casted into a hrule to enable the specific format of
+	// horizontal rules
+	return []formatter{hrule(splitters)}
 }
 
 // Cells are also formatted (physical) line by line where each physical line is
@@ -154,11 +157,15 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 // specification of the j-th column.
 func (h hrule) Format(t *Table, irow, jcol int) string {
 
+	// The result of formatting a horizontal rule consists of prefixing the
+	// horizontal rule used in the data column with the splitters given in this
+	// horizontal rule
+
 	// the only task to do consists of repeating the separator as many times as
 	// the width of this column after the splitters
 	rule, ok := t.cells[irow][jcol].(hrule)
 	if !ok {
 		log.Fatalf(" The formatter in location (%v, %v) could not be casted into a rule!", irow, jcol)
 	}
-	return strings.Repeat(string(rule), t.columns[jcol].width)
+	return string(h) + strings.Repeat(string(rule), t.columns[jcol].width)
 }

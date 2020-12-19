@@ -195,7 +195,7 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 
 	// in case this table contains a last column with no data, add an empty rule
 	if len(t.columns) > 0 && t.columns[len(t.columns)-1].hformat.alignment == 0 {
-		icells = append(icells, hrule(0))
+		icells = append(icells, hrule(""))
 	}
 
 	// and now add these rules to the contents to format and also an additional
@@ -277,7 +277,7 @@ func (t *Table) AddRow(cells ...interface{}) error {
 // error is returned
 func (t *Table) AddSingleRule(cols ...int) error {
 
-	return t.addRule(horizontal_single, cols...)
+	return t.addRule(hrule(horizontal_single), cols...)
 }
 
 // Add a double horizontal rule to the table from a start column to and end
@@ -288,7 +288,7 @@ func (t *Table) AddSingleRule(cols ...int) error {
 // error is returned
 func (t *Table) AddDoubleRule(cols ...int) error {
 
-	return t.addRule(horizontal_double, cols...)
+	return t.addRule(hrule(horizontal_double), cols...)
 }
 
 // Add a thick horizontal rule to the table from a start column to and end
@@ -299,7 +299,7 @@ func (t *Table) AddDoubleRule(cols ...int) error {
 // error is returned
 func (t *Table) AddThickRule(cols ...int) error {
 
-	return t.addRule(horizontal_thick, cols...)
+	return t.addRule(hrule(horizontal_thick), cols...)
 }
 
 // Return the number of columns in a table which contain data.
@@ -344,12 +344,18 @@ func (t Table) String() (result string) {
 				// one even if it has no content
 				for j := 0; j < len(t.columns); j++ {
 
-					// add to the string the splitters of this column and next
-					// the horizontal rule as stored in the table. Mind the
-					// trick: the first formatter returned by Process is
-					// transformed via a type assertion into a content so that
-					// it can be casted into a string
-					result += string(t.cells[i][0].Process(&t, i, j)[0].(content))
+					// // add to the string the splitters of this column and next
+					// // the horizontal rule as stored in the table. Mind the
+					// // trick: the first formatter returned by Process is
+					// // transformed via a type assertion into a content so that
+					// // it can be casted into a string
+					// result += string(t.cells[i][0].Process(&t, i, j)[0].(content))
+
+					// Process the contents of this cell
+					contents := t.cells[i][0].Process(&t, i, j)
+
+					// and print the contents of this column in the result
+					result += fmt.Sprintf("%v", contents[0].Format(&t, i, j))
 				}
 				result += "\n"
 			}

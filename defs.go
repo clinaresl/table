@@ -529,9 +529,11 @@ type style struct {
 // Contents are simply strings to be shown on each cell
 type content string
 
-// Tables also provide the facility to draw horizontal rules which consist of
-// the repetition of a specific rune
-type hrule rune
+// Tables also provide the facility to draw horizontal rules. Both splitters
+// (between horizontal and vertical rules) along with other surrounding
+// characters, and the rune used as a separator above/below other contents are
+// defined as horizontal rules
+type hrule string
 
 // Tables can draw cells provided that they can be both processed and formatted:
 // cells are first formatted to generate the physical lines required to display
