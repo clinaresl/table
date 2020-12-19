@@ -325,58 +325,24 @@ func (t *Table) GetNbRows() int {
 // its contents into a string
 func (t Table) String() (result string) {
 
-	// for each logical row (including the horizontal rules)
+	// Thanks to the definition of formatters, all can be printed the same way
+
+	// for each logical row
 	for i, row := range t.rows {
 
-		// the type of an entire logical row is equal to the type of its first
-		// item. Thus, to distinguish rules from contents the first element of
-		// this row is checked
-		switch t.cells[i][0].(type) {
+		// and for each physical line of this row
+		for line := 0; line < row.height; line++ {
 
-		case hrule:
+			// and each column in this physical line
+			for j := 0; j < len(t.columns); j++ {
 
-			// Yes, I know!! Horizontal rules only take one line but ... who
-			// knows if this changes in the future?
-			for line := 0; line < row.height; line++ {
+				// Process the contents of this cell
+				contents := t.cells[i][j].Process(&t, i, j)
 
-				// now, draw the horizontal rule for each column. Note that the
-				// true number of columns is used to take into account the last
-				// one even if it has no content
-				for j := 0; j < len(t.columns); j++ {
-
-					// // add to the string the splitters of this column and next
-					// // the horizontal rule as stored in the table. Mind the
-					// // trick: the first formatter returned by Process is
-					// // transformed via a type assertion into a content so that
-					// // it can be casted into a string
-					// result += string(t.cells[i][0].Process(&t, i, j)[0].(content))
-
-					// Process the contents of this cell
-					contents := t.cells[i][0].Process(&t, i, j)
-
-					// and print the contents of this column in the result
-					result += fmt.Sprintf("%v", contents[0].Format(&t, i, j))
-				}
-				result += "\n"
+				// and print the contents of this column in the result
+				result += fmt.Sprintf("%v", contents[line].Format(&t, i, j))
 			}
-
-		case content:
-
-			// for each physical line of this row
-			for line := 0; line < row.height; line++ {
-
-				// and each column in this line
-				for j := 0; j < len(t.columns); j++ {
-
-					// Process the contents of this cell
-					contents := t.cells[i][j].Process(&t, i, j)
-
-					// and print the contents of this column in the result
-					result += fmt.Sprintf("%v%v", t.columns[j].sep,
-						contents[line].(content).Format(&t, i, j))
-				}
-				result += "\n"
-			}
+			result += "\n"
 		}
 	}
 

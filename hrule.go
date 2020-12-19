@@ -133,7 +133,6 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 			} else {
 				brkrule, _ := utf8.DecodeRuneInString(string(t.cells[irow][jcol+offset].(hrule)))
 				splitters += string(brkrule)
-				//splitters += string(rune(t.cells[irow][jcol+offset].(hrule)[0]))
 			}
 		} else {
 

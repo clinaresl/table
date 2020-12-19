@@ -1,6 +1,7 @@
 package table
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
@@ -104,6 +105,10 @@ func (c content) Process(t *Table, irow, jcol int) []formatter {
 // specification of the j-th column.
 func (c content) Format(t *Table, irow, jcol int) string {
 
+	// Specifically speaking, formatting a content means computing the
+	// horizontal format and to prefix the result with the separator of the
+	// jcol-th column
+
 	// aliasing
 	col := t.columns[jcol]
 
@@ -133,6 +138,7 @@ func (c content) Format(t *Table, irow, jcol int) string {
 		suffix = strings.Repeat(" ", col.width-countPrintableRuneInString(string(c)))
 	}
 
-	// and return the concatenation of the prefix, the content and the suffix
-	return prefix + string(c) + suffix
+	// and return the concatenation of the prefix, the content and the suffix,
+	// all prefixed with the horizontal separator of the jcol-th column
+	return fmt.Sprintf("%v%v", t.columns[jcol].sep, prefix+string(c)+suffix)
 }
