@@ -1,6 +1,9 @@
 // This package implements means for drawing data in tabular form. It is
 // strongly based on the definition of tables in LaTeX but extends its
 // functionality in various ways.
+//
+// They honour UTF-8 characters, ANSI color escape sequences, full/partial
+// horizontal rules, and various vertical and horizontal alignment options.
 package table
 
 // ----------------------------------------------------------------------------
@@ -8,6 +11,7 @@ package table
 // ----------------------------------------------------------------------------
 
 const none = 0
+const horizontal_empty = ""
 
 const horizontal_blank = ' '
 const horizontal_single = '\u2500' // ─
@@ -461,6 +465,8 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 	},
 }
 
+// Regexps
+
 // the following regexp is used to mach an entire column specification string
 const colSpecRegexAll = `^([^clrCLRp]*(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\}))+`
 
@@ -490,55 +496,62 @@ const ansiColorRegex = `\033([\[;]\d+)+m`
 // Once a Table has been created, it is then possible to use all services
 // provided for them
 //
-// A table consists of a slice of columns, each one consisting of a separator
-// and a content following immediately after, and a number of rows where the
-// height of each row are stored. Note that the last separator (if any) is
-// stored as a column without content. They also store the cells of the table as
-// a bidimensional matrix of contents that can be processed and formatted.
+// A table consists of a slice of columns, each one with its own specification,
+// and a number of rows where the height of each row is stored. Note that the
+// last separator (if any) is stored as a column without content. They also
+// store the cells of the table as a bidimensional matrix that can be both
+// processed and formatted, i.e., as formatters
 type Table struct {
 	columns []column
 	rows    []row
 	cells   [][]formatter
 }
 
-// columns do not store the contents, which are given instead in data rows. A
-// column consists then of a vertical separator, a number of columns for
-// displaying its contents, and the corresponding styles for showing its
-// contents both horizontally and vertically.
+// columns do not store contents. A column consists then of a vertical
+// separator, their width (number of physical columns), and the corresponding
+// styles for showing its contents both horizontally and vertically.
 type column struct {
 	sep              string
 	width            int
 	hformat, vformat style
 }
 
-// rows do not store the contents, which are given instead in data rows. A row
-// consists then of a number of lines for displaying its contents. Horizontal
-// separators are represented as rows of height 1
+// rows do not store contents. A row consists then of a number of physical lines
+// for displaying its contents
 type row struct {
 	height int
 }
 
-// The style of a body specifies how to draw it and it is represented typically
+// The style of a cell specifies how to draw it and it is represented typically
 // with a string and, additionally, with a numerical value in case a specific
 // style (such as 'p') requires it
 type style struct {
-	alignment byte // either c, r, l, p, t, b or none which is represented with 0
-	arg       int  // in case it is needed, e.g., for p
+	alignment byte
+	arg       int
 }
 
 // Contents are simply strings to be shown on each cell
 type content string
 
-// Tables also provide the facility to draw horizontal rules. Both splitters
-// (between horizontal and vertical rules) along with other surrounding
-// characters, and the rune used as a separator above/below other contents are
-// defined as horizontal rules
+// Both splitters (between horizontal and vertical rules) along with other
+// surrounding characters, and the rune used as a separator above/below other
+// contents are defined as horizontal rules
 type hrule string
 
 // Tables can draw cells provided that they can be both processed and formatted:
 // cells are first formatted to generate the physical lines required to display
 // its contents in the form of formatters, which are then formatted one by one
 // to generate a single string which is shown on the table.
+//
+// The procedure is always the same: for any formatter, it is first "Process"ed
+// and each resulting formatter is then "Format"ted. As a result:
+//
+//    a. All implementation of formatters X shall guarantee that each item in
+//    the output slice []formatter can be casted back into its corresponding
+//    type X, so that they can then be formatted accordingly.
+//
+//	  b. Tables print directly the result of formatting each item in the result
+//	  of the processing step
 type formatter interface {
 
 	// Processing a cell means transforming logical rows into physical ones by

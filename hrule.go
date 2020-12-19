@@ -16,23 +16,24 @@ import (
 // table, and also the integer indices to the row and column of the cell
 func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 
-	// the result of processing a horizontal rule consists of a single file
-	// which is then stored in a single string. The result will then be
-	// transformed into a slice of arrays containing only this string
+	// Processing a horizontal rule involves computing a single string which
+	// contains the result of intersecting the horizontal separator of this row
+	// with the vertical separator of this column. The result is given as a
+	// hrule so that it can then be formatted
 	var splitters string
 
 	// define variables for storing the runes to the west, east, north and south
 	// of each rune in the column separator
 	var west, east, north, south rune
 
-	// get the separator to process which is the one given in the j-th column
+	// get the vertical separator to process which is the one given in the j-th column
 	sep := t.columns[jcol].sep
 
 	// search for ANSI color escape sequences
 	re := regexp.MustCompile(ansiColorRegex)
 	colindexes := re.FindAllStringIndex(sep, -1)
 
-	// locate at the first color and annotate how many have been found
+	// position at the first color and annotate how many have been found
 	colind, nbcolors := 0, len(colindexes)
 
 	// the following value should be equal to -1 if we have not found a vertical

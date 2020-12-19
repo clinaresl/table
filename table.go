@@ -34,11 +34,11 @@ import (
 // exceed NUMBER columns and the contents are ragged left/centered/ragged right
 // respectively
 //
-// In addition, the column speciication might contain other characters which are
+// In addition, the column specification might contain other characters which are
 // then added to the contents as well.
 //
-// If a second string is given, then it is interpreted as the row specification.
-// The different available vertical alignments are given below:
+// If a second string is given, then it is interpreted as the row specification,
+// which specifies the vertical alignment:
 //
 // 1. 't': the contents of the row are aligned to the top
 //
@@ -69,9 +69,7 @@ func NewTable(spec ...string) (*Table, error) {
 
 	// capture the args given by the user. Note that at this point spec contains
 	// either one or two strings only
-	if len(spec) >= 1 {
-		colspec = spec[0]
-	}
+	colspec = spec[0]
 	if len(spec) == 2 {
 		rowspec = spec[1]
 	}
@@ -107,7 +105,7 @@ func NewTable(spec ...string) (*Table, error) {
 
 	// maybe the column specification string is not empty here. Any remainings
 	// are interpreted as the separator of a last column which contains no text
-	// and which have no format
+	// and which has no format
 	if colspec != "" {
 		columns = append(columns,
 			column{sep: colspec,
@@ -195,7 +193,7 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 
 	// in case this table contains a last column with no data, add an empty rule
 	if len(t.columns) > 0 && t.columns[len(t.columns)-1].hformat.alignment == 0 {
-		icells = append(icells, hrule(""))
+		icells = append(icells, hrule(horizontal_empty))
 	}
 
 	// and now add these rules to the contents to format and also an additional
@@ -210,9 +208,12 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 // -- Public
 
 // Add a new line of data to the bottom of the column. This function accepts an
-// arbitrary number of arguments that satisfy the null interface. If the number
-// of elements given exceeds the number of columns of the table an error is
-// immediately issued
+// arbitrary number of arguments that satisfy the null interface. The content
+// shown on the table is the result of a Sprintf operation over it.
+//
+// If the number of arguments is less than the number of columns, the last cells
+// are left empty. If the number of elements given exceeds the number of columns
+// of the table an error is immediately issued
 func (t *Table) AddRow(cells ...interface{}) error {
 
 	// if the number of elements given exceeds the number of columns then
@@ -243,12 +244,13 @@ func (t *Table) AddRow(cells ...interface{}) error {
 		// this cell
 		for _, line := range contents {
 
-			// if this column is a pagraph then use the width defined.
+			// if this column is a paragraph then use the width defined.
 			// Otherwise, take the maximum width among all columns
 			if t.columns[j].hformat.alignment == 'p' {
 				t.columns[j].width = t.columns[j].hformat.arg
 			} else {
-				t.columns[j].width = max(t.columns[j].width, countPrintableRuneInString(string(line.(content))))
+				t.columns[j].width = max(t.columns[j].width,
+					countPrintableRuneInString(string(line.(content))))
 			}
 		}
 	}
@@ -257,7 +259,7 @@ func (t *Table) AddRow(cells ...interface{}) error {
 	// Note that an empty cell is added also to the last column even if it
 	// contains no data
 	for ; j < len(t.columns); j++ {
-		icells[j] = content("")
+		icells[j] = content(horizontal_empty)
 	}
 
 	// add this cells to this table, along with the number of physical rows
@@ -302,7 +304,7 @@ func (t *Table) AddThickRule(cols ...int) error {
 	return t.addRule(hrule(horizontal_thick), cols...)
 }
 
-// Return the number of columns in a table which contain data.
+// Return the number of logical columns in a table which contain data.
 func (t *Table) GetNbColumns() int {
 
 	// if this table comes with a last column with no contents, then discard it

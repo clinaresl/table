@@ -16,6 +16,12 @@ import (
 // table, and also the integer indices to the row and column of the cell
 func (c content) Process(t *Table, irow, jcol int) []formatter {
 
+	// Processing a content involves splitting it across as many physical rows
+	// as needed (which is the case if a "paragraph" alignment is given for this
+	// column). In case the number of physical lines is strictly less than the
+	// number of physical rows of this logical row, then compute the vertical
+	// alignment. The result is given as a slice of contents so that they can be
+	// each properly formatted.
 	var result []content
 
 	// If the rightmost column is required to be processed and it contains no
@@ -25,8 +31,7 @@ func (c content) Process(t *Table, irow, jcol int) []formatter {
 		// if the height of this row is known, then return as many copies of the
 		// separator as required. Otherwise, return the separator only once
 		for iline := 0; iline < max(1, t.rows[irow].height); iline++ {
-			// result = append(result, t.columns[jcol].sep)
-			result = append(result, content(""))
+			result = append(result, content(horizontal_empty))
 		}
 	} else {
 
@@ -80,15 +85,17 @@ func (c content) Process(t *Table, irow, jcol int) []formatter {
 
 			// and now add the corresponding number of blank lines as required
 			for iline := 0; iline < prefix; iline++ {
-				result = prepend("", result)
+				result = prepend(horizontal_empty, result)
 			}
 			for iline := 0; iline < suffix; iline++ {
-				result = append(result, "")
+				result = append(result, horizontal_empty)
 			}
 		}
 	}
 
-	// explicitly transform the slice of contents into a slice of formatters
+	// syntactical issue: explicitly transform the slice of contents into a
+	// slice of formatters. Note this transformation guarantees casting back the
+	// formatters into contents so that they can be properly formatted each
 	var output []formatter
 	for _, val := range result {
 		output = append(output, formatter(val))
