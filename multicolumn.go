@@ -20,18 +20,43 @@ import (
 // Functions
 // ----------------------------------------------------------------------------
 
+// Multicolumns are meant to be inserted as ordinary cells in a data row
+//
 // Return a new instance of a multicolumn. The first parameter is the number of
 // columns that are grouped under the specification given next. Immediately
-// after an arbitrary number of arguments satisfying the null interface can be
-// given which substitute the given number of columns.
-func Multicolumn(nbcolumns int, spec string, args ...interface{}) *multicolumn {
+// after an arbitrary number of arguments can be given which are formatted
+// according to the column specification given.
+//
+// Importantly, the column specification is not allowed to end with any vertical
+// separator ---or, in other words, all columns given in the column
+// specification of the multicolumn must be data columns. Indeed, the row is
+// continued with the vertical separator given in the first column of the table
+// after the multicolumn. If the column specification ends with a vertical
+// separator an error is immediately raised
+func Multicolumn(nbcolumns int, spec string, args ...interface{}) (*multicolumn, error) {
 
-	// and return an instance of a multicolumn with no error. Note that the output is initially empty
+	// process the given column specification to verify that all columns given
+	// are data columns. To verify this, create a table with the given column
+	// specification
+	if t, err := NewTable(spec); err != nil {
+
+		// Of course, if the column specification is incorrect for creating a
+		// table then immediately return an error
+		return &multicolumn{}, err
+	} else {
+
+		// Otherwise, verify that all columns in this table are data columns
+		if len(t.columns) != t.GetNbColumns() {
+			return &multicolumn{}, fmt.Errorf("Invalid column specification of a multicolumn: '%v'", spec)
+		}
+	}
+
+	// finally, return an instance of a multicolumn with no error. Note that the output is initially empty
 	return &multicolumn{
 		nbcolumns: nbcolumns,
 		spec:      spec,
 		args:      args,
-	}
+	}, nil
 }
 
 // Methods
@@ -55,6 +80,12 @@ func (m multicolumn) Process(t *Table, irow, jcol int) []formatter {
 
 	// -- initialization
 	var result []formatter
+
+	// error checking --- panic if the number of columns given in the
+	// multicolumn exceed the available columns in the table
+	if jcol+m.nbcolumns > len(t.columns) {
+		panic("Panic while processing a multicolumn. The number of available columns has been execeeded!")
+	}
 
 	// Create the ancilliary table and if any error is reported panic (as the
 	// process step does not return any errors)
