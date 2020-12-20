@@ -1,3 +1,11 @@
+// -*- coding: utf-8 -*-
+// table.go
+// -----------------------------------------------------------------------------
+//
+// Started on <sáb 19-12-2020 22:45:26.735542876 (1608414326)>
+// Carlos Linares López <carlos.linares@uc3m.es>
+//
+
 package table
 
 import (
@@ -363,7 +371,7 @@ func (t Table) String() string {
 		}
 	}
 
-	// and return the concatenation of all strings in the output string with no
-	// separator
+	// and return the concatenation of all strings in the output string
+	// separated by a newline
 	return strings.Join(output, "\n")
 }

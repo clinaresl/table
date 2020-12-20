@@ -1,3 +1,11 @@
+// -*- coding: utf-8 -*-
+// defs.go
+// -----------------------------------------------------------------------------
+//
+// Started on <sáb 19-12-2020 22:45:26.735542876 (1608414326)>
+// Carlos Linares López <carlos.linares@uc3m.es>
+//
+
 // This package implements means for drawing data in tabular form. It is
 // strongly based on the definition of tables in LaTeX but extends its
 // functionality in various ways.
@@ -537,6 +545,20 @@ type content string
 // surrounding characters, and the rune used as a separator above/below other
 // contents are defined as horizontal rules
 type hrule string
+
+// multicolumns are formatters, i.e., they can be inserted into the table and
+// they glue nbcolumns columns under a different format explicitly given by the
+// user which are filled in with data from a number of arguments.
+//
+// The result of processing a multicolumn consists of a slice of multicolumns,
+// each caching separately a different line so that the formatting step can
+// immediately return it
+type multicolumn struct {
+	nbcolumns int
+	spec      string
+	args      []interface{}
+	output    string
+}
 
 // Tables can draw cells provided that they can be both processed and formatted:
 // cells are first formatted to generate the physical lines required to display

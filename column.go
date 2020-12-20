@@ -1,3 +1,11 @@
+// -*- coding: utf-8 -*-
+// column.go
+// -----------------------------------------------------------------------------
+//
+// Started on <sáb 19-12-2020 22:45:26.735542876 (1608414326)>
+// Carlos Linares López <carlos.linares@uc3m.es>
+//
+
 package table
 
 import (
