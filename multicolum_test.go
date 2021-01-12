@@ -184,7 +184,7 @@ func Test_multicolumn_Process(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 
 				// create a multicolumn with the given arguments
-				column, err := Multicolumn(tt.args.nbcolumns, tt.args.spec, tt.args.args...)
+				column, err := NewMulticolumn(tt.args.nbcolumns, tt.args.spec, tt.args.args...)
 
 				// Make sure that the error produced, if any, is as expected
 				if !reflect.DeepEqual(err, tt.err) {

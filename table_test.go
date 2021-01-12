@@ -10,6 +10,8 @@ package table
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -345,370 +347,391 @@ func TestTable_GetNbColumns(t *testing.T) {
 
 // The following example ilustrates the creation of a simple table with three
 // columns and a single row
-// func ExampleTable_0() {
+func ExampleTable_0() {
 
-// 	t, err := NewTable("l l l")
-// 	if err != nil {
-// 		log.Fatalln(" NewTable: Fatal error!")
-// 	}
-// 	err = t.AddRow("Black", "lives", "matter")
-// 	if err != nil {
-// 		log.Fatalln(" AddRow: Fatal error!")
-// 	}
-// 	fmt.Printf("%v", t)
-// 	// Output: Black lives matter
-// 	//
-// }
+	t, err := NewTable("l l l")
+	if err != nil {
+		log.Fatalln(" NewTable: Fatal error!")
+	}
+	err = t.AddRow("Black", "lives", "matter")
+	if err != nil {
+		log.Fatalln(" AddRow: Fatal error!")
+	}
+	fmt.Printf("%v", t)
+	// Output: Black lives matter
+	//
+}
 
-// // In the next example, some rows expand over various lines. By default, these
-// // are vertically aligned to the top
-// func ExampleTable_1() {
+// In the next example, some rows expand over various lines. By default, these
+// are vertically aligned to the top
+func ExampleTable_1() {
 
-// 	t, err := NewTable("| c || c ||| c |")
-// 	if err != nil {
-// 		log.Fatalln(" NewTable: Fatal error!")
-// 	}
-// 	err = t.AddRow("Year\n1979", "Year\n2013", "Year\n2018")
-// 	if err != nil {
-// 		log.Fatalln(" AddRow: Fatal error!")
-// 	}
-// 	err = t.AddRow("Ariane", "Gaia\nProba Series\nSwarm", "Aeolus\nBepicolombo\nMetop Series")
-// 	if err != nil {
-// 		log.Fatalln(" AddRow: Fatal error!")
-// 	}
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output:
-// 	// Output:
-// 	// │  Year  ║     Year     ┃     Year     │
-// 	// │  1979  ║     2013     ┃     2018     │
-// 	// │ Ariane ║     Gaia     ┃    Aeolus    │
-// 	// │        ║ Proba Series ┃ Bepicolombo  │
-// 	// │        ║    Swarm     ┃ Metop Series │
-// 	//
-// }
+	t, err := NewTable("| c || c ||| c |")
+	if err != nil {
+		log.Fatalln(" NewTable: Fatal error!")
+	}
+	err = t.AddRow("Year\n1979", "Year\n2013", "Year\n2018")
+	if err != nil {
+		log.Fatalln(" AddRow: Fatal error!")
+	}
+	err = t.AddRow("Ariane", "Gaia\nProba Series\nSwarm", "Aeolus\nBepicolombo\nMetop Series")
+	if err != nil {
+		log.Fatalln(" AddRow: Fatal error!")
+	}
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+	// Output:
+	// │  Year  ║     Year     ┃     Year     │
+	// │  1979  ║     2013     ┃     2018     │
+	// │ Ariane ║     Gaia     ┃    Aeolus    │
+	// │        ║ Proba Series ┃ Bepicolombo  │
+	// │        ║    Swarm     ┃ Metop Series │
+	//
+}
 
-// // This example shows how to use the package table to show information like in a
-// // help banner. In this case, the first column contains (some of) the commands
-// // of the go tool and the right one shows a comment about their usage. Note that
-// // to make sure that the entire table fits in the terminal, p is used as a
-// // column specifier
-// func ExampleTable_2() {
+// This example shows how to use the package table to show information like in a
+// help banner. In this case, the first column contains (some of) the commands
+// of the go tool and the right one shows a comment about their usage. Note that
+// to make sure that the entire table fits in the terminal, p is used as a
+// column specifier
+func ExampleTable_2() {
 
-// 	t, err := NewTable("l   p{25}")
-// 	if err != nil {
-// 		log.Fatalln(" NewTable: Fatal error!")
-// 	}
-// 	t.AddRow("bug", "start a bug report")
-// 	t.AddRow("build", "compile packages and dependencies")
-// 	t.AddRow("clean", "remove object files and cached files")
-// 	t.AddRow("doc", "show documentation for package or symbol")
-// 	t.AddRow("env", "print Go environment information")
-// 	t.AddRow("fix", "update packages to use new APIs")
-// 	t.AddRow("...", "...")
-// 	t.AddRow("testflag", "testing flags")
-// 	t.AddRow("testfunc", "testing functions")
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output:
-// 	// Output:
-// 	// bug        start a bug report
-// 	// build      compile packages and
-// 	//            dependencies
-// 	// clean      remove object files and
-// 	//            cached files
-// 	// doc        show documentation for
-// 	//            package or symbol
-// 	// env        print Go environment
-// 	//            information
-// 	// fix        update packages to use
-// 	//            new APIs
-// 	// ...        ...
-// 	// testflag   testing flags
-// 	// testfunc   testing functions
-// 	//
-// }
+	t, err := NewTable("l   p{25}")
+	if err != nil {
+		log.Fatalln(" NewTable: Fatal error!")
+	}
+	t.AddRow("bug", "start a bug report")
+	t.AddRow("build", "compile packages and dependencies")
+	t.AddRow("clean", "remove object files and cached files")
+	t.AddRow("doc", "show documentation for package or symbol")
+	t.AddRow("env", "print Go environment information")
+	t.AddRow("fix", "update packages to use new APIs")
+	t.AddRow("...", "...")
+	t.AddRow("testflag", "testing flags")
+	t.AddRow("testfunc", "testing functions")
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+	// Output:
+	// bug        start a bug report
+	// build      compile packages and
+	//            dependencies
+	// clean      remove object files and
+	//            cached files
+	// doc        show documentation for
+	//            package or symbol
+	// env        print Go environment
+	//            information
+	// fix        update packages to use
+	//            new APIs
+	// ...        ...
+	// testflag   testing flags
+	// testfunc   testing functions
+	//
+}
 
-// // The following example shows how to add single rules to various parts of a
-// // table
-// func ExampleTable_3() {
+// The following example shows how to add single rules to various parts of a
+// table
+func ExampleTable_3() {
 
-// 	t, _ := NewTable("l | r ")
-// 	t.AddThickRule()
-// 	t.AddRow("Country", "Population")
-// 	t.AddSingleRule()
-// 	t.AddRow("China", "1,394,015,977")
-// 	t.AddRow("India", "1,326,093,247")
-// 	t.AddRow("United States", "329,877,505")
-// 	t.AddRow("Indonesia", "267,026,366")
-// 	t.AddRow("Pakistan", "233,500,636")
-// 	t.AddRow("Nigeria", "214,028,302")
-// 	t.AddThickRule()
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output:
-// }
+	t, _ := NewTable("l | r ")
+	t.AddThickRule()
+	t.AddRow("Country", "Population")
+	t.AddSingleRule()
+	t.AddRow("China", "1,394,015,977")
+	t.AddRow("India", "1,326,093,247")
+	t.AddRow("United States", "329,877,505")
+	t.AddRow("Indonesia", "267,026,366")
+	t.AddRow("Pakistan", "233,500,636")
+	t.AddRow("Nigeria", "214,028,302")
+	t.AddThickRule()
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
 
-// // Horizontal rules can also be drawn from one specific column to another and it
-// // is possible to draw as many segments in the same line as required.
-// func ExampleTable_4() {
+// Horizontal rules can also be drawn from one specific column to another and it
+// is possible to draw as many segments in the same line as required.
+func ExampleTable_4() {
 
-// 	t, _ := NewTable("|c|c|c|c|c|")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("|c|c|c|c|c|")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// // This example is symmetrical to the previous one
-// func ExampleTable_5() {
+// This example is symmetrical to the previous one
+func ExampleTable_5() {
 
-// 	t, _ := NewTable("|c|c|c|c|c|")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("|c|c|c|c|c|")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// // ----------------------------------------------------------------------------
-// func ExampleTable_6() {
+// ----------------------------------------------------------------------------
+func ExampleTable_6() {
 
-// 	t, _ := NewTable("||c||c||c||c||c||")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("||c||c||c||c||c||")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// func ExampleTable_7() {
+func ExampleTable_7() {
 
-// 	t, _ := NewTable("||c||c||c||c||c||")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("||c||c||c||c||c||")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// // ----------------------------------------------------------------------------
-// func ExampleTable_8() {
+// ----------------------------------------------------------------------------
+func ExampleTable_8() {
 
-// 	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// func ExampleTable_9() {
+func ExampleTable_9() {
 
-// 	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddSingleRule(1, 2, 3, 4)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddSingleRule(0, 1, 2, 3, 4, 5)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddSingleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddSingleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// // Horizontal rules can also be drawn from one specific column to another and it
-// // is possible to draw as many segments in the same line as required.
-// func ExampleTable_10() {
+// Horizontal rules can also be drawn from one specific column to another and it
+// is possible to draw as many segments in the same line as required.
+func ExampleTable_10() {
 
-// 	t, _ := NewTable("|c|c|c|c|c|")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("|c|c|c|c|c|")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// // This example is symmetrical to the previous one
-// func ExampleTable_11() {
+// This example is symmetrical to the previous one
+func ExampleTable_11() {
 
-// 	t, _ := NewTable("|c|c|c|c|c|")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("|c|c|c|c|c|")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// // ----------------------------------------------------------------------------
-// func ExampleTable_12() {
+// ----------------------------------------------------------------------------
+func ExampleTable_12() {
 
-// 	t, _ := NewTable("||c||c||c||c||c||")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("||c||c||c||c||c||")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// func ExampleTable_13() {
+func ExampleTable_13() {
 
-// 	t, _ := NewTable("||c||c||c||c||c||")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("||c||c||c||c||c||")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// // ----------------------------------------------------------------------------
-// func ExampleTable_14() {
+// ----------------------------------------------------------------------------
+func ExampleTable_14() {
 
-// 	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// func ExampleTable_15() {
+func ExampleTable_15() {
 
-// 	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	t.AddDoubleRule(1, 2, 3, 4)
-// 	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output: ""
-// }
+	t, _ := NewTable("|||c|||c|||c|||c|||c|||")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	t.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	t.AddDoubleRule(1, 2, 3, 4)
+	t.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	t.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
 
-// // The following table tests the vertical formatting and also ANSI color escape
-// // sequences both for the contents and the separators
-// func ExampleTable_16() {
+// The following table tests the vertical formatting and also ANSI color escape
+// sequences both for the contents and the separators
+func ExampleTable_16() {
 
-// 	t, err := NewTable("\033[38;2;160;10;10m| c \033[38;2;10;160;10m| c \033[38;2;80;80;160m| c \033[38;2;160;80;40m|\033[0m", "cb")
-// 	if err != nil {
-// 		log.Fatalln(" NewTable: Fatal error!")
-// 	}
-// 	t.AddRow("\033[38;2;206;10;0mPlayer\033[0m", "\033[38;2;10;206;0mYear\033[0m", "\033[38;2;100;0;206mTournament\033[0m")
-// 	t.AddSingleRule()
-// 	t.AddRow("\033[38;5;206mRafa\033[0m \033[31;1;4mNadal\033[0m", "2010", "French Open\nWimbledon\nUS Open")
-// 	t.AddSingleRule()
-// 	t.AddRow("Roger Federer", "2007", "\033[38;2;255;82;197;48;2;155;106;0mAustralian Open\033[0m\nWimbledon\nUS Open")
-// 	t.AddSingleRule()
+	t, err := NewTable("\033[38;2;160;10;10m| c \033[38;2;10;160;10m| c \033[38;2;80;80;160m| c \033[38;2;160;80;40m|\033[0m", "cb")
+	if err != nil {
+		log.Fatalln(" NewTable: Fatal error!")
+	}
+	t.AddRow("\033[38;2;206;10;0mPlayer\033[0m", "\033[38;2;10;206;0mYear\033[0m", "\033[38;2;100;0;206mTournament\033[0m")
+	t.AddSingleRule()
+	t.AddRow("\033[38;5;206mRafa\033[0m \033[31;1;4mNadal\033[0m", "2010", "French Open\nWimbledon\nUS Open")
+	t.AddSingleRule()
+	t.AddRow("Roger Federer", "2007", "\033[38;2;255;82;197;48;2;155;106;0mAustralian Open\033[0m\nWimbledon\nUS Open")
+	t.AddSingleRule()
 
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output:
-// }
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
 
-// // Tables are stringers and AddRow adds the output of a Sprintf operation. As a
-// // result, tables can be nested
-// func ExampleTable_17() {
+// Tables are stringers and AddRow adds the output of a Sprintf operation. As a
+// result, tables can be nested
+func ExampleTable_17() {
 
-// 	board1, _ := NewTable("||cccccccc||")
-// 	board1.AddDoubleRule()
-// 	board1.AddRow("\u265c", "\u265e", "\u265d", "\u265b", "\u265a", "\u265d", "", "\u265c")
-// 	board1.AddRow("\u265f", "\u265f", "\u265f", "\u265f", "\u2592", "\u265f", "\u265f", "\u265f")
-// 	board1.AddRow("", "\u2592", "", "\u2592", "", "\u265e", "", "\u2592")
-// 	board1.AddRow("\u2592", "", "\u2592", "", "\u265f", "", "\u2592", "")
-// 	board1.AddRow("", "\u2592", "", "\u2592", "\u2659", "\u2659", "", "\u2592")
-// 	board1.AddRow("\u2592", "", "\u2658", "", "\u2592", "", "\u2592", "")
-// 	board1.AddRow("\u2659", "\u2659", "\u2659", "\u2659", "", "\u2592", "\u2659", "\u2659")
-// 	board1.AddRow("\u2656", "", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656")
-// 	board1.AddDoubleRule()
+	board1, _ := NewTable("||cccccccc||")
+	board1.AddDoubleRule()
+	board1.AddRow("\u265c", "\u265e", "\u265d", "\u265b", "\u265a", "\u265d", "", "\u265c")
+	board1.AddRow("\u265f", "\u265f", "\u265f", "\u265f", "\u2592", "\u265f", "\u265f", "\u265f")
+	board1.AddRow("", "\u2592", "", "\u2592", "", "\u265e", "", "\u2592")
+	board1.AddRow("\u2592", "", "\u2592", "", "\u265f", "", "\u2592", "")
+	board1.AddRow("", "\u2592", "", "\u2592", "\u2659", "\u2659", "", "\u2592")
+	board1.AddRow("\u2592", "", "\u2658", "", "\u2592", "", "\u2592", "")
+	board1.AddRow("\u2659", "\u2659", "\u2659", "\u2659", "", "\u2592", "\u2659", "\u2659")
+	board1.AddRow("\u2656", "", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656")
+	board1.AddDoubleRule()
 
-// 	board2, _ := NewTable("||cccccccc||")
-// 	board2.AddDoubleRule()
-// 	board2.AddRow("\u265c", "\u265e", "\u265d", "\u265b", "\u265a", "\u265d", "\u265e", "\u265c")
-// 	board2.AddRow("\u265f", "\u265f", "\u265f", "", "\u265f", "\u265f", "\u265f", "\u265f")
-// 	board2.AddRow("", "\u2592", "", "\u2592", "", "\u2592", "", "\u2592")
-// 	board2.AddRow("\u2592", "", "\u2592", "", "\u2592", "", "\u2592", "")
-// 	board2.AddRow("", "\u2592", "", "\u2659", "\u265f", "\u2592", "", "\u2592")
-// 	board2.AddRow("\u2592", "", "\u2592", "", "\u2592", "\u2659", "\u2592", "")
-// 	board2.AddRow("\u2659", "\u2659", "\u2659", "\u2592", "", "\u2592", "\u2659", "\u2659")
-// 	board2.AddRow("\u2656", "\u2658", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656")
-// 	board2.AddDoubleRule()
+	board2, _ := NewTable("||cccccccc||")
+	board2.AddDoubleRule()
+	board2.AddRow("\u265c", "\u265e", "\u265d", "\u265b", "\u265a", "\u265d", "\u265e", "\u265c")
+	board2.AddRow("\u265f", "\u265f", "\u265f", "", "\u265f", "\u265f", "\u265f", "\u265f")
+	board2.AddRow("", "\u2592", "", "\u2592", "", "\u2592", "", "\u2592")
+	board2.AddRow("\u2592", "", "\u2592", "", "\u2592", "", "\u2592", "")
+	board2.AddRow("", "\u2592", "", "\u2659", "\u265f", "\u2592", "", "\u2592")
+	board2.AddRow("\u2592", "", "\u2592", "", "\u2592", "\u2659", "\u2592", "")
+	board2.AddRow("\u2659", "\u2659", "\u2659", "\u2592", "", "\u2592", "\u2659", "\u2659")
+	board2.AddRow("\u2656", "\u2658", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656")
+	board2.AddDoubleRule()
 
-// 	t, _ := NewTable("| c | c  c |", "cct")
-// 	t.AddSingleRule()
-// 	t.AddRow("ECO Code", "Moves", "Board")
-// 	t.AddSingleRule()
-// 	t.AddRow("C26 Vienna Game: Vienna Gambit", "1.e4 e5 2.♘c3 ♞6 3.f4", board1)
-// 	t.AddRow("D00 Blackmar-Diemer Gambit: Gedult Gambit", "1.e4 d5 2.d4 exd4 3.f3", board2)
-// 	t.AddSingleRule()
+	t, _ := NewTable("| c | c  c |", "cct")
+	t.AddSingleRule()
+	t.AddRow("ECO Code", "Moves", "Board")
+	t.AddSingleRule()
+	t.AddRow("C26 Vienna Game: Vienna Gambit", "1.e4 e5 2.♘c3 ♞6 3.f4", board1)
+	t.AddRow("D00 Blackmar-Diemer Gambit: Gedult Gambit", "1.e4 d5 2.d4 exd4 3.f3", board2)
+	t.AddSingleRule()
 
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output:
-// }
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
 
-// // Tables are stringers and AddRow adds the output of a Sprintf operation. As a
-// // result, tables can be also stacked
-// func ExampleTable_18() {
+// Tables are stringers and AddRow adds the output of a Sprintf operation. As a
+// result, tables can be also stacked
+func ExampleTable_18() {
 
-// 	example, _ := NewTable("|||c|||c|||c|||c|||c|||")
-// 	example.AddDoubleRule(1, 2, 3, 4)
-// 	example.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
-// 	example.AddDoubleRule(0, 1, 2, 3, 4, 5)
-// 	example.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
-// 	example.AddDoubleRule(1, 2, 3, 4)
-// 	example.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
-// 	example.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	example, _ := NewTable("|||c|||c|||c|||c|||c|||")
+	example.AddDoubleRule(1, 2, 3, 4)
+	example.AddRow("(1, 1)", "(1, 2)", "(1, 3)", "(1, 4)", "(1, 5)")
+	example.AddDoubleRule(0, 1, 2, 3, 4, 5)
+	example.AddRow("(2, 1)", "(2, 2)", "(2, 3)", "(2, 4)", "(2, 5)")
+	example.AddDoubleRule(1, 2, 3, 4)
+	example.AddRow("(3, 1)", "(3, 2)", "(3, 3)", "(3, 4)", "(3, 5)")
+	example.AddDoubleRule(0, 1, 2, 3, 4, 5)
 
-// 	code, _ := NewTable("l")
-// 	code.AddRow("t, _ := NewTable(\"|||c|||c|||c|||c|||c|||\")")
-// 	code.AddRow("example.AddDoubleRule(1, 2, 3, 4)")
-// 	code.AddRow("example.AddRow(\"(1, 1)\", \"(1, 2)\", \"(1, 3)\", \"(1, 4)\", \"(1, 5)\")")
-// 	code.AddRow("example.AddDoubleRule(0, 1, 2, 3, 4, 5)")
-// 	code.AddRow("example.AddRow(\"(2, 1)\", \"(2, 2)\", \"(2, 3)\", \"(2, 4)\", \"(2, 5)\")")
-// 	code.AddRow("example.AddDoubleRule(1, 2, 3, 4)")
-// 	code.AddRow("example.AddRow(\"(3, 1)\", \"(3, 2)\", \"(3, 3)\", \"(3, 4)\", \"(3, 5)\")")
-// 	code.AddRow("example.AddDoubleRule(0, 1, 2, 3, 4, 5)")
+	code, _ := NewTable("l")
+	code.AddRow("t, _ := NewTable(\"|||c|||c|||c|||c|||c|||\")")
+	code.AddRow("example.AddDoubleRule(1, 2, 3, 4)")
+	code.AddRow("example.AddRow(\"(1, 1)\", \"(1, 2)\", \"(1, 3)\", \"(1, 4)\", \"(1, 5)\")")
+	code.AddRow("example.AddDoubleRule(0, 1, 2, 3, 4, 5)")
+	code.AddRow("example.AddRow(\"(2, 1)\", \"(2, 2)\", \"(2, 3)\", \"(2, 4)\", \"(2, 5)\")")
+	code.AddRow("example.AddDoubleRule(1, 2, 3, 4)")
+	code.AddRow("example.AddRow(\"(3, 1)\", \"(3, 2)\", \"(3, 3)\", \"(3, 4)\", \"(3, 5)\")")
+	code.AddRow("example.AddDoubleRule(0, 1, 2, 3, 4, 5)")
 
-// 	t, _ := NewTable("c | l")
-// 	t.AddRow(example, code)
+	t, _ := NewTable("c | l")
+	t.AddRow(example, code)
 
-// 	fmt.Printf("Output:\n%v", t)
-// 	// Output:
-// }
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
+
+// The following table tests multicolumns where the width of the table columns
+// are enough to accommodate its contents. The multicolumn takes various columns
+// comprising only one
+func ExampleTable_19() {
+
+	t, _ := NewTable("l | r ")
+	t.AddThickRule()
+	t.AddRow(Multicolumn(2, "c", "Demographics"))
+	t.AddRow("Country", "Population")
+	t.AddSingleRule()
+	t.AddRow("China", "1,394,015,977")
+	t.AddRow("India", "1,326,093,247")
+	t.AddRow("United States", "329,877,505")
+	t.AddRow("Indonesia", "267,026,366")
+	t.AddRow("Pakistan", "233,500,636")
+	t.AddRow("Nigeria", "214,028,302")
+	t.AddThickRule()
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}

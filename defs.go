@@ -503,16 +503,19 @@ const ansiColorRegex = `\033([\[;]\d+)+m`
 // tabular form it is necessary first to create a table with table.NewTable.
 // Once a Table has been created, it is then possible to use all services
 // provided for them
-//
-// A table consists of a slice of columns, each one with its own specification,
-// and a number of rows where the height of each row is stored. Note that the
-// last separator (if any) is stored as a column without content. They also
-// store the cells of the table as a bidimensional matrix that can be both
-// processed and formatted, i.e., as formatters
 type Table struct {
-	columns []column
-	rows    []row
-	cells   [][]formatter
+
+	// A table consists of a slice of columns, each one with its own
+	// specification, and a number of rows where the height of each row is
+	// stored. Note that the last separator (if any) is stored as a column
+	// without content. They also store the cells of the table as a
+	// bidimensional matrix that can be both processed and formatted, i.e., as
+	// formatters. To ease access, all multicolumns inserted are stored
+	// separately in the table definition
+	columns      []column
+	rows         []row
+	cells        [][]formatter
+	multicolumns []multicolumn
 }
 
 // columns do not store contents. A column consists then of a vertical
@@ -546,18 +549,17 @@ type content string
 // contents are defined as horizontal rules
 type hrule string
 
-// multicolumns are formatters, i.e., they can be inserted into the table and
-// they glue nbcolumns columns under a different format explicitly given by the
-// user which are filled in with data from a number of arguments.
-//
-// The result of processing a multicolumn consists of a slice of multicolumns,
-// each caching separately a different line so that the formatting step can
-// immediately return it
+// Multicolumns are essentially tables with only one row. They are formatters,
+// i.e., they can be inserted into a table to merge nbcolumns columns from an
+// initial column under a different format explicitly given by the user as a
+// column specification that is processed to produce a table (with just one row)
+// which is filled in with data from a number of arguments
 type multicolumn struct {
-	nbcolumns int
-	spec      string
-	args      []interface{}
-	output    string
+	jinit, nbcolumns int
+	spec             string
+	table            Table
+	args             []interface{}
+	output           string
 }
 
 // Tables can draw cells provided that they can be both processed and formatted:

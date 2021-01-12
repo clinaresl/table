@@ -89,36 +89,10 @@ func NewTable(spec ...string) (*Table, error) {
 		return &Table{}, errors.New("invalid column specification")
 	}
 
-	// the specification of the table is processed with a regular expression
-	// which should be used to consume the whole string
-	re = regexp.MustCompile(colSpecRegex)
-	for {
-
-		// get the next column and, if none is found, then exit
-		recol := re.FindStringIndex(colspec)
-		if recol == nil {
-			break
-		}
-		nxtcol, err := newColumn(colspec[recol[0]:recol[1]])
-		if err != nil {
-			return &Table{}, err
-		}
-
-		// and add it to the columns of this table
-		columns = append(columns, *nxtcol)
-
-		// and now move forward in the column specification string
-		colspec = colspec[recol[1]:]
-	}
-
-	// maybe the column specification string is not empty here. Any remainings
-	// are interpreted as the separator of a last column which contains no text
-	// and which has no format
-	if colspec != "" {
-		columns = append(columns,
-			column{sep: colspec,
-				hformat: style{},
-				vformat: style{}})
+	// process the column specification given
+	columns, err := getColumns(colspec)
+	if err != nil {
+		return &Table{}, err
 	}
 
 	// Before returning, process the separators of all columns to make the
@@ -213,11 +187,54 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 	return nil
 }
 
+// return the total number of (physical) columns required to print out both the
+// contents and separators of all columns in the range [jinit, jint+n). For this
+// function to work properly contents should have been processed before so that
+// the width of each column is known
+func (t *Table) getColumnsWidth(jinit, n int) (result int) {
+
+	// for all columns in the given range
+	for jcol := jinit; jcol < jinit+n; jcol++ {
+
+		// and add the total number of runes required to display the separator
+		// and also the width of each column.
+		result += countPrintableRuneInString(t.columns[jcol].sep) + t.columns[jcol].width
+	}
+
+	// and return the number of physical columns computed so far
+	return
+}
+
+// Distribute the width of a selection of columns, either those in the
+// multicolumn or those in the table. The width to distribute is the excess of
+// the largest one over the smallest one, and the columns to increment are those
+// that have the smallest overall width
+func (t *Table) distributeMulticolumn(mcolumn *multicolumn) {
+
+	// first, get the number of physical columns which are currently taken by
+	// the table in the space defined for the multicolumn, and also the width
+	// required for displaying the contents of the multicolumn
+	tWidth := t.getColumnsWidth(mcolumn.jinit, mcolumn.nbcolumns)
+	mWidth := mcolumn.table.getColumnsWidth(0, len(mcolumn.table.columns))
+
+	// In case the width required by the table is larger than the width required
+	// by the multicolumn
+	if tWidth >= mWidth {
+
+		// then evenly distribute the excess among the columns of the multicolumn
+		distribute(tWidth-mWidth, mcolumn.table.columns)
+	} else {
+		panic("Not implemented yet!")
+	}
+}
+
 // -- Public
 
 // Add a new line of data to the bottom of the column. This function accepts an
 // arbitrary number of arguments that satisfy the null interface. The content
 // shown on the table is the output of a Sprintf operation over each argument.
+// Among others arguments, it automatically acknowledges the presence of
+// multicolumns and process them accordingly
 //
 // If the number of arguments is less than the number of columns, the last cells
 // are left empty, unless no argument is given at all in which case no row is
@@ -237,29 +254,68 @@ func (t *Table) AddRow(cells ...interface{}) error {
 	// of physical rows required to draw this row
 	var j, height int
 	icells := make([]formatter, len(t.columns))
-	for ; j < t.GetNbColumns() && j < len(cells); j++ {
+	for j < t.GetNbColumns() && j < len(cells) {
 
-		// add the content of the i-th column with a string that represents it
-		icells[j] = content(fmt.Sprintf("%v", cells[j]))
+		// depending upon the type of item
+		switch cells[j].(type) {
 
-		// process the contents of this cell, and update the number of physical
-		// rows required to show this line. Note that this row is added to the
-		// bottom of this table
-		contents := icells[j].Process(t, len(t.rows), j)
-		height = max(height, len(contents))
+		case multicolumn:
 
-		// in addition update the number of physical columns required to draw
-		// this cell
-		for _, line := range contents {
+			// if this item is a multicolumn, verify first that it does not go
+			// beyond bounds
+			mcolumn := cells[j].(multicolumn)
+			if j+mcolumn.nbcolumns > t.GetNbColumns() {
+				return errors.New("Invalid multicolumn specification. The number of available columns has been execeeded!")
+			}
 
-			// if this column is a paragraph then use the width defined.
-			// Otherwise, take the maximum width among all columns
-			if t.columns[j].hformat.alignment == 'p' {
+			// otherwise, process this multicolumn to know its height. Note that
+			// this row is added to the bottom of this table
+			contents := mcolumn.Process(t, len(t.rows), j)
+			height = max(height, len(contents))
+
+			// record this multicolumn as an ordinary formatter, copy the
+			// initial column where the multicolumn starts and register this
+			// multicolumn in the table
+			icells[j] = mcolumn
+			mcolumn.jinit = j
+			t.multicolumns = append(t.multicolumns, mcolumn)
+
+			// finally, now move forward the number of columns
+			j += mcolumn.nbcolumns
+
+		default:
+
+			// if this item is an "ordinary" content of a cell, add the content
+			// of the i-th column with a string that represents it
+			icells[j] = content(fmt.Sprintf("%v", cells[j]))
+
+			// process the contents of this cell, and update the number of physical
+			// rows required to show this line. Note that this row is added to the
+			// bottom of this table
+			contents := icells[j].Process(t, len(t.rows), j)
+			height = max(height, len(contents))
+
+			// in addition update the number of physical columns required to
+			// draw this cell.
+			//
+			// If this column is a paragraph (of any type) then use the width
+			// defined
+			if t.columns[j].hformat.alignment == 'p' ||
+				t.columns[j].hformat.alignment == 'C' ||
+				t.columns[j].hformat.alignment == 'L' ||
+				t.columns[j].hformat.alignment == 'R' {
 				t.columns[j].width = t.columns[j].hformat.arg
 			} else {
-				t.columns[j].width = max(t.columns[j].width,
-					countPrintableRuneInString(string(line.(content))))
+
+				// Otherwise, take the maximum width among all columns
+				for _, line := range contents {
+					t.columns[j].width = max(t.columns[j].width,
+						countPrintableRuneInString(string(line.(content))))
+				}
 			}
+
+			// and move to the next column
+			j += 1
 		}
 	}
 
@@ -335,11 +391,21 @@ func (t *Table) GetNbRows() int {
 // its contents into a string
 func (t Table) String() string {
 
-	// Thanks to the definition of formatters, all can be printed the same way
+	// First things first, traverse all multicolumns in this table and
+	// re-distribute the width of columns (either those of the table or those in
+	// the multicolumn)
+	for _, mcolumn := range t.multicolumns {
+		t.distributeMulticolumn(&mcolumn)
+	}
 
-	// Initialization --- tables are formatted iterating over columns and thus
-	// the content of each row is stored separately in a slice of strings which
-	// are then concatenated
+	// Because of the presence of multicolumns, each line can print at once an
+	// arbitrary number of columns. Hence, it is required to keep track of how
+	// many columns are printed in each row
+	nbcolumns := make([]int, len(t.rows))
+
+	// Tables are formatted iterating over columns and thus the content of each
+	// row is stored separately in a slice of strings which are then
+	// concatenated
 	var output []string
 
 	// for each logical column
@@ -352,21 +418,38 @@ func (t Table) String() string {
 		// for each logical row
 		for i, row := range t.rows {
 
-			// Process the contents of this cell
-			contents := t.cells[i][j].Process(&t, i, j)
+			// Make sure to skip those columns that have been printed before as
+			// a result of a multicolumn
+			if nbcolumns[i] <= j {
 
-			// and now for each physical row of this line
-			for line := 0; line < row.height; line++ {
+				// Process the contents of this cell
+				contents := t.cells[i][j].Process(&t, i, j)
 
-				// add this line to the output
-				if idx >= len(output) {
-					output = append(output, fmt.Sprintf("%v", contents[line].Format(&t, i, j)))
-				} else {
-					output[idx] += fmt.Sprintf("%v", contents[line].Format(&t, i, j))
+				// and now for each physical row of this line
+				for line := 0; line < row.height; line++ {
+
+					// add this line to the output
+					if idx >= len(output) {
+						output = append(output, fmt.Sprintf("%v", contents[line].Format(&t, i, j)))
+					} else {
+						output[idx] += fmt.Sprintf("%v", contents[line].Format(&t, i, j))
+					}
+
+					// and move to the next physical line
+					idx += 1
 				}
+			} else {
 
-				// and move to the next line
-				idx += 1
+				// else, this position has been generated before, so that all
+				// that is left is to move to the next physical line
+				idx += row.height
+			}
+
+			// Now, update the number of columns processed in this logical row
+			if mcolumn, ok := t.cells[i][j].(multicolumn); ok {
+				nbcolumns[i] += mcolumn.nbcolumns
+			} else {
+				nbcolumns[i] += 1
 			}
 		}
 	}

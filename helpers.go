@@ -27,6 +27,50 @@ func max(n, m int) int {
 	return m
 }
 
+// process the given column specification and return a slice of instances of
+// columns properly initialized. In case the parsing was not possible an error
+// is returned
+func getColumns(colspec string) ([]column, error) {
+
+	// --initialization
+	var columns []column
+
+	// the specification is processed with a regular expression which should be
+	// used to consume the whole string
+	re := regexp.MustCompile(colSpecRegex)
+	for {
+
+		// get the next column and, if none is found, then exit
+		recol := re.FindStringIndex(colspec)
+		if recol == nil {
+			break
+		}
+		nxtcol, err := newColumn(colspec[recol[0]:recol[1]])
+		if err != nil {
+			return []column{}, err
+		}
+
+		// and add it to the columns of this table
+		columns = append(columns, *nxtcol)
+
+		// and now move forward in the column specification string
+		colspec = colspec[recol[1]:]
+	}
+
+	// maybe the column specification string is not empty here. Any remainings
+	// are interpreted as the separator of a last column which contains no text
+	// and which has no format
+	if colspec != "" {
+		columns = append(columns,
+			column{sep: colspec,
+				hformat: style{},
+				vformat: style{}})
+	}
+
+	// and return the slice of columns along with no error
+	return columns, nil
+}
+
 // return true if and only if the given rune is recognized as a vertical
 // separator as defined in this package and false otherwise
 func isVerticalSeparator(r rune) bool {
@@ -224,4 +268,22 @@ func prepend(item content, data []content) []content {
 	data[0] = item
 
 	return data
+}
+
+// Evenly increment the width of all columns given in the slice of columns so
+// that their accumulated sum is incremented by n
+func distribute(n int, columns []column) {
+
+	// get the integer quotient and remainder of n and the length of the slice
+	quotient, remainder := n/len(columns), n%len(columns)
+
+	// distribute the quotient among all columns
+	for idx, _ := range columns {
+		columns[idx].width += quotient
+	}
+
+	// and now distribute the remainder among the first columns
+	for idx := 0; idx < remainder; idx++ {
+		columns[idx].width += 1
+	}
 }
