@@ -722,7 +722,7 @@ func ExampleTable_19() {
 
 	t, _ := NewTable("l | r ")
 	t.AddThickRule()
-	t.AddRow(Multicolumn(2, "c", "Demographics"))
+	t.AddRow(Multicolumn(2, "c", "Demographics 2020"))
 	t.AddRow("Country", "Population")
 	t.AddSingleRule()
 	t.AddRow("China", "1,394,015,977")
@@ -731,6 +731,8 @@ func ExampleTable_19() {
 	t.AddRow("Indonesia", "267,026,366")
 	t.AddRow("Pakistan", "233,500,636")
 	t.AddRow("Nigeria", "214,028,302")
+	t.AddSingleRule()
+	t.AddRow(Multicolumn(2, "l", "Source: https://www.worldometers.info/"))
 	t.AddThickRule()
 	fmt.Printf("Output:\n%v", t)
 	// Output:

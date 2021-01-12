@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -224,7 +225,30 @@ func (t *Table) distributeMulticolumn(mcolumn *multicolumn) {
 		// then evenly distribute the excess among the columns of the multicolumn
 		distribute(tWidth-mWidth, mcolumn.table.columns)
 	} else {
-		panic("Not implemented yet!")
+
+		// otherwise, evenly distribute the excess of the multicolumn among the
+		// table columns
+		distribute(mWidth-tWidth, t.columns[mcolumn.jinit:mcolumn.jinit+mcolumn.nbcolumns])
+	}
+}
+
+// Evenly distribute among all columns in the table receiver by considering the
+// space required for printing all multicolumns.
+func (t *Table) distributeAllMulticolumns() {
+
+	// All multicolumns are sorted in descending order of their width. This is
+	// important to ensure that narrower multicolumns get correctly aligned wrt
+	// to broader ones
+	sort.Slice(t.multicolumns,
+		func(i, j int) bool {
+			return t.multicolumns[i].table.getColumnsWidth(0, len(t.multicolumns[i].table.columns)) >
+				t.multicolumns[j].table.getColumnsWidth(0, len(t.multicolumns[j].table.columns))
+		})
+
+	// Next, evenly distribute the width among all columns considering the
+	// multicolumns in descending order of their width
+	for _, mcolumn := range t.multicolumns {
+		t.distributeMulticolumn(&mcolumn)
 	}
 }
 
@@ -394,9 +418,7 @@ func (t Table) String() string {
 	// First things first, traverse all multicolumns in this table and
 	// re-distribute the width of columns (either those of the table or those in
 	// the multicolumn)
-	for _, mcolumn := range t.multicolumns {
-		t.distributeMulticolumn(&mcolumn)
-	}
+	t.distributeAllMulticolumns()
 
 	// Because of the presence of multicolumns, each line can print at once an
 	// arbitrary number of columns. Hence, it is required to keep track of how
