@@ -275,19 +275,20 @@ func (t *Table) AddRow(cells ...interface{}) error {
 
 	// otherwise, process all cells given and add them to the table as cells
 	// which can be formatted. 'j' is the column index and height is the number
-	// of physical rows required to draw this row
+	// of physical rows required to draw this row, whereas idx is the index of
+	// the next cell to process used in the loop that iterates over them
 	var j, height int
 	icells := make([]formatter, len(t.columns))
-	for j < t.GetNbColumns() && j < len(cells) {
+	for idx := 0; idx < t.GetNbColumns() && idx < len(cells); idx++ {
 
 		// depending upon the type of item
-		switch cells[j].(type) {
+		switch cells[idx].(type) {
 
 		case multicolumn:
 
 			// if this item is a multicolumn, verify first that it does not go
 			// beyond bounds
-			mcolumn := cells[j].(multicolumn)
+			mcolumn := cells[idx].(multicolumn)
 			if j+mcolumn.nbcolumns > t.GetNbColumns() {
 				return errors.New("Invalid multicolumn specification. The number of available columns has been execeeded!")
 			}
@@ -299,7 +300,9 @@ func (t *Table) AddRow(cells ...interface{}) error {
 
 			// record this multicolumn as an ordinary formatter, copy the
 			// initial column where the multicolumn starts and register this
-			// multicolumn in the table
+			// multicolumn in the table. Importantly, note that this cell is
+			// registered at the right physical column where it is expected to
+			// be found
 			icells[j] = mcolumn
 			mcolumn.jinit = j
 			t.multicolumns = append(t.multicolumns, mcolumn)
@@ -311,7 +314,7 @@ func (t *Table) AddRow(cells ...interface{}) error {
 
 			// if this item is an "ordinary" content of a cell, add the content
 			// of the i-th column with a string that represents it
-			icells[j] = content(fmt.Sprintf("%v", cells[j]))
+			icells[j] = content(fmt.Sprintf("%v", cells[idx]))
 
 			// process the contents of this cell, and update the number of physical
 			// rows required to show this line. Note that this row is added to the
@@ -471,7 +474,13 @@ func (t Table) String() string {
 			if mcolumn, ok := t.cells[i][j].(multicolumn); ok {
 				nbcolumns[i] += mcolumn.nbcolumns
 			} else {
-				nbcolumns[i] += 1
+
+				// If this is not a multicolumn, the next column to process in
+				// this row should be updated only in case that we already
+				// reached the last one
+				if nbcolumns[i] <= j {
+					nbcolumns[i] += 1
+				}
 			}
 		}
 	}
