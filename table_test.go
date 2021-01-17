@@ -716,8 +716,7 @@ func ExampleTable_18() {
 }
 
 // The following table tests multicolumns where the width of the table columns
-// are enough to accommodate its contents. The multicolumn takes various columns
-// comprising only one
+// are enough to accommodate its contents and viceversa
 func ExampleTable_19() {
 
 	t, _ := NewTable("l | r ")
@@ -733,6 +732,27 @@ func ExampleTable_19() {
 	t.AddRow("Nigeria", "214,028,302")
 	t.AddSingleRule()
 	t.AddRow(Multicolumn(2, "l", "Source: https://www.worldometers.info/"))
+	t.AddThickRule()
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
+
+// The following table tests different multicolumns in the same row.
+// Example taken from the TeX chapter of stack exchange:
+//
+// https://tex.stackexchange.com/questions/314025/making-stats-table-with-multicolumn-and-cline
+func ExampleTable_20() {
+
+	t, _ := NewTable("l c c c c")
+	t.AddRow(Multicolumn(5, "c", "Table 2: Overall Results"))
+	t.AddThickRule()
+	t.AddRow("", Multicolumn(2, "c", "Females"), Multicolumn(2, "c", "Males"))
+	t.AddSingleRule(1, 5)
+	t.AddRow("Treatment", "Mortality", "Mean Pressure", "Mortality", "Mean Pressure")
+	t.AddSingleRule()
+	t.AddRow("Placebo", 0.21, 163, 0.22, 164)
+	t.AddRow("ACE Inhibitor", 0.13, 142, 0.15, 144)
+	t.AddRow("Hydralazine", 0.17, 143, 0.16, 140)
 	t.AddThickRule()
 	fmt.Printf("Output:\n%v", t)
 	// Output:

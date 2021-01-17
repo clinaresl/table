@@ -51,14 +51,6 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 	// substituted
 	offset := -1
 
-	// in addition, it is necessary to consider that the last column introduces
-	// an asymmetry which comes from the fact that it might contain or not a
-	// vertical separator (in spite of it containing data or not). If no
-	// vertical separator is present, then runes in the separator should be
-	// substituted by them if no splitter is found; otherwise, the horizontal
-	// separator used in the preceding column should be used
-	hasVerticalSeparator := containsVerticalSeparator(sep)
-
 	// To do this it is mandatory to compute all runes to the west, east, north
 	// and south in this specific order for each rune in the separator
 	for idx, irune := range getRunes(sep) {
@@ -136,8 +128,7 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 			// Obviously, if the rune currently in process appears either before
 			// or after the table then use it instead for the substitution
 			if (offset == -1 && jcol == 0) ||
-				(jcol == len(t.columns)-1 &&
-					(!hasVerticalSeparator || offset == 0)) {
+				(offset == 0 && jcol == len(t.columns)-1) {
 				splitters += string(irune)
 			} else {
 				brkrule, _ := utf8.DecodeRuneInString(string(t.cells[irow][jcol+offset].(hrule)))
@@ -175,5 +166,6 @@ func (h hrule) Format(t *Table, irow, jcol int) string {
 	if !ok {
 		log.Fatalf(" The formatter in location (%v, %v) could not be casted into a rule!", irow, jcol)
 	}
+
 	return string(h) + strings.Repeat(string(rule), t.columns[jcol].width)
 }
