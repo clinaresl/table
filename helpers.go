@@ -9,9 +9,9 @@
 package table
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"unicode"
 	"unicode/utf8"
 )
@@ -200,22 +200,26 @@ func getSingleSplitter(west, east, north, south rune) (rune, error) {
 	// check for the existence of the west rune. In case it does not exist,
 	// return an error
 	if _, ok := splitterUTF8[west]; !ok {
-		return none, errors.New("No splitter found")
+		west = none
+		// return none, errors.New("No splitter found")
 	}
 
 	// east
 	if _, ok := splitterUTF8[west][east]; !ok {
-		return none, errors.New("No splitter found")
+		east = none
+		// return none, errors.New("No splitter found")
 	}
 
 	// north
 	if _, ok := splitterUTF8[west][east][north]; !ok {
-		return none, errors.New("No splitter found")
+		north = none
+		// return none, errors.New("No splitter found")
 	}
 
 	// south
 	if _, ok := splitterUTF8[west][east][north][south]; !ok {
-		return none, errors.New("No splitter found")
+		south = none
+		// return none, errors.New("No splitter found")
 	}
 
 	// and return the corresponding splitter which, at this point, is guaranteed
@@ -233,6 +237,59 @@ func getRunes(s string) (runes []rune) {
 		runes = append(runes, r)
 	}
 	return
+}
+
+// return the i-th rune in the given string, if it exists. Otherwise, return an
+// emtpy rune along with an error
+func getRune(s string, i int) (rune, error) {
+
+	// for all runes in the string
+	for idx := 0; len(s) > 0; idx += 1 {
+
+		// get the rune at the current position
+		r, size := utf8.DecodeRuneInString(s)
+
+		// if this is the i-th rune then return it immediately
+		if idx == i {
+			return r, nil
+		}
+
+		// otherwise, move forward
+		s = s[size:]
+	}
+
+	// if we exited from the main loop then no rune exists at the specified
+	// location
+	return rune(0), fmt.Errorf("there is no rune at location %v in string '%v'", i, s)
+}
+
+// modify the given string by replacing the i-th rune by the given rune r
+func insertRune(s string, i int, r rune) string {
+
+	var sb strings.Builder
+
+	// for all runes in the string
+	for idx := 0; len(s) > 0; {
+
+		// get the rune at the current position
+		ir, size := utf8.DecodeRuneInString(s)
+
+		// if this rune is not the i-th rune then add it to the result
+		if idx != i {
+			sb.WriteRune(ir)
+		} else {
+
+			// otherwise, insert the given rune
+			sb.WriteRune(r)
+		}
+
+		// and move forward
+		idx += 1
+		s = s[size:]
+	}
+
+	// and finally return the string computed so far
+	return sb.String()
 }
 
 // return a slice of vertical specifications as a slice of styles. In case the
@@ -285,5 +342,94 @@ func distribute(n int, columns []column) {
 	// and now distribute the remainder among the first columns
 	for idx := 0; idx < remainder; idx++ {
 		columns[idx].width += 1
+	}
+}
+
+// Insert a single splitter in the physical location (i, j) of the table that
+// has been already drawn using String (). Note that "physical location" is
+// interpreted as follows: i is the i-th slice of the textual representation of
+// the table; j is the j-th *rune* in the string
+func addSplitter(tab []string, i, j int) {
+
+	// define variables for storing the runes to the west, east, north and south
+	// of the current location
+	var west, east, north, south rune = none, none, none, none
+
+	// west
+	if j > 0 {
+		west, _ = getRune(tab[i], j-1)
+	}
+
+	// east
+	if j < countPrintableRuneInString(tab[i])-1 {
+		east, _ = getRune(tab[i], j+1)
+	}
+
+	// north
+	if i > 0 {
+		north, _ = getRune(tab[i-1], j)
+	}
+
+	// south
+	if i < len(tab)-1 {
+		south, _ = getRune(tab[i+1], j)
+	}
+
+	// now, in case there is a splitter for this combination of west, east,
+	// north and south, then insert it and otherwise do nothing
+	if splitter, err := getSingleSplitter(west, east, north, south); splitter != none && err == nil {
+		tab[i] = insertRune(tab[i], j, splitter)
+	}
+}
+
+// Add splitters to a table that has been already drawn using String () and
+// returns a slice of strings, each representing one line of the table
+func addSplitters(tab []string) {
+
+	// To do this, the contents of the table are examined line by line and all
+	// positions adjacent to a vertical separator are processed to see whether a
+	// splitter has to be added there or not
+	for i := 0; i < len(tab); i++ {
+
+		// make a copy of the i-th line of the table
+		line := make([]byte, len(tab[i]))
+		copy(line, tab[i])
+
+		// for all runes in the string
+		for j := 0; len(line) > 0; j++ {
+
+			// get the rune at the current position
+			r, size := utf8.DecodeRuneInString(string(line))
+
+			// now, verify whether this is a vertical separator
+			if r == rune('│') || r == rune('║') || r == rune('┃') {
+
+				// consider adding a splitter above this location
+				if i > 0 {
+					addSplitter(tab, i-1, j)
+				}
+
+				// there will be a lot of times when the following statement is
+				// just repetitive (i.e., it will be anticipating the work that
+				// can be done with the previous if statement when i increases).
+				// However, it is necessary for handling some special cases
+				// where there is no vertical bar beneath the location of the
+				// rune to modify:
+				//                      │<----- A
+				//                    ━━X━━
+				//                      .<---- B
+				//
+				// in this case, only when being located at A it is possible to
+				// substitute the rune at X, whether when being located at B, X
+				// will not be invoked if . is any rune other than a vertical
+				// separator
+				if i <= len(tab)-2 {
+					addSplitter(tab, i+1, j)
+				}
+			}
+
+			// move forward
+			line = line[size:]
+		}
 	}
 }

@@ -485,6 +485,9 @@ func (t Table) String() string {
 		}
 	}
 
+	// insert all splitters
+	addSplitters(output)
+
 	// and return the concatenation of all strings in the output string
 	// separated by a newline
 	return strings.Join(output, "\n")

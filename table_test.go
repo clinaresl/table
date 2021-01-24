@@ -743,7 +743,7 @@ func ExampleTable_19() {
 // https://tex.stackexchange.com/questions/314025/making-stats-table-with-multicolumn-and-cline
 func ExampleTable_20() {
 
-	t, _ := NewTable("l c c c c")
+	t, _ := NewTable("l c c || c c")
 	t.AddRow(Multicolumn(5, "c", "Table 2: Overall Results"))
 	t.AddThickRule()
 	t.AddRow("", Multicolumn(2, "c", "Females"), Multicolumn(2, "c", "Males"))
@@ -754,6 +754,8 @@ func ExampleTable_20() {
 	t.AddRow("ACE Inhibitor", 0.13, 142, 0.15, 144)
 	t.AddRow("Hydralazine", 0.17, 143, 0.16, 140)
 	t.AddThickRule()
+	t.AddRow(Multicolumn(5, "c", "Adapted from\nhttps://tex.stackexchange.com/questions/314025/making-stats-table-with-multicolumn-and-cline"))
+	t.AddSingleRule()
 	fmt.Printf("Output:\n%v", t)
 	// Output:
 }

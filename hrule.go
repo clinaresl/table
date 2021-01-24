@@ -25,14 +25,10 @@ import (
 func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 
 	// Processing a horizontal rule involves computing a single string which
-	// contains the result of intersecting the horizontal separator of this row
-	// with the vertical separator of this column. The result is given as a
-	// hrule so that it can then be formatted
+	// contains the separator of the j-th column where vertical separators are
+	// just substituted by blanks because these intersections are computed
+	// later.
 	var splitters string
-
-	// define variables for storing the runes to the west, east, north and south
-	// of each rune in the column separator
-	var west, east, north, south rune
 
 	// get the vertical separator to process which is the one given in the j-th column
 	sep := t.columns[jcol].sep
@@ -51,8 +47,7 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 	// substituted
 	offset := -1
 
-	// To do this it is mandatory to compute all runes to the west, east, north
-	// and south in this specific order for each rune in the separator
+	// process all runes in the current separator
 	for idx, irune := range getRunes(sep) {
 
 		// ANSI color escape sequences have to be directly copied to the
@@ -75,70 +70,63 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 			continue
 		}
 
-		// in case this rune is a vertical separator then make sure the offset
-		// is 0. Note that if the string used in the separator contains more
-		// than one vertical separator, the next column is considered
-		// immediately after the first vertical separator, in spite of the
-		// number of them
-		if isVerticalSeparator(irune) && offset == -1 {
+		// if this specific rune is a vertical separator then just substitute it
+		// by a blank space
+		// if isVerticalSeparator(irune) {
+		// 	splitters += string(horizontal_blank)
+
+		// 	// in addition, in case this rune is a vertical separator then make
+		// 	// sure the offset is 0. Note that if the string used in the
+		// 	// separator contains more than one vertical separator, the next
+		// 	// column is considered immediately after the first vertical
+		// 	// separator, in spite of the number of them
+		// 	offset = 0
+		// } else {
+
+		// 	// otherwise, take the horizontal rule either before or after a
+		// 	// vertical separator, if any has been found. In particular, if we
+		// 	// are before the first column and no vertical separator has been
+		// 	// found yet, or if we are at the last column after any vertical
+		// 	// separator, then just copy this rune
+		// 	if (offset == -1 && jcol == 0) ||
+		// 		(offset == 0 && jcol == len(t.columns)-1) {
+		// 		splitters += string(irune)
+		// 	} else {
+
+		// 		// if, on the other hand, we are anywhere between the first
+		// 		// column after a vertical separator and the last column before
+		// 		// a vertical separator, then take the horizontal rule used in
+		// 		// the corresponding cell
+		// 		brkrule, _ := utf8.DecodeRuneInString(string(t.cells[irow][jcol+offset].(hrule)))
+		// 		splitters += string(brkrule)
+		// 	}
+		// }
+
+		// in addition, in case this rune is a vertical separator then make sure
+		// the offset is 0. Note that if the string used in the separator
+		// contains more than one vertical separator, the next column is
+		// considered immediately after the first vertical separator, in spite
+		// of the number of them
+		if isVerticalSeparator(irune) {
 			offset = 0
 		}
 
-		// west
-		if jcol == 0 {
-			west = none
-		} else {
-			west, _ = utf8.DecodeRuneInString(string(t.cells[irow][jcol-1].(hrule)))
-			if west == horizontal_blank {
-				west = none
-			}
-		}
-
-		// east
-		if jcol < t.GetNbColumns() {
-			east, _ = utf8.DecodeRuneInString(string(t.cells[irow][jcol].(hrule)))
-			if east == horizontal_blank {
-				east = none
-			}
-		} else {
-			east = none
-		}
-
-		// north. The current separator is used as both the north and south
-		// separator in case it does not fall out of bounds
-		if irow > 0 {
-			north = irune
-		} else {
-			north = none
-		}
-		if irow < t.GetNbRows()-1 {
-			south = irune
-		} else {
-			south = none
-		}
-
-		// now, use the runes surrounding this one to access the splitter to use
-		if splitter, err := getSingleSplitter(west, east, north, south); err != nil {
-
-			// if it turns out that no splitter is known for this combination of
-			// the west, east, north and south runes, then substitute it
-			// properly. In general, the rune used instead is the one used in
-			// the horizontal rule of either the preceding or next column
-			// (depending whether a vertical separator has been processed yet).
-			// Obviously, if the rune currently in process appears either before
-			// or after the table then use it instead for the substitution
-			if (offset == -1 && jcol == 0) ||
-				(offset == 0 && jcol == len(t.columns)-1) {
-				splitters += string(irune)
-			} else {
-				brkrule, _ := utf8.DecodeRuneInString(string(t.cells[irow][jcol+offset].(hrule)))
-				splitters += string(brkrule)
-			}
+		// otherwise, take the horizontal rule either before or after a
+		// vertical separator, if any has been found. In particular, if we
+		// are before the first column and no vertical separator has been
+		// found yet, or if we are at the last column after any vertical
+		// separator, then just copy this rune
+		if (offset == -1 && jcol == 0) ||
+			(offset == 0 && jcol == len(t.columns)-1) {
+			splitters += string(irune)
 		} else {
 
-			// if a correct separator was returned, then add it to the string to
-			// return
-			splitters += string(splitter)
+			// if, on the other hand, we are anywhere between the first
+			// column after a vertical separator and the last column before
+			// a vertical separator, then take the horizontal rule used in
+			// the corresponding cell
+			brkrule, _ := utf8.DecodeRuneInString(string(t.cells[irow][jcol+offset].(hrule)))
+			splitters += string(brkrule)
 		}
 	}
 
