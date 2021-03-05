@@ -10,7 +10,7 @@
 // strongly based on the definition of tables in LaTeX but extends its
 // functionality in various ways.
 //
-// They honour UTF-8 characters, ANSI color escape sequences, full/partial
+// It honours UTF-8 characters, ANSI color escape sequences, full/partial
 // horizontal rules, various vertical and horizontal alignment options, and
 // multicolumns.
 package table

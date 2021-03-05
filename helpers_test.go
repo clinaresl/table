@@ -750,3 +750,225 @@ func Test_logicalToPhysical(t *testing.T) {
 		})
 	}
 }
+
+func Test_getSingleSplitter(t *testing.T) {
+	type args struct {
+		west  rune
+		east  rune
+		north rune
+		south rune
+	}
+	tests := []struct {
+		name string
+		args args
+		want rune
+	}{
+
+		// Only the fully supported cases with full rules are tested. Other
+		// weird combinations that include the double rule (either horizontal or
+		// vertical) or the usage of clines is not tested
+
+		// horizontal single / vertical single
+		{args: args{west: none, east: '─', north: none, south: '│'},
+			want: '┌'},
+
+		{args: args{west: '─', east: '─', north: none, south: '│'},
+			want: '┬'},
+
+		{args: args{west: '─', east: none, north: none, south: '│'},
+			want: '┐'},
+
+		{args: args{west: none, east: '─', north: '│', south: '│'},
+			want: '├'},
+
+		{args: args{west: '─', east: '─', north: '│', south: '│'},
+			want: '┼'},
+
+		{args: args{west: '─', east: none, north: '│', south: '│'},
+			want: '┤'},
+
+		{args: args{west: none, east: '─', north: '│', south: none},
+			want: '└'},
+
+		{args: args{west: '─', east: '─', north: '│', south: none},
+			want: '┴'},
+
+		{args: args{west: '─', east: none, north: '│', south: none},
+			want: '┘'},
+
+		// horizontal double / vertical single
+		{args: args{west: none, east: '═', north: none, south: '│'},
+			want: '╒'},
+
+		{args: args{west: '═', east: '═', north: none, south: '│'},
+			want: '╤'},
+
+		{args: args{west: '═', east: none, north: none, south: '│'},
+			want: '╕'},
+
+		{args: args{west: none, east: '═', north: '│', south: '│'},
+			want: '╞'},
+
+		{args: args{west: '═', east: '═', north: '│', south: '│'},
+			want: '╪'},
+
+		{args: args{west: '═', east: none, north: '│', south: '│'},
+			want: '╡'},
+
+		{args: args{west: none, east: '═', north: '│', south: none},
+			want: '╘'},
+
+		{args: args{west: '═', east: '═', north: '│', south: none},
+			want: '\u2567'},
+
+		{args: args{west: '═', east: none, north: '│', south: none},
+			want: '╛'},
+
+		// horizontal thick / vertical single
+		{args: args{west: none, east: '━', north: none, south: '│'},
+			want: '┍'},
+
+		{args: args{west: '━', east: '━', north: none, south: '│'},
+			want: '┯'},
+
+		{args: args{west: '━', east: none, north: none, south: '│'},
+			want: '┑'},
+
+		{args: args{west: none, east: '━', north: '│', south: '│'},
+			want: '┝'},
+
+		{args: args{west: '━', east: '━', north: '│', south: '│'},
+			want: '┿'},
+
+		{args: args{west: '━', east: none, north: '│', south: '│'},
+			want: '┥'},
+
+		{args: args{west: none, east: '━', north: '│', south: none},
+			want: '┕'},
+
+		{args: args{west: '━', east: '━', north: '│', south: none},
+			want: '┷'},
+
+		{args: args{west: '━', east: none, north: '│', south: none},
+			want: '┙'},
+
+		// horizontal single / vertical double
+		{args: args{west: none, east: '─', north: none, south: '║'},
+			want: '╓'},
+
+		{args: args{west: '─', east: '─', north: none, south: '║'},
+			want: '╥'},
+
+		{args: args{west: '─', east: none, north: none, south: '║'},
+			want: '╖'},
+
+		{args: args{west: none, east: '─', north: '║', south: '║'},
+			want: '╟'},
+
+		{args: args{west: '─', east: '─', north: '║', south: '║'},
+			want: '╫'},
+
+		{args: args{west: '─', east: none, north: '║', south: '║'},
+			want: '╢'},
+
+		{args: args{west: none, east: '─', north: '║', south: none},
+			want: '╙'},
+
+		{args: args{west: '─', east: '─', north: '║', south: none},
+			want: '\u2568'},
+
+		{args: args{west: '─', east: none, north: '║', south: none},
+			want: '╜'},
+
+		// horizontal double / vertical double
+		{args: args{west: none, east: '═', north: none, south: '║'},
+			want: '╔'},
+
+		{args: args{west: '═', east: '═', north: none, south: '║'},
+			want: '╦'},
+
+		{args: args{west: '═', east: none, north: none, south: '║'},
+			want: '╗'},
+
+		{args: args{west: none, east: '═', north: '║', south: '║'},
+			want: '╠'},
+
+		{args: args{west: '═', east: '═', north: '║', south: '║'},
+			want: '╬'},
+
+		{args: args{west: '═', east: none, north: '║', south: '║'},
+			want: '╣'},
+
+		{args: args{west: none, east: '═', north: '║', south: none},
+			want: '╚'},
+
+		{args: args{west: '═', east: '═', north: '║', south: none},
+			want: '╩'},
+
+		{args: args{west: '═', east: none, north: '║', south: none},
+			want: '╝'},
+
+		// horizontal single / vertical thick
+		{args: args{west: none, east: '─', north: none, south: '┃'},
+			want: '┎'},
+
+		{args: args{west: '─', east: '─', north: none, south: '┃'},
+			want: '┰'},
+
+		{args: args{west: '─', east: none, north: none, south: '┃'},
+			want: '┒'},
+
+		{args: args{west: none, east: '─', north: '┃', south: '┃'},
+			want: '┠'},
+
+		{args: args{west: '─', east: '─', north: '┃', south: '┃'},
+			want: '╂'},
+
+		{args: args{west: '─', east: none, north: '┃', south: '┃'},
+			want: '┨'},
+
+		{args: args{west: none, east: '─', north: '┃', south: none},
+			want: '┖'},
+
+		{args: args{west: '─', east: '─', north: '┃', south: none},
+			want: '┸'},
+
+		{args: args{west: '─', east: none, north: '┃', south: none},
+			want: '┚'},
+
+		// horizontal thick / vertical thick
+		{args: args{west: none, east: '━', north: none, south: '┃'},
+			want: '┏'},
+
+		{args: args{west: '━', east: '━', north: none, south: '┃'},
+			want: '┳'},
+
+		{args: args{west: '━', east: none, north: none, south: '┃'},
+			want: '┓'},
+
+		{args: args{west: none, east: '━', north: '┃', south: '┃'},
+			want: '┣'},
+
+		{args: args{west: '━', east: '━', north: '┃', south: '┃'},
+			want: '╋'},
+
+		{args: args{west: '━', east: none, north: '┃', south: '┃'},
+			want: '┫'},
+
+		{args: args{west: none, east: '━', north: '┃', south: none},
+			want: '┗'},
+
+		{args: args{west: '━', east: '━', north: '┃', south: none},
+			want: '┻'},
+
+		{args: args{west: '━', east: none, north: '┃', south: none},
+			want: '┛'},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getSingleSplitter(tt.args.west, tt.args.east, tt.args.north, tt.args.south); got != tt.want {
+				t.Errorf("getSingleSplitter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
