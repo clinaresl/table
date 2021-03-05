@@ -5,6 +5,11 @@ intended as a substitution of the Go standard package `tabwriter`. Its design is
 based on the functionality of tables in LaTeX but extends its functionality in
 various ways.
 
+It honours UTF-8 characters, ANSI color escape sequences, full/partial
+horizontal rules, various vertical and horizontal alignment options, and
+multicolumns.
+
+
 # Installation 
 
 Clone and install the `table` package with the following command:

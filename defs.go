@@ -11,7 +11,8 @@
 // functionality in various ways.
 //
 // They honour UTF-8 characters, ANSI color escape sequences, full/partial
-// horizontal rules, and various vertical and horizontal alignment options.
+// horizontal rules, various vertical and horizontal alignment options, and
+// multicolumns.
 package table
 
 // ----------------------------------------------------------------------------
