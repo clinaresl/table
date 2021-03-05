@@ -42,6 +42,11 @@ const vertical_thick = '\u2503'  // ┃
 // note that some combinations below are commented out. This is important as
 // those combinations which are not recognized are then properly substituted by
 // the algorithm.
+//
+// Importantly, 'none' has to be recognized at every level of the tree. The
+// reason is that if a query is performed to this nested map with a character
+// which is not found, then none is used, so that it must exist as a key in all
+// entries
 var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 
 	none: {

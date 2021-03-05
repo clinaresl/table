@@ -342,7 +342,7 @@ func (t *Table) AddRow(cells ...interface{}) error {
 			}
 
 			// and move to the next column
-			j += 1
+			j++
 		}
 	}
 
@@ -461,7 +461,7 @@ func (t Table) String() string {
 					}
 
 					// and move to the next physical line
-					idx += 1
+					idx++
 				}
 			} else {
 
@@ -479,7 +479,7 @@ func (t Table) String() string {
 				// this row should be updated only in case that we already
 				// reached the last one
 				if nbcolumns[i] <= j {
-					nbcolumns[i] += 1
+					nbcolumns[i]++
 				}
 			}
 		}

@@ -103,23 +103,42 @@ func strToContent(input []string) (output []content) {
 	return
 }
 
-// Return the number of runes in the given string which are printable
+// Return the number of runes in the given string which are both printable and
+// graphic. It also skips color ANSI codes
 func countPrintableRuneInString(s string) (count int) {
 
-	// first things first, remove all ANSI color escape sequences
+	// -- initialization: idx is used to count physical runes, i.e., the
+	// physical location of each rune considering also the ANSI color codes
+	idx := 0
+
+	// regular expression used to recognize ANSI color codes
 	re := regexp.MustCompile(ansiColorRegex)
-	s = re.ReplaceAllString(s, "")
 
-	// Initialize the counter
-	count = 0
+	// get the indices to all matches of the regular expression for recognizing
+	// ANSI color codes, and go then over all runes
+	for colind, colindexes := 0, re.FindAllStringIndex(s, -1); idx < len(s); {
 
-	// and now, count all both printable and graphic runes in the resulting
-	// string after removing the ANSI color escape sequences
-	for _, r := range s {
-		if unicode.IsGraphic(r) && unicode.IsPrint(r) {
-			count += 1
+		// verify if a ANSI color code starts right at this position
+		if colind < len(colindexes) && idx == colindexes[colind][0] {
+
+			// then jump to the first location after the regular expression, and
+			// move to the next match of the ANSI color codes
+			idx = colindexes[colind][1]
+			colind++
+		} else {
+
+			// get the rune at the current position, and count it in case it is
+			// both printable and graphic
+			r, size := utf8.DecodeRuneInString(s[idx:])
+			if unicode.IsGraphic(r) && unicode.IsPrint(r) {
+				count++
+			}
+
+			// and move forward
+			idx += size
 		}
 	}
+
 	return
 }
 
@@ -139,7 +158,7 @@ func splitParagraph(str string, width int) (result []string) {
 		for pos, rune := range str {
 
 			// accept this rune
-			nbrunes += 1
+			nbrunes++
 
 			// in case this is a space (including utf-8 spaces) then remember
 			// the location of the last position to include in the current
@@ -193,38 +212,35 @@ func splitParagraph(str string, width int) (result []string) {
 }
 
 // return the rune that splits the four regions north-west, north-east,
-// south-west and south-east as stored in the map of splitters with no error. If
-// such splitter does not exist, it returns none with an error
-func getSingleSplitter(west, east, north, south rune) (rune, error) {
+// south-west and south-east as stored in the map of splitters with no error. In
+// case that any of the runes given to the west, east, north and south is not
+// defined in the map of runes, then it is automatically substituted by none
+func getSingleSplitter(west, east, north, south rune) rune {
 
 	// check for the existence of the west rune. In case it does not exist,
 	// return an error
 	if _, ok := splitterUTF8[west]; !ok {
 		west = none
-		// return none, errors.New("No splitter found")
 	}
 
 	// east
 	if _, ok := splitterUTF8[west][east]; !ok {
 		east = none
-		// return none, errors.New("No splitter found")
 	}
 
 	// north
 	if _, ok := splitterUTF8[west][east][north]; !ok {
 		north = none
-		// return none, errors.New("No splitter found")
 	}
 
 	// south
 	if _, ok := splitterUTF8[west][east][north][south]; !ok {
 		south = none
-		// return none, errors.New("No splitter found")
 	}
 
 	// and return the corresponding splitter which, at this point, is guaranteed
 	// to exist
-	return splitterUTF8[west][east][north][south], nil
+	return splitterUTF8[west][east][north][south]
 }
 
 // return a slice with all runes in a string
@@ -237,59 +253,6 @@ func getRunes(s string) (runes []rune) {
 		runes = append(runes, r)
 	}
 	return
-}
-
-// return the i-th rune in the given string, if it exists. Otherwise, return an
-// emtpy rune along with an error
-func getRune(s string, i int) (rune, error) {
-
-	// for all runes in the string
-	for idx := 0; len(s) > 0; idx += 1 {
-
-		// get the rune at the current position
-		r, size := utf8.DecodeRuneInString(s)
-
-		// if this is the i-th rune then return it immediately
-		if idx == i {
-			return r, nil
-		}
-
-		// otherwise, move forward
-		s = s[size:]
-	}
-
-	// if we exited from the main loop then no rune exists at the specified
-	// location
-	return rune(0), fmt.Errorf("there is no rune at location %v in string '%v'", i, s)
-}
-
-// modify the given string by replacing the i-th rune by the given rune r
-func insertRune(s string, i int, r rune) string {
-
-	var sb strings.Builder
-
-	// for all runes in the string
-	for idx := 0; len(s) > 0; {
-
-		// get the rune at the current position
-		ir, size := utf8.DecodeRuneInString(s)
-
-		// if this rune is not the i-th rune then add it to the result
-		if idx != i {
-			sb.WriteRune(ir)
-		} else {
-
-			// otherwise, insert the given rune
-			sb.WriteRune(r)
-		}
-
-		// and move forward
-		idx += 1
-		s = s[size:]
-	}
-
-	// and finally return the string computed so far
-	return sb.String()
 }
 
 // return a slice of vertical specifications as a slice of styles. In case the
@@ -341,44 +304,225 @@ func distribute(n int, columns []column) {
 
 	// and now distribute the remainder among the first columns
 	for idx := 0; idx < remainder; idx++ {
-		columns[idx].width += 1
+		columns[idx].width++
 	}
 }
 
-// Insert a single splitter in the physical location (i, j) of the table that
-// has been already drawn using String (). Note that "physical location" is
-// interpreted as follows: i is the i-th slice of the textual representation of
-// the table; j is the j-th *rune* in the string
-func addSplitter(tab []string, i, j int) {
+// return the li-th logical rune which is known to take the pi-th physical
+// position. A position is said to be physical if and only if it also takes into
+// account control codes such as ANSI color codes; it is logical otherwise. If
+// such position does not exist (e.g., it falls within an ANSI color code), it
+// returns -1
+func physicalToLogical(s string, pi int) (li int) {
+
+	// -- initialization: idx is used to count physical runes, i.e., the
+	// physical location of each rune considering also the ANSI color codes
+	idx := 0
+
+	// regular expression used to recognize ANSI color codes
+	re := regexp.MustCompile(ansiColorRegex)
+
+	// get the indices to all matches of the regular expression for recognizing
+	// ANSI color codes, and go then over all runes in the given string until
+	// the current physical location goes beyond the physical location requested
+	for colind, colindexes := 0, re.FindAllStringIndex(s, -1); idx < len(s) && idx <= pi; {
+
+		// verify if a ANSI color code starts right at this position
+		if colind < len(colindexes) && idx == colindexes[colind][0] {
+
+			// then jump to the first location after the regular expression, and
+			// move to the next match of the ANSI color codes
+			idx = colindexes[colind][1]
+			colind++
+		} else {
+
+			// if this is the rune taking the pi-th logical position then return
+			// it immediately
+			if idx == pi {
+				return li
+			}
+
+			// get the rune at the current position
+			_, size := utf8.DecodeRuneInString(s)
+
+			// and move forward
+			idx += size
+			li++
+		}
+	}
+
+	// if we get here is because the given physical location has not been found.
+	// Thus, an impossible value is returned as a token to signal this case
+	return -1
+}
+
+// return the pi-th physical rune which is known to take the li-th logical
+// position. A position is said to be physical if and only if it also takes into
+// account control codes such as ANSI color codes; it is logical otherwise. If
+// such position does not exist it returns -1
+func logicalToPhysical(s string, li int) (pi int) {
+
+	// -- initialization: idx is used to count logical runes---i.e., without
+	// considering ANSI color codes
+	idx := 0
+
+	// regular expression used to recognize ANSI color codes
+	re := regexp.MustCompile(ansiColorRegex)
+
+	// get the indices to all matches of the regular expression for recognizing
+	// ANSI color codes, and go then over all runes in the given string until
+	// the current logical location goes beyond the logical location requested
+	for colind, colindexes := 0, re.FindAllStringIndex(s, -1); pi < len(s) && idx <= li; {
+
+		// verify if a ANSI color code starts right at this position
+		if colind < len(colindexes) && pi == colindexes[colind][0] {
+
+			// then jump to the first physical location after the regular
+			// expression, and move to the next match of the ANSI color codes
+			pi = colindexes[colind][1]
+			colind++
+		} else {
+
+			// if this is the rune taking the li-th logical position then return
+			// its physical location
+			if idx == li {
+				return pi
+			}
+
+			// get the rune at the current position
+			_, size := utf8.DecodeRuneInString(s[pi:])
+
+			// and move forward
+			pi += size
+			idx++
+		}
+	}
+
+	// if we get here is because the given logical location has not been found.
+	// Thus, an impossible value is returned as a token to signal this case
+	return -1
+}
+
+// return the i-th printable and graphic rune in the given string, if it exists.
+// Otherwise, return an emtpy rune along with an error. It skips color ANSI
+// codes
+func getRune(s string, i int) (rune, error) {
+
+	// -- initialization: idx is used to count physical runes, i.e., the
+	// physical location of each rune considering also the ANSI color codes,
+	// whereas li is used to count logical runes, i.e., those after disregarding
+	// the color ANSI codes
+	idx, li := 0, 0
+
+	// regular expression used to recognize ANSI color codes
+	re := regexp.MustCompile(ansiColorRegex)
+
+	// get the indices to all matches of the regular expression for recognizing
+	// ANSI color codes, and go then over all runes
+	for colind, colindexes := 0, re.FindAllStringIndex(s, -1); idx < len(s); {
+
+		// verify if a ANSI color code starts right at this position
+		if colind < len(colindexes) && idx == colindexes[colind][0] {
+
+			// then jump to the first location after the regular expression, and
+			// move to the next match of the ANSI color codes
+			idx = colindexes[colind][1]
+			colind++
+		} else {
+
+			// get the rune at the current position
+			r, size := utf8.DecodeRuneInString(s[idx:])
+
+			// if this is the rune taking the i-th logical position then return
+			// it immediately
+			if li == i {
+				return r, nil
+			}
+
+			// and move forward both physically and logically
+			idx += size
+			li++
+		}
+	}
+
+	// if we exited from the main loop then no rune exists at the specified
+	// location
+	return rune(0), fmt.Errorf("there is no rune at location %v in string '%v'", i, s)
+}
+
+// modify the given string by replacing the i-th physical location of the rune by
+// the given rune r, i.e., it also counts color ANSI codes
+func insertRune(s string, i int, r rune) string {
+
+	var sb strings.Builder
+
+	// safety checking
+	if i < 0 || i >= len(s) {
+		return s
+	}
+
+	// for all runes in the string
+	for idx := 0; idx < len(s); {
+
+		// get the rune at the current position
+		ir, size := utf8.DecodeRuneInString(s[idx:])
+
+		// if this rune is not the i-th rune then add it to the result
+		if idx != i {
+			sb.WriteRune(ir)
+		} else {
+
+			// otherwise, insert the given rune
+			sb.WriteRune(r)
+		}
+
+		// and move forward
+		idx += size
+	}
+
+	// and finally return the string computed so far
+	return sb.String()
+}
+
+// Insert a single splitter in the physical location (i, jp) of the table that
+// has been already drawn using String () that corresponds to the logical
+// location (i, jl).
+//
+// Note that "physical location" is interpreted as follows: i is the i-th slice
+// of the textual representation of the table (so that it is both a physical and
+// logical coordinate); jl is the j-th *rune* printable+graphic non ANSI color
+// code in the string, whereas jl is the j-th *rune* in the string
+func addSplitter(tab []string, i, jp, jl int) {
 
 	// define variables for storing the runes to the west, east, north and south
 	// of the current location
 	var west, east, north, south rune = none, none, none, none
 
 	// west
-	if j > 0 {
-		west, _ = getRune(tab[i], j-1)
+	if jl > 0 {
+		west, _ = getRune(tab[i], jl-1)
 	}
 
 	// east
-	if j < countPrintableRuneInString(tab[i])-1 {
-		east, _ = getRune(tab[i], j+1)
+	if jl < countPrintableRuneInString(tab[i])-1 {
+		east, _ = getRune(tab[i], jl+1)
 	}
 
 	// north
 	if i > 0 {
-		north, _ = getRune(tab[i-1], j)
+		north, _ = getRune(tab[i-1], jl)
 	}
 
 	// south
 	if i < len(tab)-1 {
-		south, _ = getRune(tab[i+1], j)
+		south, _ = getRune(tab[i+1], jl)
 	}
 
 	// now, in case there is a splitter for this combination of west, east,
 	// north and south, then insert it and otherwise do nothing
-	if splitter, err := getSingleSplitter(west, east, north, south); splitter != none && err == nil {
-		tab[i] = insertRune(tab[i], j, splitter)
+	if splitter := getSingleSplitter(west, east, north, south); splitter != none {
+
+		tab[i] = insertRune(tab[i], jp, splitter)
 	}
 }
 
@@ -386,50 +530,73 @@ func addSplitter(tab []string, i, j int) {
 // returns a slice of strings, each representing one line of the table
 func addSplitters(tab []string) {
 
-	// To do this, the contents of the table are examined line by line and all
-	// positions adjacent to a vertical separator are processed to see whether a
-	// splitter has to be added there or not
+	// -- Initialization: regular expression used to recognize ANSI color codes
+	re := regexp.MustCompile(ansiColorRegex)
+
+	// To do this, the contents of the table are examined (physical) line by
+	// line and all positions adjacent to a vertical separator are processed to
+	// see whether a splitter has to be added there or not
 	for i := 0; i < len(tab); i++ {
 
+		// idx is used to count physical runes, i.e., the physical location of
+		// each rune considering also the ANSI color codes, whereas j is the
+		// logical location of the physical location idx
+		idx, j := 0, 0
+
 		// make a copy of the i-th line of the table
-		line := make([]byte, len(tab[i]))
-		copy(line, tab[i])
+		s := tab[i]
 
-		// for all runes in the string
-		for j := 0; len(line) > 0; j++ {
+		// get the indices to all matches of the regular expression for
+		// recognizing ANSI color codes, and go then over all runes in the given
+		// string
+		for colind, colindexes := 0, re.FindAllStringIndex(s, -1); idx < len(s); {
 
-			// get the rune at the current position
-			r, size := utf8.DecodeRuneInString(string(line))
+			// verify if a ANSI color code starts right at this position
+			if colind < len(colindexes) && idx == colindexes[colind][0] {
 
-			// now, verify whether this is a vertical separator
-			if r == rune('│') || r == rune('║') || r == rune('┃') {
+				// then jump to the first location after the regular expression,
+				// and move to the next match of the ANSI color codes
+				idx = colindexes[colind][1]
+				colind++
+			} else {
 
-				// consider adding a splitter above this location
-				if i > 0 {
-					addSplitter(tab, i-1, j)
+				// get the rune at the current position
+				r, size := utf8.DecodeRuneInString(s[idx:])
+
+				// now, verify whether this is a vertical separator
+				if isVerticalSeparator(r) {
+
+					// consider adding a splitter above this location in the
+					// physical location (i-1, idx) which maps to the logical
+					// location (i-1, j)
+					if i > 0 {
+
+						addSplitter(tab, i-1, logicalToPhysical(tab[i-1], j), j)
+					}
+
+					// there will be a lot of times when the following statement is
+					// just repetitive (i.e., it will be anticipating the work that
+					// can be done with the previous if statement when i increases).
+					// However, it is necessary for handling some special cases
+					// where there is no vertical bar beneath the location of the
+					// rune to modify:
+					//                      │<----- A
+					//                    ━━X━━
+					//                      .<---- B
+					//
+					// in this case, only when being located at A it is possible to
+					// substitute the rune at X, whether when being located at B, X
+					// will not be invoked if . is any rune other than a vertical
+					// separator
+					if i <= len(tab)-2 {
+						addSplitter(tab, i+1, logicalToPhysical(tab[i+1], j), j)
+					}
 				}
 
-				// there will be a lot of times when the following statement is
-				// just repetitive (i.e., it will be anticipating the work that
-				// can be done with the previous if statement when i increases).
-				// However, it is necessary for handling some special cases
-				// where there is no vertical bar beneath the location of the
-				// rune to modify:
-				//                      │<----- A
-				//                    ━━X━━
-				//                      .<---- B
-				//
-				// in this case, only when being located at A it is possible to
-				// substitute the rune at X, whether when being located at B, X
-				// will not be invoked if . is any rune other than a vertical
-				// separator
-				if i <= len(tab)-2 {
-					addSplitter(tab, i+1, j)
-				}
+				// and move forward
+				idx += size
+				j += 1
 			}
-
-			// move forward
-			line = line[size:]
 		}
 	}
 }

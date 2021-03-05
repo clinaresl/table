@@ -63,44 +63,12 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 			// if this position ends the entire ANSI color sequence, then move
 			// to the next color
 			if idx == colindexes[colind][1]-1 {
-				colind += 1
+				colind++
 			}
 
 			// and skip the treatment of this rune (character)
 			continue
 		}
-
-		// if this specific rune is a vertical separator then just substitute it
-		// by a blank space
-		// if isVerticalSeparator(irune) {
-		// 	splitters += string(horizontal_blank)
-
-		// 	// in addition, in case this rune is a vertical separator then make
-		// 	// sure the offset is 0. Note that if the string used in the
-		// 	// separator contains more than one vertical separator, the next
-		// 	// column is considered immediately after the first vertical
-		// 	// separator, in spite of the number of them
-		// 	offset = 0
-		// } else {
-
-		// 	// otherwise, take the horizontal rule either before or after a
-		// 	// vertical separator, if any has been found. In particular, if we
-		// 	// are before the first column and no vertical separator has been
-		// 	// found yet, or if we are at the last column after any vertical
-		// 	// separator, then just copy this rune
-		// 	if (offset == -1 && jcol == 0) ||
-		// 		(offset == 0 && jcol == len(t.columns)-1) {
-		// 		splitters += string(irune)
-		// 	} else {
-
-		// 		// if, on the other hand, we are anywhere between the first
-		// 		// column after a vertical separator and the last column before
-		// 		// a vertical separator, then take the horizontal rule used in
-		// 		// the corresponding cell
-		// 		brkrule, _ := utf8.DecodeRuneInString(string(t.cells[irow][jcol+offset].(hrule)))
-		// 		splitters += string(brkrule)
-		// 	}
-		// }
 
 		// in addition, in case this rune is a vertical separator then make sure
 		// the offset is 0. Note that if the string used in the separator
