@@ -626,11 +626,11 @@ func Test_logicalToPhysical(t *testing.T) {
 
 		{args: args{s: "Gladiator━in arena consilium capit",
 			li: 16},
-			wantPi: 16},
+			wantPi: 18},
 
 		{args: args{s: "Gladiator━in arena consilium capit",
 			li: 33},
-			wantPi: 33},
+			wantPi: 35},
 
 		{args: args{s: "Gladiator━in arena consilium capit",
 			li: 34},
@@ -663,46 +663,46 @@ func Test_logicalToPhysical(t *testing.T) {
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit",
 			li: 33},
-			wantPi: 50},
+			wantPi: 52},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit",
 			li: 34},
 			wantPi: -1},
 
 		// examples with two ANSI color codes
-		{args: args{s: "\033[38;2;160;10;10mGladiator \033[0min arena consilium capit",
+		{args: args{s: "\033[38;2;160;10;10mGladiator━\033[0min arena consilium capit",
 			li: -1},
 			wantPi: -1},
 
-		{args: args{s: "G\033[38;2;160;10;10mladiator \033[0min arena consilium capit",
+		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: -1},
 			wantPi: -1},
 
-		{args: args{s: "\033[38;2;160;10;10mGladiator \033[0min arena consilium capit",
+		{args: args{s: "\033[38;2;160;10;10mGladiator━\033[0min arena consilium capit",
 			li: 0},
 			wantPi: 17},
 
-		{args: args{s: "G\033[38;2;160;10;10mladiator \033[0min arena consilium capit",
+		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 0},
 			wantPi: 0},
 
-		{args: args{s: "G\033[38;2;160;10;10mladiator \033[0min arena consilium capit",
+		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 1},
 			wantPi: 18},
 
-		{args: args{s: "G\033[38;2;160;10;10mladiator \033[0min arena consilium capit",
+		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 9},
 			wantPi: 26},
 
-		{args: args{s: "G\033[38;2;160;10;10mladiator \033[0min arena consilium capit",
+		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 10},
-			wantPi: 31},
+			wantPi: 33},
 
-		{args: args{s: "G\033[38;2;160;10;10mladiator \033[0min arena consilium capit",
+		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 33},
-			wantPi: 54},
+			wantPi: 56},
 
-		{args: args{s: "G\033[38;2;160;10;10mladiator \033[0min arena consilium capit",
+		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 34},
 			wantPi: -1},
 
@@ -732,11 +732,11 @@ func Test_logicalToPhysical(t *testing.T) {
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m",
 			li: 14},
-			wantPi: 31},
+			wantPi: 33},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m",
 			li: 33},
-			wantPi: 50},
+			wantPi: 52},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m",
 			li: 34},
