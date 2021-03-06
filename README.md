@@ -3,11 +3,14 @@
 This package implements means for drawing data in tabular form and it is
 intended as a substitution of the Go standard package `tabwriter`. Its design is
 based on the functionality of tables in LaTeX but extends its functionality in
-various ways.
+various ways through a very simple interface
 
 It honours UTF-8 characters, ANSI color escape sequences, full/partial
 horizontal rules, various vertical and horizontal alignment options, and
 multicolumns.
+
+Remarkably, it prints any *stringer* and as tables are stringers, tables can be
+nested to any degree.
 
 
 # Installation 
@@ -40,3 +43,5 @@ along with table.  If not, see <http://www.gnu.org/licenses/>.
 # Author #
 
 Carlos Linares Lopez <carlos.linares@uc3m.es>
+Computer Science Department <https://www.inf.uc3m.es/en>
+Universidad Carlos III de Madrid <https://www.uc3m.es/home>

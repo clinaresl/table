@@ -8,11 +8,14 @@
 
 // This package implements means for drawing data in tabular form. It is
 // strongly based on the definition of tables in LaTeX but extends its
-// functionality in various ways.
+// functionality in various ways through a very simple interface
 //
 // It honours UTF-8 characters, ANSI color escape sequences, full/partial
 // horizontal rules, various vertical and horizontal alignment options, and
 // multicolumns.
+//
+// Remarkably, it prints any stringer and as tables are stringers, tables can be
+// nested to any degree.
 package table
 
 // ----------------------------------------------------------------------------

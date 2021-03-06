@@ -415,7 +415,7 @@ func (t *Table) GetNbRows() int {
 }
 
 // Tables are stringers and thus they provide a method to conveniently transform
-// its contents into a string
+// their contents into a string
 func (t Table) String() string {
 
 	// First things first, traverse all multicolumns in this table and
