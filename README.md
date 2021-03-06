@@ -42,6 +42,6 @@ along with table.  If not, see <http://www.gnu.org/licenses/>.
 
 # Author #
 
-Carlos Linares Lopez <carlos.linares@uc3m.es>
-Computer Science Department <https://www.inf.uc3m.es/en>
+Carlos Linares Lopez <carlos.linares@uc3m.es>  
+Computer Science Department <https://www.inf.uc3m.es/en>  
 Universidad Carlos III de Madrid <https://www.uc3m.es/home>
