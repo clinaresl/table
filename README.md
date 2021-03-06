@@ -5,7 +5,7 @@ intended as a substitution of the Go standard package `tabwriter`. Its design is
 based on the functionality of tables in LaTeX but extends its functionality in
 various ways through a very simple interface
 
-It honours UTF-8 characters, ANSI color escape sequences, full/partial
+It honours [UTF-8 characters](https://www.utf8-chartable.de/), (ANSI color escape sequences)[https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences], full/partial
 horizontal rules, various vertical and horizontal alignment options, and
 multicolumns.
 
@@ -23,7 +23,32 @@ To try the different examples given in the package change dir to
 `$GOPATH/github.com/clinaresl/table` and type:
 
     $ go test
-    
+   
+# Usage #
+
+This section provides various examples of usage that highlight the different
+capabilities of the package
+
+## First step: Create a table ##
+
+Before inserting data to a new table it is necessary to create it first:
+
+```Go
+	t, err := NewTable("l   p{25}")
+	if err != nil {
+		log.Fatalln(" NewTable: Fatal error!")
+	}
+```
+
+This snippet creates a table with two columns. The first one centers its
+contents, whereas the second one takes a fixed width of 25 characters to display
+the contents of each cell and, in case a cell exceeds the available width, its
+contents are shown left ragged in as many lines as needed. Note that between the
+specification of both columns there are a number of spaces. These are copied
+between the contents of any adjacent cells in each row. In case it was not
+possible to successfully process the *column specification*, an error is
+immediately returned.
+   
 # License #
 
 table is free software: you can redistribute it and/or modify it
