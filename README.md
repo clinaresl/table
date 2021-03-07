@@ -219,23 +219,50 @@ is not tied to any, so that the following examples explicitly show the specific
 ANSI color codes required to render each fragment:
 
 ``` Go
-	t, _ := NewTable("l | r ")
+	t, _ := NewTable("l | r \033[0m")
 	t.AddThickRule()
-	t.AddRow("\033[38;2;206;10;0mCountry\033[0m", "\033[38;2;206;10;0mPopulation\033[0m")
+	t.AddRow("\033[38;2;206;10;0mCountry\033[0m", "\033[38;2;206;10;0mPopulation")
 	t.AddSingleRule()
-	t.AddRow("\033[38;2;220;10;220mChina\033[0m", "1,394,015,977")
-	t.AddRow("\033[38;2;220;220;10mIndia\033[0m", "1,326,093,247")
-	t.AddRow("\033[38;2;220;10;220mUnited States\033[0m", "329,877,505")
-	t.AddRow("\033[38;2;220;220;10mIndonesia\033[0m", "267,026,366")
-	t.AddRow("\033[38;2;220;10;220mPakistan\033[0m", "233,500,636")
-	t.AddRow("\033[38;2;220;220;10mNigeria\033[0m", "214,028,302")
+	t.AddRow("\033[48;2;20;20;160mChina", "1,394,015,977")
+	t.AddRow("\033[48;2;20;80;20mIndia", "1,326,093,247")
+	t.AddRow("\033[48;2;20;20;160mUnited States", "329,877,505")
+	t.AddRow("\033[48;2;20;80;20mIndonesia", "267,026,366")
+	t.AddRow("\033[48;2;20;20;160mPakistan", "233,500,636")
+	t.AddRow("\033[48;2;20;80;20mNigeria", "214,028,302")
 	t.AddThickRule()
-	fmt.Printf("%v", t)    
+	fmt.Printf("%v", t)
 ```
 
 which produces:
 
 ![example-2](figs/example-2.png "example-2")
+
+Mind the trick! The ANSI color codes of each line including the headers is
+automatically ended with `\033[0m` just simply by adding it to the *column
+specification* of the table. Of course, one could end each line manually but as
+the example shows this is not necessary at all.
+
+Just by reversing the location of the codes it is also possible to colour only
+the splitters and rules:
+
+``` Go
+    t, _ := NewTable("\033[38;2;80;80;80ml | r \033[0m")
+	t.AddThickRule()
+	t.AddRow("\033[0mCountry\033[38;2;80;80;80m", "\033[0mPopulation")
+	t.AddSingleRule()
+	t.AddRow("\033[0mChina\033[38;2;80;80;80m", "\033[0m1,394,015,977")
+	t.AddRow("\033[0mIndia\033[38;2;80;80;80m", "\033[0m1,326,093,247")
+	t.AddRow("\033[0mUnited States\033[38;2;80;80;80m", "\033[0m329,877,505")
+	t.AddRow("\033[0mIndonesia\033[38;2;80;80;80m", "\033[0m267,026,366")
+	t.AddRow("\033[0mPakistan\033[38;2;80;80;80m", "\033[0m233,500,636")
+	t.AddRow("\033[0mNigeria\033[38;2;80;80;80m", "\033[0m214,028,302")
+	t.AddThickRule()
+	fmt.Printf("%v", t)
+```
+
+for producing:
+
+![example-3](figs/example-3.png "example-3")
 
 # License #
 

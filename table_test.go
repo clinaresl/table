@@ -433,16 +433,16 @@ func ExampleTable_2() {
 // table
 func ExampleTable_3() {
 
-	t, _ := NewTable("l | r ")
+	t, _ := NewTable("\033[38;2;80;80;80ml | r \033[0m")
 	t.AddThickRule()
-	t.AddRow("\033[38;2;206;10;0mCountry\033[0m", "\033[38;2;206;10;0mPopulation\033[0m")
+	t.AddRow("\033[0mCountry\033[38;2;80;80;80m", "\033[0mPopulation")
 	t.AddSingleRule()
-	t.AddRow("\033[38;2;220;10;220mChina\033[0m", "1,394,015,977")
-	t.AddRow("\033[38;2;220;220;10mIndia\033[0m", "1,326,093,247")
-	t.AddRow("\033[38;2;220;10;220mUnited States\033[0m", "329,877,505")
-	t.AddRow("\033[38;2;220;220;10mIndonesia\033[0m", "267,026,366")
-	t.AddRow("\033[38;2;220;10;220mPakistan\033[0m", "233,500,636")
-	t.AddRow("\033[38;2;220;220;10mNigeria\033[0m", "214,028,302")
+	t.AddRow("\033[0mChina\033[38;2;80;80;80m", "\033[0m1,394,015,977")
+	t.AddRow("\033[0mIndia\033[38;2;80;80;80m", "\033[0m1,326,093,247")
+	t.AddRow("\033[0mUnited States\033[38;2;80;80;80m", "\033[0m329,877,505")
+	t.AddRow("\033[0mIndonesia\033[38;2;80;80;80m", "\033[0m267,026,366")
+	t.AddRow("\033[0mPakistan\033[38;2;80;80;80m", "\033[0m233,500,636")
+	t.AddRow("\033[0mNigeria\033[38;2;80;80;80m", "\033[0m214,028,302")
 	t.AddThickRule()
 	fmt.Printf("Output:\n%v", t)
 	// Output:
