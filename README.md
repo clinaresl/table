@@ -56,7 +56,7 @@ a single column:
 |  `l`   | the contents of the column are ragged left |
 |  `c`   | the contents of the column are horizontally aligned |
 |  `r`   | the contents of the column are ragged right |
-|  `p{NUMBER}` | the cell takes a fixed with equal to *NUMBER** characters and the contents are split across various lines if needed |
+|  `p{NUMBER}` | the cell takes a fixed with equal to *NUMBER* characters and the contents are split across various lines if needed |
 |  `L{NUMBER}` | the width of the column does not exceed *NUMBER* characters and the contents are ragged left |
 |  `C{NUMBER}` | the width of the column does not exceed *NUMBER* characters and the contents are centered |
 |  `R{NUMBER}` | the width of the column does not exceed *NUMBER* characters and the contents are ragged right |
@@ -170,13 +170,14 @@ The following example adds data to a table with three columns:
 	}
 ```
 
-Note that the contents of any cell can contain a newline character `\n`. If so,
-the text is split in as many lines as needed.
+Note that the contents of any cell can contain any newline characters `\n`. If
+so, the text is split in as many lines as needed, i.e., `table` supports
+multi-line cells.
 
 ## Third step: Printing tables ##
 
 The last step consists of printing the contents of any table. By definition,
-tables are stringers and thus, all this is required is just to print the
+tables are stringers and thus, all that is required is just to print the
 contents with a `Print`-like function:
 
 ``` Go
@@ -199,6 +200,42 @@ your browser to show unrealistic renderings as a result of your preferences):
 
 ![example-1](figs/example-1.png "example-1")
 
+
+# Gotchas #
+
+Beyond the basic usage of tables, `table` provides many other features which are
+described next
+
+## ANSI color codes ##
+
+Of course, `table` fully supports UTF-8 encoded characters, but it also manages
+[ANSI color escape
+sequences](https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences)
+provided that they are supported by your terminal. 
+
+There are several Go packages that can actually produce the additional
+characters required to show the output in various forms, but this implementation
+is not tied to any, so that the following examples explicitly show the specific
+ANSI color codes required to render each fragment:
+
+``` Go
+	t, _ := NewTable("l | r ")
+	t.AddThickRule()
+	t.AddRow("\033[38;2;206;10;0mCountry\033[0m", "\033[38;2;206;10;0mPopulation\033[0m")
+	t.AddSingleRule()
+	t.AddRow("\033[38;2;220;10;220mChina\033[0m", "1,394,015,977")
+	t.AddRow("\033[38;2;220;220;10mIndia\033[0m", "1,326,093,247")
+	t.AddRow("\033[38;2;220;10;220mUnited States\033[0m", "329,877,505")
+	t.AddRow("\033[38;2;220;220;10mIndonesia\033[0m", "267,026,366")
+	t.AddRow("\033[38;2;220;10;220mPakistan\033[0m", "233,500,636")
+	t.AddRow("\033[38;2;220;220;10mNigeria\033[0m", "214,028,302")
+	t.AddThickRule()
+	fmt.Printf("%v", t)    
+```
+
+which produces:
+
+![example-2](figs/example-2.png "example-2")
 
 # License #
 
