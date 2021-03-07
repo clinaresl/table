@@ -198,7 +198,7 @@ contents with a `Print`-like function:
 Which produces the result shown next (all examples are shown as images to avoid
 your browser to show unrealistic renderings as a result of your preferences):
 
-![example-1](https://github.com/clinaresl/table/figs/example-1.png)
+![example-1](figs/example-1.png "example-1")
 
 
 # License #
