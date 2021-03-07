@@ -116,9 +116,9 @@ There are three different services for adding horizontal rules anywhere in a
 table:
 
 ```Go
-    func (t *Table) AddSingleRule(cols ...int) error
-	func (t *Table) AddDoubleRule(cols ...int) error
-    func (t *Table) AddThickRule(cols ...int) error
+   func (t *Table) AddSingleRule(cols ...int) error
+   func (t *Table) AddDoubleRule(cols ...int) error
+   func (t *Table) AddThickRule(cols ...int) error
 ```
 
 When invoked with no arguments they just show a full horizontal rule spanning
@@ -135,9 +135,9 @@ error is returned.
 A couple of examples follow:
 
 ``` Go
-	 t, _ := NewTable("|c|c|c|c|c|")
-     t.AddThickRule ()
-	 t.AddSingleRule(0, 1, 2, 3, 4, 5)
+    t, _ := NewTable("|c|c|c|c|c|")
+    t.AddThickRule ()
+    t.AddSingleRule(0, 1, 2, 3, 4, 5)
 ```
 
 ### Adding data ###
@@ -145,7 +145,7 @@ A couple of examples follow:
 Data is added to the bottom of a table with:
 
 ``` Go
-     func (t *Table) AddRow(cells ...interface{}) error
+    func (t *Table) AddRow(cells ...interface{}) error
 ```
 
 It accepts an arbitrary number of arguments satisfying the null interface and
@@ -180,19 +180,18 @@ tables are stringers and thus, all this is required is just to print the
 contents with a `Print`-like function:
 
 ``` Go
-	t, err := NewTable("| c || c ||| c |")
-	if err != nil {
-		log.Fatalln(" NewTable: Fatal error!")
-	}
-	err = t.AddRow("Year\n1979", "Year\n2013", "Year\n2018")
-	if err != nil {
-		log.Fatalln(" AddRow: Fatal error!")
-	}
-	err = t.AddRow("Ariane", "Gaia\nProba Series\nSwarm", "Aeolus\nBepicolombo\nMetop Series")
-	if err != nil {
-		log.Fatalln(" AddRow: Fatal error!")
-	}
-	fmt.Printf("Output:\n%v", t)    
+	t, _ := NewTable("l | r ")
+	t.AddThickRule()
+	t.AddRow("Country", "Population")
+	t.AddSingleRule()
+	t.AddRow("China", "1,394,015,977")
+	t.AddRow("India", "1,326,093,247")
+	t.AddRow("United States", "329,877,505")
+	t.AddRow("Indonesia", "267,026,366")
+	t.AddRow("Pakistan", "233,500,636")
+	t.AddRow("Nigeria", "214,028,302")
+	t.AddThickRule()
+	fmt.Printf("%v", t)
 ```
 
 Which produces the result shown next (all examples are shown as images to avoid
