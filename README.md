@@ -57,9 +57,9 @@ a single column:
 |  `c`   | the contents of the column are horizontally aligned |
 |  `r`   | the contents of the column are ragged right |
 |  `p{NUMBER}` | the cell takes a fixed with equal to *NUMBER** characters and the contents are split across various lines if needed |
-|  `L{NUMBER}` | the width of the column does not exceed *NUMBER** characters and the contents are ragged left |
-|  `C{NUMBER}` | the width of the column does not exceed *NUMBER** characters and the contents are centered |
-|  `R{NUMBER}` | the width of the column does not exceed *NUMBER** characters and the contents are ragged right |
+|  `L{NUMBER}` | the width of the column does not exceed *NUMBER* characters and the contents are ragged left |
+|  `C{NUMBER}` | the width of the column does not exceed *NUMBER* characters and the contents are centered |
+|  `R{NUMBER}` | the width of the column does not exceed *NUMBER* characters and the contents are ragged right |
 
 The *column specification* allows the usage of `|`, e.g.:
 
@@ -87,7 +87,8 @@ and with vertical single separators between adjacent columns and before and
 after the first and last column. In addition, it sets the *vertical alignment*
 of each cell as follows: the contents of the first and second columns are
 vertically centered (`c`), whereas the contents of the last column are pushed to
-the top of the cell ---`t`.
+the top of the cell ---`t`. The modifiers available to be used in the *row
+specification* are shown next:
 
 | Syntax | Purpose |
 |:------:|:-------:|
@@ -98,12 +99,108 @@ the top of the cell ---`t`.
 By default, all columns are vertically aligned to the top. In case a *row
 specification* is given it must refer to as many columns as there are in the
 *column specification* given first or less. In contraposition to the *column
-specification*, the *row specification* can only consist of any of the modifies
+specification*, the *row specification* can only consist of any of the modifiers
 shown above.
    
 `NewTable` returns a pointer to `Table` which can be used next for adding data
 to it and, in the end, printing it.
- 
+
+## Second step: Adding rows ##
+
+`table` acknowledges two different types of rows either horizontal rules or
+lines of data.
+
+### Adding horizontal rules ###
+
+There are three different services for adding horizontal rules anywhere in a
+table:
+
+```Go
+    func (t *Table) AddSingleRule(cols ...int) error
+	func (t *Table) AddDoubleRule(cols ...int) error
+    func (t *Table) AddThickRule(cols ...int) error
+```
+
+When invoked with no arguments they just show a full horizontal rule spanning
+over all columns of the table. Single rules are shown with the UTF-8 character
+`─`; double rules are drawn using `═`, and thick rules use `━`.
+
+If they are invoked with arguments, then these are taken in pairs, each pair
+standing for a *starting* and *ending* column numbered from 0, so that
+horizontal rules are drawn only over those columns in the given range.
+
+In case it is not possible to process the given arguments then an informative
+error is returned.
+
+A couple of examples follow:
+
+``` Go
+	 t, _ := NewTable("|c|c|c|c|c|")
+     t.AddThickRule ()
+	 t.AddSingleRule(0, 1, 2, 3, 4, 5)
+```
+
+### Adding data ###
+
+Data is added to the bottom of a table with:
+
+``` Go
+     func (t *Table) AddRow(cells ...interface{}) error
+```
+
+It accepts an arbitrary number of arguments satisfying the null interface and
+adds the result of the `Sprintf` operation of each argument to each cell of the
+last row of the table. If the number of arguments is strictly less than the
+number of columns given in the *column specification* then the remaining cells
+are left empty. Thus, if no argument is provided, an empty line of data is
+generated. However, if the number of arguments given is strictly larger than the
+number of columns of the table an error is returned. 
+
+The following example adds data to a table with three columns: 
+
+``` Go
+	t, err := NewTable("| c || c ||| c |")
+	err = t.AddRow("Year\n1979", "Year\n2013", "Year\n2018")
+	if err != nil {
+		log.Fatalln(" AddRow: Fatal error!")
+	}
+	err = t.AddRow("Ariane", "Gaia\nProba Series\nSwarm", "Aeolus\nBepicolombo\nMetop Series")
+	if err != nil {
+		log.Fatalln(" AddRow: Fatal error!")
+	}
+```
+
+Note that the contents of any cell can contain a newline character `\n`. If so,
+the text is split in as many lines as needed.
+
+## Third step: Printing tables ##
+
+The last step consists of printing the contents of any table. By definition,
+tables are stringers and thus, all this is required is just to print the
+contents with a `Print`-like function:
+
+``` Go
+	t, err := NewTable("| c || c ||| c |")
+	if err != nil {
+		log.Fatalln(" NewTable: Fatal error!")
+	}
+	err = t.AddRow("Year\n1979", "Year\n2013", "Year\n2018")
+	if err != nil {
+		log.Fatalln(" AddRow: Fatal error!")
+	}
+	err = t.AddRow("Ariane", "Gaia\nProba Series\nSwarm", "Aeolus\nBepicolombo\nMetop Series")
+	if err != nil {
+		log.Fatalln(" AddRow: Fatal error!")
+	}
+	fmt.Printf("Output:\n%v", t)    
+```
+
+Which produces the result shown next (all examples are shown as images to avoid
+your browser to show unrealistic renderings as a result of your preferences):
+
+![example-1](https://github.com/clinaresl/table/figs/example-1.png)
+
+
 # License #
 
 table is free software: you can redistribute it and/or modify it
