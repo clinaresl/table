@@ -69,10 +69,11 @@ The *column specification* allows the usage of `|`, e.g.:
 
 creates a table with five different columns all separated by a single vertical
 separator. It is possible to create also *double* and *thick* vertical
-separators using `||` and `|||` respectively. It is also possible to provide any
-other character (e.g., blank spaces or tabs) either before or after any column.
-These are then copied either before or after the contents of each cell in each
-row.
+separators using `||` and `|||` respectively. As a matter of fact, these are
+just shortcuts and the UTF-8 characters `│`, `║` and `┃` can be used
+respectively. It is also possible to provide any other character (e.g., blank
+spaces) either before or after any column. These are then copied either before
+or after the contents of each cell in each row.
 
 In case a second string is given to `NewTable` it is interpreted as the *row
 specification*:

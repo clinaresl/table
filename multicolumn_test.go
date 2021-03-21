@@ -1,5 +1,5 @@
 // -*- coding: utf-8 -*-
-// multicolum_test.go
+// multicolumn_test.go
 // -----------------------------------------------------------------------------
 //
 // Started on <dom 20-12-2020 00:55:55.426747268 (1608422155)>
@@ -41,34 +41,30 @@ func Test_multicolumn_Process(t *testing.T) {
 			want: []formatter{multicolumn{}},
 			err:  errors.New("invalid column specification")},
 
-		// Invalid number of columns
+		// Retrieving the last separator
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "l|",
 			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{}},
-			err:  errors.New("Invalid column specification of a multicolumn: 'l|'")},
+			want: []formatter{multicolumn{output: "Black lives matter"}}},
 
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "|l|l|",
-			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{}},
-			err:  errors.New("Invalid column specification of a multicolumn: '|l|l|'")},
+			args:      []interface{}{"Black lives matter", "They do!"}},
+			want: []formatter{multicolumn{output: "│Black lives matter│They do!"}}},
 
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "l|l|l||",
-			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{}},
-			err:  errors.New("Invalid column specification of a multicolumn: 'l|l|l||'")},
+			args:      []interface{}{"Black lives matter", "They do!", "They'll always do!"}},
+			want: []formatter{multicolumn{output: "Black lives matter│They do!│They'll always do!"}}},
 
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "l|l|l|||",
-			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{}},
-			err:  errors.New("Invalid column specification of a multicolumn: 'l|l|l|||'")},
+			args:      []interface{}{"Black lives matter", "They do!", "They'll always do!"}},
+			want: []formatter{multicolumn{output: "Black lives matter│They do!│They'll always do!"}}},
 
 		// Correct multicolumns
 

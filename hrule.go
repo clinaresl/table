@@ -30,7 +30,7 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 	// later.
 	var splitters string
 
-	// get the vertical separator to process which is the one given in the j-th column
+	// get the vertical separator to process
 	sep := t.columns[jcol].sep
 
 	// search for ANSI color escape sequences

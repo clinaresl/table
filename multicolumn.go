@@ -10,6 +10,7 @@ package table
 
 import (
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -29,32 +30,32 @@ import (
 // after an arbitrary number of arguments can be given which are formatted
 // according to the column specification given.
 //
-// Importantly, the column specification is not allowed to end with any vertical
-// separator ---or, in other words, all columns given in the column
-// specification of the multicolumn must be data columns. Indeed, the row is
-// continued with the vertical separator given in the first column of the table
-// after the multicolumn. If the column specification ends with a vertical
-// separator, or if any other error is found, an error is immediately raised
+// Importantly, the column specification is allowed to end with any vertical
+// separator and no column specifier. In this case, the last separator is used
+// as the separator of the cell following the multirow immediately after, as in
+// LaTeX
 func NewMulticolumn(nbcolumns int, spec string, args ...interface{}) (multicolumn, error) {
 
-	// create a table with the given column specification
-	t, err := NewTable(spec)
+	// First things first, use only the specification that does not contain a
+	// last separator without a column
+	newspec, lastsep := stripLastSeparator(spec)
+
+	// create a table with the processed column specification, i.e., the one
+	// that does only contain columns preceded by a vertical separator (if any
+	// is given)
+	t, err := NewTable(newspec)
 	if err != nil {
 
 		// Of course, if creating the table produces any error abort immediately
 		return multicolumn{}, err
 	}
 
-	// Otherwise, verify that all columns in this table are data columns
-	if len(t.columns) != t.GetNbColumns() {
-		return multicolumn{}, fmt.Errorf("Invalid column specification of a multicolumn: '%v'", spec)
-	}
-
 	// finally, return an instance of a multicolumn with no error. Note that
 	// both the initial column and the output are initially empty
 	return multicolumn{
 		nbcolumns: nbcolumns,
-		spec:      spec,
+		spec:      newspec,
+		lastsep:   lastsep,
 		table:     *t,
 		args:      args,
 	}, nil
@@ -101,7 +102,8 @@ func Multicolumn(nbcolumns int, spec string, args ...interface{}) multicolumn {
 // table, and also the integer indices to the row and column of the cell
 func (m multicolumn) Process(t *Table, irow, jcol int) []formatter {
 
-	// Processing a multicolumn is truly easy. It just suffices to add all arguments given
+	// Processing a multicolumn is truly easy. It just suffices to add all
+	// arguments given and to return a new multicolumn for each physical line
 
 	// -- initialization
 	var result []formatter
@@ -113,8 +115,14 @@ func (m multicolumn) Process(t *Table, irow, jcol int) []formatter {
 	// of each line is stored separately
 	for _, line := range strings.Split(fmt.Sprintf("%v", m.table), "\n") {
 
-		// note that only each line is computed separately
-		result = append(result, formatter(multicolumn{output: line}))
+		// note that only each line is computed separately. In addition,
+		// other information is passed to the multicolumn to be formatted
+		result = append(result, formatter(multicolumn{
+			jinit:     m.jinit,
+			nbcolumns: m.nbcolumns,
+			lastsep:   m.lastsep,
+			table:     m.table,
+			output:    line}))
 	}
 
 	// and return the result computed so far
@@ -128,6 +136,19 @@ func (m multicolumn) Process(t *Table, irow, jcol int) []formatter {
 // specification of the j-th column.
 func (m multicolumn) Format(t *Table, irow, jcol int) string {
 
+	log.Printf("line: %v\n", m.output)
+	log.Printf("tWidth: %v\n", t.getColumnsWidth(m.jinit, m.nbcolumns))
+	log.Printf("\t init: %v\n", m.jinit)
+	log.Printf("\t #cols: %v\n", m.nbcolumns)
+	log.Printf("mWidth: %v\n", m.table.getColumnsWidth(0, len(m.table.columns)))
+	log.Printf("\t init: %v\n", 0)
+	log.Printf("\t #cols: %v\n\n", len(m.table.columns))
+
 	// Formatting a multicolumn consists of simply returning its output string
-	return m.output
+	// but, in case this multicolumn spans until the right margin of the table,
+	// then a separator has to be added in case this multicolumn has any
+	if m.jinit+m.nbcolumns < len(t.columns) {
+		return m.output
+	}
+	return m.output + m.lastsep
 }

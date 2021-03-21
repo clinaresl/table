@@ -759,3 +759,28 @@ func ExampleTable_20() {
 	fmt.Printf("Output:\n%v", t)
 	// Output:
 }
+
+// The next example shows how multicolumns can be used to modify the style of a
+// separator or the horizontal alignment of any cell
+func ExampleTable_21() {
+
+	t, _ := NewTable("r   l c")
+	t.AddRow(Multicolumn(3, "c", "♁ Earth"))
+	t.AddThickRule()
+	t.AddRow(Multicolumn(3, "C{30}", "\033[37;3mEarth is the third planet from the Sun and the only astronomical object known to harbor life\033[0m"))
+	t.AddSingleRule()
+	t.AddRow(Multicolumn(1, "c", "Feature"),
+		Multicolumn(1, " c", "Measure"),
+		Multicolumn(1, "c", "Unit"))
+	t.AddSingleRule()
+	t.AddRow("Aphelion", 152100000, "km")
+	t.AddRow("Perihelion", 147095000, "km")
+	t.AddRow("Eccentricity", 0.0167086)
+	t.AddRow("Orbital period", 365.256363004)
+	t.AddRow("Semi-major axis", 149598023, "km")
+	t.AddSingleRule()
+	t.AddRow(Multicolumn(3, "|c|", "\033[37;3mData provided by Wikipedia\033[0m"))
+	t.AddThickRule()
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}

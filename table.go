@@ -11,8 +11,8 @@ package table
 import (
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
-	"sort"
 	"strings"
 )
 
@@ -89,6 +89,13 @@ func NewTable(spec ...string) (*Table, error) {
 	if !re.MatchString(colspec) {
 		return &Table{}, errors.New("invalid column specification")
 	}
+
+	// Now, make the appropriate substitutions in case the user used ANSI
+	// characters for specifying vertical delimiters
+	colspec = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(colspec,
+		"|||", "┃"),
+		"||", "║"),
+		"|", "│")
 
 	// process the column specification given
 	columns, err := getColumns(colspec)
@@ -206,49 +213,63 @@ func (t *Table) getColumnsWidth(jinit, n int) (result int) {
 	return
 }
 
-// Distribute the width of a selection of columns, either those in the
-// multicolumn or those in the table. The width to distribute is the excess of
-// the largest one over the smallest one, and the columns to increment are those
-// that have the smallest overall width
-func (t *Table) distributeMulticolumn(mcolumn *multicolumn) {
-
-	// first, get the number of physical columns which are currently taken by
-	// the table in the space defined for the multicolumn, and also the width
-	// required for displaying the contents of the multicolumn
-	tWidth := t.getColumnsWidth(mcolumn.jinit, mcolumn.nbcolumns)
-	mWidth := mcolumn.table.getColumnsWidth(0, len(mcolumn.table.columns))
-
-	// In case the width required by the table is larger than the width required
-	// by the multicolumn
-	if tWidth >= mWidth {
-
-		// then evenly distribute the excess among the columns of the multicolumn
-		distribute(tWidth-mWidth, mcolumn.table.columns)
-	} else {
-
-		// otherwise, evenly distribute the excess of the multicolumn among the
-		// table columns
-		distribute(mWidth-tWidth, t.columns[mcolumn.jinit:mcolumn.jinit+mcolumn.nbcolumns])
-	}
-}
-
-// Evenly distribute among all columns in the table receiver by considering the
-// space required for printing all multicolumns.
+// Evenly distribute all the space taken by all multicolumns among the columns
+// of the receiver table. This process requires, not only to widen the table
+// columns if necessary, but also to enlarge some multicolumns after if one or
+// more of the table columns they take have increased their width
 func (t *Table) distributeAllMulticolumns() {
+
+	// --- Table columns
+	// First, compute the definitive width of each table column. Note that the
+	// column width refers only to the space needed to print its contents, i.e.,
+	// the width of the separator is never modified
 
 	// All multicolumns are sorted in descending order of their width. This is
 	// important to ensure that narrower multicolumns get correctly aligned wrt
 	// to broader ones
-	sort.Slice(t.multicolumns,
-		func(i, j int) bool {
-			return t.multicolumns[i].table.getColumnsWidth(0, len(t.multicolumns[i].table.columns)) >
-				t.multicolumns[j].table.getColumnsWidth(0, len(t.multicolumns[j].table.columns))
-		})
+	// sort.Slice(t.multicolumns,
+	// 	func(i, j int) bool {
+	// 		return t.multicolumns[i].table.getColumnsWidth(0, len(t.multicolumns[i].table.columns)) >
+	// 			t.multicolumns[j].table.getColumnsWidth(0, len(t.multicolumns[j].table.columns))
+	// 	})
 
 	// Next, evenly distribute the width among all columns considering the
 	// multicolumns in descending order of their width
 	for _, mcolumn := range t.multicolumns {
-		t.distributeMulticolumn(&mcolumn)
+
+		// compute the space required by the column tables that take the space
+		// of this multicolumn, and also the space required to display the
+		// contents of the multicolumn
+		tWidth := t.getColumnsWidth(mcolumn.jinit, mcolumn.nbcolumns)
+		mWidth := mcolumn.table.getColumnsWidth(0, len(mcolumn.table.columns))
+
+		// only in case the table columns are not large enough to show the
+		// contents of the multicolumn
+		if tWidth < mWidth {
+
+			// evenly distribute the excess of the multicolumn among the table
+			// columns
+			distribute(mWidth-tWidth, t.columns[mcolumn.jinit:mcolumn.jinit+mcolumn.nbcolumns])
+		}
+	}
+
+	// --- Multicolumns
+
+	// Second, as the width of some table columns might have been modified, it
+	// might now be required to update the width of all multicolumns
+	for _, mcolumn := range t.multicolumns {
+
+		tWidth := t.getColumnsWidth(mcolumn.jinit, mcolumn.nbcolumns)
+		mWidth := mcolumn.table.getColumnsWidth(0, len(mcolumn.table.columns))
+
+		// this time, if the overall width of the table columns does not match
+		// the width of the multicolumn
+		if tWidth > mWidth {
+
+			// then evenly distribute the excess among the columns of the
+			// multicolumn
+			distribute(tWidth-mWidth, mcolumn.table.columns)
+		}
 	}
 }
 
@@ -293,19 +314,19 @@ func (t *Table) AddRow(cells ...interface{}) error {
 				return errors.New("Invalid multicolumn specification. The number of available columns has been execeeded!")
 			}
 
-			// otherwise, process this multicolumn to know its height. Note that
-			// this row is added to the bottom of this table
-			contents := mcolumn.Process(t, len(t.rows), j)
-			height = max(height, len(contents))
-
 			// record this multicolumn as an ordinary formatter, copy the
 			// initial column where the multicolumn starts and register this
 			// multicolumn in the table. Importantly, note that this cell is
 			// registered at the right physical column where it is expected to
 			// be found
-			icells[j] = mcolumn
 			mcolumn.jinit = j
+			icells[j] = mcolumn
 			t.multicolumns = append(t.multicolumns, mcolumn)
+
+			// otherwise, process this multicolumn to know its height. Note that
+			// this row is added to the bottom of this table
+			contents := mcolumn.Process(t, len(t.rows), j)
+			height = max(height, len(contents))
 
 			// finally, now move forward the number of columns
 			j += mcolumn.nbcolumns
@@ -422,6 +443,22 @@ func (t Table) String() string {
 	// re-distribute the width of columns (either those of the table or those in
 	// the multicolumn)
 	t.distributeAllMulticolumns()
+
+	if len(t.columns) == 3 {
+		log.Printf("----------------------\n")
+		for idx, jcol := range t.columns {
+
+			log.Printf(" width #%v: %v\n", idx, jcol.width)
+		}
+		log.Printf("\n")
+		log.Printf("[0,1]: %v\n", t.getColumnsWidth(0, 1))
+		log.Printf("[0,2]: %v\n", t.getColumnsWidth(0, 2))
+		log.Printf("[0,3]: %v\n", t.getColumnsWidth(0, 3))
+		log.Printf("[1,2]: %v\n", t.getColumnsWidth(1, 1))
+		log.Printf("[1,3]: %v\n", t.getColumnsWidth(1, 2))
+		log.Printf("[2,3]: %v\n", t.getColumnsWidth(2, 1))
+		log.Printf("----------------------\n")
+	}
 
 	// Because of the presence of multicolumns, each line can print at once an
 	// arbitrary number of columns. Hence, it is required to keep track of how

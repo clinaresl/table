@@ -562,10 +562,14 @@ type hrule string
 // i.e., they can be inserted into a table to merge nbcolumns columns from an
 // initial column under a different format explicitly given by the user as a
 // column specification that is processed to produce a table (with just one row)
-// which is filled in with data from a number of arguments
+// which is filled in with data from a number of arguments.
+//
+// Multicolumns accept a column specification which contains a last separator.
+// If any is given, it is used as the separator of the next cell.
 type multicolumn struct {
 	jinit, nbcolumns int
 	spec             string
+	lastsep          string
 	table            Table
 	args             []interface{}
 	output           string

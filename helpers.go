@@ -71,6 +71,67 @@ func getColumns(colspec string) ([]column, error) {
 	return columns, nil
 }
 
+// process the given column specification and return: first, a new one which has
+// removed the specification of the last column if and only if a last column
+// with no specifier was given; second, the separator of the last column that
+// was removed in the first place
+func stripLastSeparator(colspec string) (string, string) {
+
+	// -- initialization
+	var output string
+
+	// the specification is processed with a regular expression. Only those
+	// parts matching the regular expression are returned so that if a last
+	// column with no specifier is given, it is not added to the result
+	re := regexp.MustCompile(colSpecRegex)
+	for {
+
+		// get the next column and, if none is found, then exit
+		recol := re.FindStringIndex(colspec)
+		if recol == nil {
+			break
+		}
+
+		// copy this part into the output
+		output += colspec[recol[0]:recol[1]]
+
+		// and move forward in the column specification string
+		colspec = colspec[recol[1]:]
+	}
+
+	// and return the string computed so far
+	return output, colspec
+}
+
+// return a pointer to the multirow preceding the cell in the i-th row and j-th
+// column or nil if no multicolumn is found precisely before this cell
+func getPreviousMulticolumn(t *Table, i, j int) *multicolumn {
+
+	// this function just iterates over all cells of the i-th row
+	idx := 0
+	for idx < len(t.cells[i]) {
+
+		// if a multirow is found at this location
+		if cell, ok := t.cells[i][idx].(multicolumn); ok {
+
+			// and it ends precisely at the j-th column
+			if cell.jinit+cell.nbcolumns == j {
+				return &cell
+			}
+
+			// otherwise, move forward
+			idx += cell.nbcolumns
+		} else {
+
+			// otherwise, just move one cell forward
+			idx += 1
+		}
+	}
+
+	// at this point, no multirow has been found so that just return nil
+	return nil
+}
+
 // return true if and only if the given rune is recognized as a vertical
 // separator as defined in this package and false otherwise
 func isVerticalSeparator(r rune) bool {
@@ -211,6 +272,38 @@ func splitParagraph(str string, width int) (result []string) {
 	return
 }
 
+// A (physical) line is just a string and they can be justified in various ways
+// according to the alignment parameter: 'l', 'c', 'r', ... To get the desired
+// effect, the contents of the line have to be preceded and continued by a
+// prefix and suffix of white spaces which are returned in the output params
+// prefix and suffix respectively
+func justifyLine(line string, alignment rune, width int) (prefix, suffix string) {
+
+	// compute the prefix to use for representing this line
+	if unicode.ToLower(rune(alignment)) == 'c' {
+		prefix = strings.Repeat(" ", (width-countPrintableRuneInString(line))/2)
+	}
+	if unicode.ToLower(rune(alignment)) == 'r' {
+		prefix = strings.Repeat(" ", width-countPrintableRuneInString(line))
+	}
+
+	// compute the suffix to use for representing the contents of this line
+	if unicode.ToLower(rune(alignment)) == 'c' {
+
+		// note that in this case an additional character is added, i.e.,
+		// centered strings are ragged left in case the difference is and odd
+		// number
+		suffix = strings.Repeat(" ", (width-countPrintableRuneInString(line))/2)
+		suffix += strings.Repeat(" ", (width-countPrintableRuneInString(line))%2)
+	}
+	if unicode.ToLower(rune(alignment)) == 'l' || alignment == 'p' {
+		suffix = strings.Repeat(" ", width-countPrintableRuneInString(line))
+	}
+
+	// and return the prefix and suffix computed so far
+	return
+}
+
 // return the rune that splits the four regions north-west, north-east,
 // south-west and south-east as stored in the map of splitters with no error. In
 // case that any of the runes given to the west, east, north and south is not
@@ -294,12 +387,19 @@ func prepend(item content, data []content) []content {
 // that their accumulated sum is incremented by n
 func distribute(n int, columns []column) {
 
-	// get the integer quotient and remainder of n and the length of the slice
+	// compute first the quotient (the amount of space to add to all columns)
+	// and the remainder (the additional space to add to a subset of the
+	// columns)
 	quotient, remainder := n/len(columns), n%len(columns)
 
-	// distribute the quotient among all columns
-	for idx, _ := range columns {
-		columns[idx].width += quotient
+	// if and only if the space left to distribute is strictly larger or equal
+	// than the number of columns
+	if n >= len(columns) {
+
+		// distribute the quotient among all columns
+		for idx, _ := range columns {
+			columns[idx].width += quotient
+		}
 	}
 
 	// and now distribute the remainder among the first columns
@@ -580,7 +680,7 @@ func addSplitters(tab []string) {
 					// However, it is necessary for handling some special cases
 					// where there is no vertical bar beneath the location of the
 					// rune to modify:
-					//                      │<----- A
+					//                      │<---- A
 					//                    ━━X━━
 					//                      .<---- B
 					//

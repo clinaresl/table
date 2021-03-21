@@ -11,7 +11,6 @@ package table
 import (
 	"fmt"
 	"regexp"
-	"strings"
 	"unicode"
 )
 
@@ -130,30 +129,18 @@ func (c content) Format(t *Table, irow, jcol int) string {
 	// in case it is necessary, the prefix and suffix contain a string of blank
 	// characters to insert properly so that the contents satisfy the format of
 	// this column
-	var prefix, suffix string
+	prefix, suffix := justifyLine(string(c), rune(col.hformat.alignment), col.width)
 
-	// compute the prefix to use for representing the contents of this column
-	if unicode.ToLower(rune(col.hformat.alignment)) == 'c' {
-		prefix = strings.Repeat(" ", (col.width-countPrintableRuneInString(string(c)))/2)
-	}
-	if unicode.ToLower(rune(col.hformat.alignment)) == 'r' {
-		prefix = strings.Repeat(" ", col.width-countPrintableRuneInString(string(c)))
-	}
-
-	// compute the suffix to use for representing the contents of this column
-	if unicode.ToLower(rune(col.hformat.alignment)) == 'c' {
-
-		// note that in this case an additional character is added, i.e.,
-		// centered strings are ragged left in case the difference is and odd
-		// number
-		suffix = strings.Repeat(" ", (col.width-countPrintableRuneInString(string(c)))/2)
-		suffix += strings.Repeat(" ", (col.width-countPrintableRuneInString(string(c)))%2)
-	}
-	if unicode.ToLower(rune(col.hformat.alignment)) == 'l' || col.hformat.alignment == 'p' {
-		suffix = strings.Repeat(" ", col.width-countPrintableRuneInString(string(c)))
+	// compute now the separator to use. If this specific cell is preceded by a
+	// multicolumn with a last vertical separator (i.e., a vertical separator
+	// with no column attached to it), then use it. Otherwise, use the separator
+	// given in the column specification of this table
+	sep := t.columns[jcol].sep
+	if m := getPreviousMulticolumn(t, irow, jcol); m != nil {
+		sep = m.lastsep
 	}
 
 	// and return the concatenation of the prefix, the content and the suffix,
 	// all prefixed with the horizontal separator of the jcol-th column
-	return fmt.Sprintf("%v%v", t.columns[jcol].sep, prefix+string(c)+suffix)
+	return fmt.Sprintf("%v%v", sep, prefix+string(c)+suffix)
 }

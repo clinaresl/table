@@ -13,6 +13,206 @@ import (
 	"testing"
 )
 
+func Test_stripLastSeparator(t *testing.T) {
+	type args struct {
+		colspec string
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  string
+		want1 string
+	}{
+
+		// No vertical separator in the last column
+
+		// One column
+		{args: args{"l"},
+			want:  "l",
+			want1: ""},
+
+		{args: args{"c"},
+			want:  "c",
+			want1: ""},
+
+		{args: args{"r"},
+			want:  "r",
+			want1: ""},
+
+		{args: args{"p{120}"},
+			want:  "p{120}",
+			want1: ""},
+
+		{args: args{"L{120}"},
+			want:  "L{120}",
+			want1: ""},
+
+		{args: args{"C{120}"},
+			want:  "C{120}",
+			want1: ""},
+
+		{args: args{"R{120}"},
+			want:  "R{120}",
+			want1: ""},
+
+		// Two columns
+		{args: args{"l|c"},
+			want:  "l|c",
+			want1: ""},
+
+		{args: args{"|l|c"},
+			want:  "|l|c",
+			want1: ""},
+
+		{args: args{"c|l"},
+			want:  "c|l",
+			want1: ""},
+
+		{args: args{"|c|l"},
+			want:  "|c|l",
+			want1: ""},
+
+		{args: args{"r|p{120}"},
+			want:  "r|p{120}",
+			want1: ""},
+
+		{args: args{"|r|p{120}"},
+			want:  "|r|p{120}",
+			want1: ""},
+
+		{args: args{"p{120}|L{120}"},
+			want:  "p{120}|L{120}",
+			want1: ""},
+
+		{args: args{"|p{120}|L{120}"},
+			want:  "|p{120}|L{120}",
+			want1: ""},
+
+		{args: args{"L{120}|C{120}"},
+			want:  "L{120}|C{120}",
+			want1: ""},
+
+		{args: args{"|L{120}|C{120}"},
+			want:  "|L{120}|C{120}",
+			want1: ""},
+
+		{args: args{"C{120}|R{120}"},
+			want:  "C{120}|R{120}",
+			want1: ""},
+
+		{args: args{"|C{120}|R{120}"},
+			want:  "|C{120}|R{120}",
+			want1: ""},
+
+		{args: args{"R{120}|l"},
+			want:  "R{120}|l",
+			want1: ""},
+
+		{args: args{"|R{120}|l"},
+			want:  "|R{120}|l",
+			want1: ""},
+
+		// With a vertical separator in the last column
+
+		// One column
+		{args: args{"l|"},
+			want:  "l",
+			want1: "|"},
+
+		{args: args{"c||"},
+			want:  "c",
+			want1: "||"},
+
+		{args: args{"r|||"},
+			want:  "r",
+			want1: "|||"},
+
+		{args: args{"p{120} | "},
+			want:  "p{120}",
+			want1: " | "},
+
+		{args: args{"L{120} || "},
+			want:  "L{120}",
+			want1: " || "},
+
+		{args: args{"C{120} ||| "},
+			want:  "C{120}",
+			want1: " ||| "},
+
+		{args: args{"R{120}  |"},
+			want:  "R{120}",
+			want1: "  |"},
+
+		// Two columns
+		{args: args{"l|c "},
+			want:  "l|c",
+			want1: " "},
+
+		{args: args{"|l|c |"},
+			want:  "|l|c",
+			want1: " |"},
+
+		{args: args{"c|l||"},
+			want:  "c|l",
+			want1: "||"},
+
+		{args: args{"|c|l||| "},
+			want:  "|c|l",
+			want1: "||| "},
+
+		{args: args{"r|p{120}    |    "},
+			want:  "r|p{120}",
+			want1: "    |    "},
+
+		{args: args{"|r|p{120}||  "},
+			want:  "|r|p{120}",
+			want1: "||  "},
+
+		{args: args{"p{120}|L{120}   |||"},
+			want:  "p{120}|L{120}",
+			want1: "   |||"},
+
+		{args: args{"|p{120}|L{120} | "},
+			want:  "|p{120}|L{120}",
+			want1: " | "},
+
+		{args: args{"L{120}|C{120} ||"},
+			want:  "L{120}|C{120}",
+			want1: " ||"},
+
+		{args: args{"|L{120}|C{120}||   "},
+			want:  "|L{120}|C{120}",
+			want1: "||   "},
+
+		{args: args{"C{120}|R{120}   |||      "},
+			want:  "C{120}|R{120}",
+			want1: "   |||      "},
+
+		{args: args{"|C{120}|R{120} |"},
+			want:  "|C{120}|R{120}",
+			want1: " |"},
+
+		{args: args{"R{120}|l| "},
+			want:  "R{120}|l",
+			want1: "| "},
+
+		{args: args{"|R{120}|l | "},
+			want:  "|R{120}|l",
+			want1: " | "},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := stripLastSeparator(tt.args.colspec)
+			if got != tt.want {
+				t.Errorf("stripLastSeparator() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("stripLastSeparator() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
+
 func TestSplitParagraph(t *testing.T) {
 	type args struct {
 		str   string
