@@ -10,7 +10,6 @@ package table
 
 import (
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -135,14 +134,6 @@ func (m multicolumn) Process(t *Table, irow, jcol int) []formatter {
 // (physical) line is forrmatted according to the horizontal format
 // specification of the j-th column.
 func (m multicolumn) Format(t *Table, irow, jcol int) string {
-
-	log.Printf("line: %v\n", m.output)
-	log.Printf("tWidth: %v\n", t.getColumnsWidth(m.jinit, m.nbcolumns))
-	log.Printf("\t init: %v\n", m.jinit)
-	log.Printf("\t #cols: %v\n", m.nbcolumns)
-	log.Printf("mWidth: %v\n", m.table.getColumnsWidth(0, len(m.table.columns)))
-	log.Printf("\t init: %v\n", 0)
-	log.Printf("\t #cols: %v\n\n", len(m.table.columns))
 
 	// Formatting a multicolumn consists of simply returning its output string
 	// but, in case this multicolumn spans until the right margin of the table,

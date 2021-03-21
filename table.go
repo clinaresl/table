@@ -11,7 +11,6 @@ package table
 import (
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 )
@@ -352,7 +351,15 @@ func (t *Table) AddRow(cells ...interface{}) error {
 				t.columns[j].hformat.alignment == 'C' ||
 				t.columns[j].hformat.alignment == 'L' ||
 				t.columns[j].hformat.alignment == 'R' {
-				t.columns[j].width = t.columns[j].hformat.arg
+
+				// Importantly, the width of this column should be modified if
+				// and only if it is less than the argument given. The reason is
+				// that the width of this column might have been increased
+				// (e.g., because it is part of a multicolumn) so that it should
+				// not be modified now!!
+				if t.columns[j].width < t.columns[j].hformat.arg {
+					t.columns[j].width = t.columns[j].hformat.arg
+				}
 			} else {
 
 				// Otherwise, take the maximum width among all columns
@@ -443,22 +450,6 @@ func (t Table) String() string {
 	// re-distribute the width of columns (either those of the table or those in
 	// the multicolumn)
 	t.distributeAllMulticolumns()
-
-	if len(t.columns) == 3 {
-		log.Printf("----------------------\n")
-		for idx, jcol := range t.columns {
-
-			log.Printf(" width #%v: %v\n", idx, jcol.width)
-		}
-		log.Printf("\n")
-		log.Printf("[0,1]: %v\n", t.getColumnsWidth(0, 1))
-		log.Printf("[0,2]: %v\n", t.getColumnsWidth(0, 2))
-		log.Printf("[0,3]: %v\n", t.getColumnsWidth(0, 3))
-		log.Printf("[1,2]: %v\n", t.getColumnsWidth(1, 1))
-		log.Printf("[1,3]: %v\n", t.getColumnsWidth(1, 2))
-		log.Printf("[2,3]: %v\n", t.getColumnsWidth(2, 1))
-		log.Printf("----------------------\n")
-	}
 
 	// Because of the presence of multicolumns, each line can print at once an
 	// arbitrary number of columns. Hence, it is required to keep track of how
