@@ -17,6 +17,22 @@ import (
 	"testing"
 )
 
+// The following function takes a slice of formatters which are known to be
+// multicolumns and return a slice of strings with the output of each
+// multicolumn
+func toOutput(input []formatter) (result []string) {
+
+	// 	want: []formatter{multicolumn{output: "Black lives │ They do!"},
+	// 		multicolumn{output: "     matter │         "}}},
+
+	for _, fmter := range input {
+		mcol := fmter.(multicolumn)
+		result = append(result, mcol.output)
+	}
+
+	return
+}
+
 func Test_multicolumn_Process(t *testing.T) {
 	type args struct {
 		colspec   string
@@ -27,7 +43,7 @@ func Test_multicolumn_Process(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []formatter
+		want []string
 		err  error
 	}{
 
@@ -38,7 +54,7 @@ func Test_multicolumn_Process(t *testing.T) {
 			nbcolumns: 1,
 			spec:      "x",
 			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{}},
+			want: []string{""},
 			err:  errors.New("invalid column specification")},
 
 		// Retrieving the last separator
@@ -46,25 +62,25 @@ func Test_multicolumn_Process(t *testing.T) {
 			nbcolumns: 1,
 			spec:      "l|",
 			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{output: "Black lives matter"}}},
+			want: []string{"Black lives matter"}},
 
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "|l|l|",
 			args:      []interface{}{"Black lives matter", "They do!"}},
-			want: []formatter{multicolumn{output: "│Black lives matter│They do!"}}},
+			want: []string{"│Black lives matter│They do!"}},
 
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "l|l|l||",
 			args:      []interface{}{"Black lives matter", "They do!", "They'll always do!"}},
-			want: []formatter{multicolumn{output: "Black lives matter│They do!│They'll always do!"}}},
+			want: []string{"Black lives matter│They do!│They'll always do!"}},
 
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "l|l|l|||",
 			args:      []interface{}{"Black lives matter", "They do!", "They'll always do!"}},
-			want: []formatter{multicolumn{output: "Black lives matter│They do!│They'll always do!"}}},
+			want: []string{"Black lives matter│They do!│They'll always do!"}},
 
 		// Correct multicolumns
 
@@ -73,19 +89,19 @@ func Test_multicolumn_Process(t *testing.T) {
 			nbcolumns: 1,
 			spec:      "l",
 			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{output: "Black lives matter"}}},
+			want: []string{"Black lives matter"}},
 
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "c",
 			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{output: "Black lives matter"}}},
+			want: []string{"Black lives matter"}},
 
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "r",
 			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{output: "Black lives matter"}}},
+			want: []string{"Black lives matter"}},
 
 		// Preserving the first vertical separator of the table but changing the
 		// horizontal alignment
@@ -93,81 +109,81 @@ func Test_multicolumn_Process(t *testing.T) {
 			nbcolumns: 1,
 			spec:      "|l",
 			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{output: "│Black lives matter"}}},
+			want: []string{"│Black lives matter"}},
 
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "|c",
 			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{output: "│Black lives matter"}}},
+			want: []string{"│Black lives matter"}},
 
 		{args: args{colspec: "|l",
 			nbcolumns: 1,
 			spec:      "|r",
 			args:      []interface{}{"Black lives matter"}},
-			want: []formatter{multicolumn{output: "│Black lives matter"}}},
+			want: []string{"│Black lives matter"}},
 
 		// Splitting one column in two subcolumns with different horizontal alignments
 		{args: args{colspec: "|l|l|",
 			nbcolumns: 2,
 			spec:      "l l",
 			args:      []interface{}{"Black lives matter", "They do!"}},
-			want: []formatter{multicolumn{output: "Black lives matter They do!"}}},
+			want: []string{"Black lives matter They do!"}},
 
 		{args: args{colspec: "|l|l|",
 			nbcolumns: 2,
 			spec:      "l c",
 			args:      []interface{}{"Black lives matter", "They do!"}},
-			want: []formatter{multicolumn{output: "Black lives matter They do!"}}},
+			want: []string{"Black lives matter They do!"}},
 
 		{args: args{colspec: "|l|l|",
 			nbcolumns: 2,
 			spec:      "l r",
 			args:      []interface{}{"Black lives matter", "They do!"}},
-			want: []formatter{multicolumn{output: "Black lives matter They do!"}}},
+			want: []string{"Black lives matter They do!"}},
 
 		// Splitting one column in two subcolumns with two different lines
 		{args: args{colspec: "|l|l|",
 			nbcolumns: 2,
 			spec:      "l l",
 			args:      []interface{}{"Black lives\nmatter", "They do!"}},
-			want: []formatter{multicolumn{output: "Black lives They do!"},
-				multicolumn{output: "matter              "}}},
+			want: []string{"Black lives They do!",
+				"matter              "}},
 
 		{args: args{colspec: "|l|l|",
 			nbcolumns: 2,
 			spec:      "c l",
 			args:      []interface{}{"Black lives\nmatter", "They do!"}},
-			want: []formatter{multicolumn{output: "Black lives They do!"},
-				multicolumn{output: "  matter            "}}},
+			want: []string{"Black lives They do!",
+				"  matter            "}},
 
 		{args: args{colspec: "|l|l|",
 			nbcolumns: 2,
 			spec:      "r l",
 			args:      []interface{}{"Black lives\nmatter", "They do!"}},
-			want: []formatter{multicolumn{output: "Black lives They do!"},
-				multicolumn{output: "     matter         "}}},
+			want: []string{"Black lives They do!",
+				"     matter         "}},
 
 		{args: args{colspec: "|l|l|",
 			nbcolumns: 2,
 			spec:      "l | l",
 			args:      []interface{}{"Black lives\nmatter", "They do!"}},
-			want: []formatter{multicolumn{output: "Black lives │ They do!"},
-				multicolumn{output: "matter      │         "}}},
+			want: []string{"Black lives │ They do!",
+				"matter      │         "}},
 
 		{args: args{colspec: "|l|l|",
 			nbcolumns: 2,
 			spec:      "c | l",
 			args:      []interface{}{"Black lives\nmatter", "They do!"}},
-			want: []formatter{multicolumn{output: "Black lives │ They do!"},
-				multicolumn{output: "  matter    │         "}}},
+			want: []string{"Black lives │ They do!",
+				"  matter    │         "}},
 
 		{args: args{colspec: "|l|l|",
 			nbcolumns: 2,
 			spec:      "r | l",
 			args:      []interface{}{"Black lives\nmatter", "They do!"}},
-			want: []formatter{multicolumn{output: "Black lives │ They do!"},
-				multicolumn{output: "     matter │         "}}},
+			want: []string{"Black lives │ They do!",
+				"     matter │         "}},
 	}
 
 	for _, tt := range tests {
@@ -191,8 +207,9 @@ func Test_multicolumn_Process(t *testing.T) {
 				if err == nil {
 
 					// and now make sure that processing the multicolum produces the
-					// expected results
-					if got := column.Process(tab, 0, 0); !reflect.DeepEqual(got, tt.want) {
+					// same output
+					got := column.Process(tab, 0, 0)
+					if output := toOutput(got); !reflect.DeepEqual(output, tt.want) {
 						t.Errorf("content.Process() = '%v', want '%v'", got, tt.want)
 					}
 				}

@@ -117,31 +117,31 @@ func Test_stripLastSeparator(t *testing.T) {
 		// One column
 		{args: args{"l|"},
 			want:  "l",
-			want1: "|"},
+			want1: "│"},
 
 		{args: args{"c||"},
 			want:  "c",
-			want1: "||"},
+			want1: "║"},
 
 		{args: args{"r|||"},
 			want:  "r",
-			want1: "|||"},
+			want1: "┃"},
 
 		{args: args{"p{120} | "},
 			want:  "p{120}",
-			want1: " | "},
+			want1: " │ "},
 
 		{args: args{"L{120} || "},
 			want:  "L{120}",
-			want1: " || "},
+			want1: " ║ "},
 
 		{args: args{"C{120} ||| "},
 			want:  "C{120}",
-			want1: " ||| "},
+			want1: " ┃ "},
 
 		{args: args{"R{120}  |"},
 			want:  "R{120}",
-			want1: "  |"},
+			want1: "  │"},
 
 		// Two columns
 		{args: args{"l|c "},
@@ -150,55 +150,55 @@ func Test_stripLastSeparator(t *testing.T) {
 
 		{args: args{"|l|c |"},
 			want:  "|l|c",
-			want1: " |"},
+			want1: " │"},
 
 		{args: args{"c|l||"},
 			want:  "c|l",
-			want1: "||"},
+			want1: "║"},
 
 		{args: args{"|c|l||| "},
 			want:  "|c|l",
-			want1: "||| "},
+			want1: "┃ "},
 
 		{args: args{"r|p{120}    |    "},
 			want:  "r|p{120}",
-			want1: "    |    "},
+			want1: "    │    "},
 
 		{args: args{"|r|p{120}||  "},
 			want:  "|r|p{120}",
-			want1: "||  "},
+			want1: "║  "},
 
 		{args: args{"p{120}|L{120}   |||"},
 			want:  "p{120}|L{120}",
-			want1: "   |||"},
+			want1: "   ┃"},
 
 		{args: args{"|p{120}|L{120} | "},
 			want:  "|p{120}|L{120}",
-			want1: " | "},
+			want1: " │ "},
 
 		{args: args{"L{120}|C{120} ||"},
 			want:  "L{120}|C{120}",
-			want1: " ||"},
+			want1: " ║"},
 
 		{args: args{"|L{120}|C{120}||   "},
 			want:  "|L{120}|C{120}",
-			want1: "||   "},
+			want1: "║   "},
 
 		{args: args{"C{120}|R{120}   |||      "},
 			want:  "C{120}|R{120}",
-			want1: "   |||      "},
+			want1: "   ┃      "},
 
 		{args: args{"|C{120}|R{120} |"},
 			want:  "|C{120}|R{120}",
-			want1: " |"},
+			want1: " │"},
 
 		{args: args{"R{120}|l| "},
 			want:  "R{120}|l",
-			want1: "| "},
+			want1: "│ "},
 
 		{args: args{"|R{120}|l | "},
 			want:  "|R{120}|l",
-			want1: " | "},
+			want1: " │ "},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -798,154 +798,251 @@ func Test_logicalToPhysical(t *testing.T) {
 		li int
 	}
 	tests := []struct {
-		name   string
-		args   args
-		wantPi int
+		name             string
+		args             args
+		wantPi1, wantPi2 int
+		wantSout         string
 	}{
+
+		// logicalToPhysical can be invoked with either "force=true" or
+		// "force=false". In case force is given, the input string is extended
+		// with as many blank characters as necessary as to have exactly a
+		// number of printable characters equal to the logical position seeked.
+		// logicalToPhysical returns then the physical position of the logical
+		// location requested and also the resulting string which might have
+		// been modified or not.
+		//
+		// Thus, wantPi1 is the physical location obtained with "force=False".
+		// The resulting string is not checked as it is never modified
+		//
+		//
+		// wantPi2 and wantSout are the returned values when "force=true"
+		//
+		// Instead of creating different tests for these two cases, the body
+		// below the definition of all test cases invoke each test case both
+		// with force=true and force=false
+
 		// trivial example with the empty string
 		{args: args{s: "",
 			li: -1},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  -1,
+			wantSout: ""},
 
 		{args: args{s: "",
 			li: 0},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  0,
+			wantSout: " "},
 
 		{args: args{s: "",
 			li: 1},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  1,
+			wantSout: "  "},
 
 		// examples with no ANSI color codes
 		{args: args{s: "Gladiator━in arena consilium capit",
 			li: -1},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  -1,
+			wantSout: "Gladiator━in arena consilium capit"},
 
 		{args: args{s: "Gladiator━in arena consilium capit",
 			li: 0},
-			wantPi: 0},
+			wantPi1:  0,
+			wantPi2:  0,
+			wantSout: "Gladiator━in arena consilium capit"},
 
 		{args: args{s: "Gladiator━in arena consilium capit",
 			li: 16},
-			wantPi: 18},
+			wantPi1:  18,
+			wantPi2:  18,
+			wantSout: "Gladiator━in arena consilium capit"},
 
 		{args: args{s: "Gladiator━in arena consilium capit",
 			li: 33},
-			wantPi: 35},
+			wantPi1:  35,
+			wantPi2:  35,
+			wantSout: "Gladiator━in arena consilium capit"},
 
 		{args: args{s: "Gladiator━in arena consilium capit",
 			li: 34},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  36,
+			wantSout: "Gladiator━in arena consilium capit "},
 
 		// examples with only one ANSI color code
 		{args: args{s: "\033[38;2;160;10;10mGladiator━in arena consilium capit",
 			li: -1},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  -1,
+			wantSout: "\033[38;2;160;10;10mGladiator━in arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit",
 			li: -1},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  -1,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit"},
 
 		{args: args{s: "\033[38;2;160;10;10mGladiator━in arena consilium capit",
 			li: 0},
-			wantPi: 17},
+			wantPi1:  17,
+			wantPi2:  17,
+			wantSout: "\033[38;2;160;10;10mGladiator━in arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit",
 			li: 0},
-			wantPi: 0},
+			wantPi1:  0,
+			wantPi2:  0,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit",
 			li: 1},
-			wantPi: 18},
+			wantPi1:  18,
+			wantPi2:  18,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit",
 			li: 9},
-			wantPi: 26},
+			wantPi1:  26,
+			wantPi2:  26,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit",
 			li: 33},
-			wantPi: 52},
+			wantPi1:  52,
+			wantPi2:  52,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit",
 			li: 34},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  53,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit "},
 
 		// examples with two ANSI color codes
 		{args: args{s: "\033[38;2;160;10;10mGladiator━\033[0min arena consilium capit",
 			li: -1},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  -1,
+			wantSout: "\033[38;2;160;10;10mGladiator━\033[0min arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: -1},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  -1,
+			wantSout: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit"},
 
 		{args: args{s: "\033[38;2;160;10;10mGladiator━\033[0min arena consilium capit",
 			li: 0},
-			wantPi: 17},
+			wantPi1:  17,
+			wantPi2:  17,
+			wantSout: "\033[38;2;160;10;10mGladiator━\033[0min arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 0},
-			wantPi: 0},
+			wantPi1:  0,
+			wantPi2:  0,
+			wantSout: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 1},
-			wantPi: 18},
+			wantPi1:  18,
+			wantPi2:  18,
+			wantSout: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 9},
-			wantPi: 26},
+			wantPi1:  26,
+			wantPi2:  26,
+			wantSout: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 10},
-			wantPi: 33},
+			wantPi1:  33,
+			wantPi2:  33,
+			wantSout: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 33},
-			wantPi: 56},
+			wantPi1:  56,
+			wantPi2:  56,
+			wantSout: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit",
 			li: 34},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  57,
+			wantSout: "G\033[38;2;160;10;10mladiator━\033[0min arena consilium capit "},
 
 		{args: args{s: "\033[38;2;160;10;10mGladiator━in arena consilium capit\033[0m",
 			li: -1},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  -1,
+			wantSout: "\033[38;2;160;10;10mGladiator━in arena consilium capit\033[0m"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m",
 			li: -1},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  -1,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m"},
 
 		{args: args{s: "\033[38;2;160;10;10mGladiator━in arena consilium capit\033[0m",
 			li: 0},
-			wantPi: 17},
+			wantPi1:  17,
+			wantPi2:  17,
+			wantSout: "\033[38;2;160;10;10mGladiator━in arena consilium capit\033[0m"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m",
 			li: 0},
-			wantPi: 0},
+			wantPi1:  0,
+			wantPi2:  0,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m",
 			li: 1},
-			wantPi: 18},
+			wantPi1:  18,
+			wantPi2:  18,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m",
 			li: 9},
-			wantPi: 26},
+			wantPi1:  26,
+			wantPi2:  26,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m",
 			li: 14},
-			wantPi: 33},
+			wantPi1:  33,
+			wantPi2:  33,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m",
 			li: 33},
-			wantPi: 52},
+			wantPi1:  52,
+			wantPi2:  52,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m"},
 
 		{args: args{s: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m",
 			li: 34},
-			wantPi: -1},
+			wantPi1:  -1,
+			wantPi2:  57,
+			wantSout: "G\033[38;2;160;10;10mladiator━in arena consilium capit\033[0m "},
 	}
 	for _, tt := range tests {
+
+		// Tests run without modifying the input string
 		t.Run(tt.name, func(t *testing.T) {
-			if gotPi := logicalToPhysical(tt.args.s, tt.args.li); gotPi != tt.wantPi {
-				t.Errorf("logicalToPhysical() = %v, want %v", gotPi, tt.wantPi)
+			if gotPi, _ := logicalToPhysical(tt.args.s, tt.args.li, false); gotPi != tt.wantPi1 {
+				t.Errorf("[force = %v] logicalToPhysical() = %v, want %v", false, gotPi, tt.wantPi1)
+			}
+		})
+
+		// Tests run modifying the input string if needed
+		t.Run(tt.name, func(t *testing.T) {
+			if gotPi, gotSout := logicalToPhysical(tt.args.s, tt.args.li, true); gotPi != tt.wantPi2 || gotSout != tt.wantSout {
+				t.Errorf("[force = %v] logicalToPhysical() = %v/'%v', want %v/'%v'", true, gotPi, gotSout, tt.wantPi2, tt.wantSout)
 			}
 		})
 	}

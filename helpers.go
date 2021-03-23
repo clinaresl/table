@@ -71,10 +71,18 @@ func getColumns(colspec string) ([]column, error) {
 	return columns, nil
 }
 
+// replace the ASCII vertical bars found in the given string by the
+// corresponding UTF-8 vertical separators
+func separatorToUTF8(input *string) {
+	*input = strings.ReplaceAll(*input, "|||", "┃")
+	*input = strings.ReplaceAll(*input, "||", "║")
+	*input = strings.ReplaceAll(*input, "|", "│")
+}
+
 // process the given column specification and return: first, a new one which has
 // removed the specification of the last column if and only if a last column
-// with no specifier was given; second, the separator of the last column that
-// was removed in the first place
+// with no column specifier was given; second, the separator of the last column
+// that was removed in the first place
 func stripLastSeparator(colspec string) (string, string) {
 
 	// -- initialization
@@ -99,7 +107,9 @@ func stripLastSeparator(colspec string) (string, string) {
 		colspec = colspec[recol[1]:]
 	}
 
-	// and return the string computed so far
+	// and return the string computed so far substituting the last separator by
+	// its corresponding UTF-8 runes
+	separatorToUTF8(&colspec)
 	return output, colspec
 }
 
@@ -136,23 +146,6 @@ func getPreviousMulticolumn(t *Table, i, j int) *multicolumn {
 // separator as defined in this package and false otherwise
 func isVerticalSeparator(r rune) bool {
 	return r == '│' || r == '║' || r == '┃'
-}
-
-// return true if and only if the given string contains a vertical separator as
-// defined in this package and false otherwise
-func containsVerticalSeparator(sep string) bool {
-
-	// for each rune in the given string
-	for _, r := range sep {
-
-		// if this rune is a vertical separator then return true immediately
-		if isVerticalSeparator(r) {
-			return true
-		}
-	}
-
-	// otherwise, return false
-	return false
 }
 
 // Just cast a slice of strings into a slice of contents
@@ -281,10 +274,10 @@ func justifyLine(line string, alignment rune, width int) (prefix, suffix string)
 
 	// compute the prefix to use for representing this line
 	if unicode.ToLower(rune(alignment)) == 'c' {
-		prefix = strings.Repeat(" ", (width-countPrintableRuneInString(line))/2)
+		prefix = strings.Repeat(string(horizontal_blank), (width-countPrintableRuneInString(line))/2)
 	}
 	if unicode.ToLower(rune(alignment)) == 'r' {
-		prefix = strings.Repeat(" ", width-countPrintableRuneInString(line))
+		prefix = strings.Repeat(string(horizontal_blank), width-countPrintableRuneInString(line))
 	}
 
 	// compute the suffix to use for representing the contents of this line
@@ -293,11 +286,11 @@ func justifyLine(line string, alignment rune, width int) (prefix, suffix string)
 		// note that in this case an additional character is added, i.e.,
 		// centered strings are ragged left in case the difference is and odd
 		// number
-		suffix = strings.Repeat(" ", (width-countPrintableRuneInString(line))/2)
+		suffix = strings.Repeat(string(horizontal_blank), (width-countPrintableRuneInString(line))/2)
 		suffix += strings.Repeat(" ", (width-countPrintableRuneInString(line))%2)
 	}
 	if unicode.ToLower(rune(alignment)) == 'l' || alignment == 'p' {
-		suffix = strings.Repeat(" ", width-countPrintableRuneInString(line))
+		suffix = strings.Repeat(string(horizontal_blank), width-countPrintableRuneInString(line))
 	}
 
 	// and return the prefix and suffix computed so far
@@ -458,9 +451,16 @@ func physicalToLogical(s string, pi int) (li int) {
 
 // return the pi-th physical rune which is known to take the li-th logical
 // position. A position is said to be physical if and only if it also takes into
-// account control codes such as ANSI color codes; it is logical otherwise. If
-// such position does not exist it returns -1
-func logicalToPhysical(s string, li int) (pi int) {
+// account control codes such as ANSI color codes; it is logical otherwise.
+//
+// If such position does not exist it returns -1 unless force is True in which
+// case the string is extended to have li logical positions and its physical
+// position is then returned.
+//
+// Because the input string might have been modified or not, it returns the
+// resulting string after seeking the physical location of the li-th logical
+// position
+func logicalToPhysical(s string, li int, force bool) (pi int, sout string) {
 
 	// -- initialization: idx is used to count logical runes---i.e., without
 	// considering ANSI color codes
@@ -484,9 +484,9 @@ func logicalToPhysical(s string, li int) (pi int) {
 		} else {
 
 			// if this is the rune taking the li-th logical position then return
-			// its physical location
+			// its physical location without modifying the input string
 			if idx == li {
-				return pi
+				return pi, s
 			}
 
 			// get the rune at the current position
@@ -499,8 +499,22 @@ func logicalToPhysical(s string, li int) (pi int) {
 	}
 
 	// if we get here is because the given logical location has not been found.
-	// Thus, an impossible value is returned as a token to signal this case
-	return -1
+	// If force has been given, then extend the string so that it contains
+	// exactly li logical positions
+	if force && li >= 0 {
+
+		// compute the number of extra spaces that have to be added to the
+		// string
+		diff := 1 + li - countPrintableRuneInString(s)
+
+		// and return the physical location of the newly *created* logical
+		// location li along with the new string
+		return pi + diff - 1, s + strings.Repeat(string(horizontal_blank), diff)
+	}
+
+	// If force is false, an impossible value is returned as a token to signal
+	// this case withouth modifying the input string
+	return -1, s
 }
 
 // return the i-th printable and graphic rune in the given string, if it exists.
@@ -594,6 +608,12 @@ func insertRune(s string, i int, r rune) string {
 // code in the string, whereas jl is the j-th *rune* in the string
 func addSplitter(tab []string, i, jp, jl int) {
 
+	// log.Println(" Adding splitters to:")
+	// log.Printf("\t> line: '%v'\n", tab[i])
+	// log.Printf("\t> i: %v\n", i)
+	// log.Printf("\t> jp: %v\n", jp)
+	// log.Printf("\t> jl: %v\n\n", jl)
+
 	// define variables for storing the runes to the west, east, north and south
 	// of the current location
 	var west, east, north, south rune = none, none, none, none
@@ -629,6 +649,9 @@ func addSplitter(tab []string, i, jp, jl int) {
 // Add splitters to a table that has been already drawn using String () and
 // returns a slice of strings, each representing one line of the table
 func addSplitters(tab []string) {
+
+	// store the physical location of a logical position of any string
+	var pi int
 
 	// -- Initialization: regular expression used to recognize ANSI color codes
 	re := regexp.MustCompile(ansiColorRegex)
@@ -671,7 +694,8 @@ func addSplitters(tab []string) {
 					// location (i-1, j)
 					if i > 0 {
 
-						addSplitter(tab, i-1, logicalToPhysical(tab[i-1], j), j)
+						pi, tab[i-1] = logicalToPhysical(tab[i-1], j, true)
+						addSplitter(tab, i-1, pi, j)
 					}
 
 					// there will be a lot of times when the following statement is
@@ -689,7 +713,9 @@ func addSplitters(tab []string) {
 					// will not be invoked if . is any rune other than a vertical
 					// separator
 					if i <= len(tab)-2 {
-						addSplitter(tab, i+1, logicalToPhysical(tab[i+1], j), j)
+
+						pi, tab[i+1] = logicalToPhysical(tab[i+1], j, true)
+						addSplitter(tab, i+1, pi, j)
 					}
 				}
 

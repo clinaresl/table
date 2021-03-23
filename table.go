@@ -105,9 +105,7 @@ func NewTable(spec ...string) (*Table, error) {
 	// Before returning, process the separators of all columns to make the
 	// appropriate substitutions
 	for j := range columns {
-		columns[j].sep = strings.ReplaceAll(columns[j].sep, "|||", "┃")
-		columns[j].sep = strings.ReplaceAll(columns[j].sep, "||", "║")
-		columns[j].sep = strings.ReplaceAll(columns[j].sep, "|", "│")
+		separatorToUTF8(&columns[j].sep)
 	}
 
 	// Now, process all the vertical separators in case any has been given
