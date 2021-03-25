@@ -136,7 +136,7 @@ func (c content) Format(t *Table, irow, jcol int) string {
 	// with no column attached to it), then use it. Otherwise, use the separator
 	// given in the column specification of this table
 	sep := t.columns[jcol].sep
-	if m := getPreviousMulticolumn(t, irow, jcol); m != nil {
+	if m := getPreviousMulticolumn(t, irow, jcol); m != nil && m.lastsep != "" {
 		sep = m.lastsep
 	}
 
