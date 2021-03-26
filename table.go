@@ -221,15 +221,6 @@ func (t *Table) distributeAllMulticolumns() {
 	// column width refers only to the space needed to print its contents, i.e.,
 	// the width of the separator is never modified
 
-	// All multicolumns are sorted in descending order of their width. This is
-	// important to ensure that narrower multicolumns get correctly aligned wrt
-	// to broader ones
-	// sort.Slice(t.multicolumns,
-	// 	func(i, j int) bool {
-	// 		return t.multicolumns[i].table.getColumnsWidth(0, len(t.multicolumns[i].table.columns)) >
-	// 			t.multicolumns[j].table.getColumnsWidth(0, len(t.multicolumns[j].table.columns))
-	// 	})
-
 	// Next, evenly distribute the width among all columns considering the
 	// multicolumns in descending order of their width
 	for _, mcolumn := range t.multicolumns {
@@ -370,6 +361,16 @@ func (t *Table) AddRow(cells ...interface{}) error {
 			// and move to the next column
 			j++
 		}
+
+		// add this item to the last row of the table iteratively. This is
+		// necessary because for "cells" (i.e., generically speaking) to be
+		// properly processed they might need to know the current contents of
+		// the table
+		if len(t.cells) <= len(t.rows) {
+			t.cells = append(t.cells, icells)
+		} else {
+			t.cells = append(t.cells[:len(t.cells)-1], icells)
+		}
 	}
 
 	// now, if not all columns were given then automatically add empty cells.
@@ -381,7 +382,7 @@ func (t *Table) AddRow(cells ...interface{}) error {
 
 	// add this cells to this table, along with the number of physical rows
 	// required to draw it
-	t.cells = append(t.cells, icells)
+	t.cells = append(t.cells[:len(t.cells)-1], icells)
 	t.rows = append(t.rows, row{height: height})
 
 	// and exit with no error

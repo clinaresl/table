@@ -5,12 +5,18 @@ intended as a substitution of the Go standard package `tabwriter`. Its design is
 based on the functionality of tables in LaTeX but extends its functionality in
 various ways through a very simple interface
 
-It honours [UTF-8 characters](https://www.utf8-chartable.de/), [ANSI color escape sequences](https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences), full/partial
+It honours [UTF-8 characters](https://www.utf8-chartable.de/), [ANSI color escape sequences](https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences), fixed- and variable-width columns, full/partial
 horizontal rules, various vertical and horizontal alignment options, and
 multicolumns.
 
 Remarkably, it prints any *stringer* and as tables are stringers, tables can be
 nested to any degree.
+
+While I do not want to delve into the [controversy between tabs and
+spaces](https://www.youtube.com/watch?v=SsoOG6ZeyUI) this is my position: "*tabs
+should be used for indentation while spaces should be preferred for alignment*".
+Thus, this package uses spaces for aligning contents and it should then be used
+with fixed-size fonts.
 
 
 # Installation 
@@ -243,27 +249,27 @@ automatically ended with `\033[0m` just simply by adding it to the *column
 specification* of the table. Of course, one could end each line manually but as
 the example shows this is not necessary at all.
 
-Just by reversing the location of the codes it is also possible to colour only
-the splitters and rules:
+<!-- Just by reversing the location of the codes it is also possible to colour only -->
+<!-- the splitters and rules: -->
 
-``` Go
-    t, _ := NewTable("\033[38;2;80;80;80ml | r \033[0m")
-	t.AddThickRule()
-	t.AddRow("\033[0mCountry\033[38;2;80;80;80m", "\033[0mPopulation")
-	t.AddSingleRule()
-	t.AddRow("\033[0mChina\033[38;2;80;80;80m", "\033[0m1,394,015,977")
-	t.AddRow("\033[0mIndia\033[38;2;80;80;80m", "\033[0m1,326,093,247")
-	t.AddRow("\033[0mUnited States\033[38;2;80;80;80m", "\033[0m329,877,505")
-	t.AddRow("\033[0mIndonesia\033[38;2;80;80;80m", "\033[0m267,026,366")
-	t.AddRow("\033[0mPakistan\033[38;2;80;80;80m", "\033[0m233,500,636")
-	t.AddRow("\033[0mNigeria\033[38;2;80;80;80m", "\033[0m214,028,302")
-	t.AddThickRule()
-	fmt.Printf("%v", t)
-```
+<!-- ``` Go -->
+<!--     t, _ := NewTable("\033[38;2;80;80;80ml | r \033[0m") -->
+<!-- 	t.AddThickRule() -->
+<!-- 	t.AddRow("\033[0mCountry\033[38;2;80;80;80m", "\033[0mPopulation") -->
+<!-- 	t.AddSingleRule() -->
+<!-- 	t.AddRow("\033[0mChina\033[38;2;80;80;80m", "\033[0m1,394,015,977") -->
+<!-- 	t.AddRow("\033[0mIndia\033[38;2;80;80;80m", "\033[0m1,326,093,247") -->
+<!-- 	t.AddRow("\033[0mUnited States\033[38;2;80;80;80m", "\033[0m329,877,505") -->
+<!-- 	t.AddRow("\033[0mIndonesia\033[38;2;80;80;80m", "\033[0m267,026,366") -->
+<!-- 	t.AddRow("\033[0mPakistan\033[38;2;80;80;80m", "\033[0m233,500,636") -->
+<!-- 	t.AddRow("\033[0mNigeria\033[38;2;80;80;80m", "\033[0m214,028,302") -->
+<!-- 	t.AddThickRule() -->
+<!-- 	fmt.Printf("%v", t) -->
+<!-- ``` -->
 
-for producing:
+<!-- for producing: -->
 
-![example-3](figs/example-3.png "example-3")
+<!-- ![example-3](figs/example-3.png "example-3") -->
 
 # License #
 

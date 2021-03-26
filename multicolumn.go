@@ -102,10 +102,56 @@ func Multicolumn(nbcolumns int, spec string, args ...interface{}) multicolumn {
 func (m multicolumn) Process(t *Table, irow, jcol int) []formatter {
 
 	// Processing a multicolumn is truly easy. It just suffices to add all
-	// arguments given and to return a new multicolumn for each physical line
+	// arguments given and to return a new multicolumn for each physical line.
+	// There is only one caveat to consider and it is to modify the table in
+	// case another multicolumn precedes this one
 
 	// -- initialization
 	var result []formatter
+
+	// if this multicolumn starts with no separator in the first column, and is
+	// preceded by another multicolumn which in turn provides a separator in a
+	// last column with no body, then use that separator. This involves
+	// modifying the table which is stored within this multicolumn.The reasoning
+	// is simple:
+	//
+	//    1. Multicolumns are allowed to overwrite the separators given in the
+	//    column specification of the table
+	//
+	//    2. Also, multicolumns are allowed to affect the separator to be used
+	//    in the cell coming immediately after
+	//
+	// So, if a multicolumn starts with no separator, then the separator given
+	// in the column specification of the table is not used at all and the only
+	// chance to create a separator is to use the one given by the preceding
+	// cell only if that is a multicolumn. Note that the following verification
+	// is performed only in case the current row has been written to the table
+	// (this is not the case when adding rows, but it is when printing the
+	// contents of tables)
+	if m.table.columns[0].sep == "" && irow < len(t.rows) {
+		if mprev := getPreviousMulticolumn(t, irow, jcol); mprev != nil && mprev.lastsep != "" {
+
+			// redo the table using as first separator the one provided in the
+			// previous multicolumn. In case of error (which is unlikely as we
+			// are only adding the separator found in the previous multicolumn)
+			// a panic is generated, there's not much we could do at this stage
+			if tm, err := NewTable(mprev.lastsep + m.spec); err != nil {
+				panic(err)
+			} else {
+
+				// the following is ugly ... I know :( and it is a little bit of
+				// hacking. Multicolumns can be processed after distributing
+				// some space among its columns. Thus, if we are re-creating the
+				// inner table of a multicolumn, it is more than a good idea to
+				// preserve the widths of all its columns
+				for idx, _ := range tm.columns {
+					tm.columns[idx].width = m.table.columns[idx].width
+				}
+				tm.columns[0].width -= countPrintableRuneInString(mprev.lastsep)
+				m.table = *tm
+			}
+		}
+	}
 
 	// add all arguments to the multicolumn table
 	m.table.AddRow(m.args...)
