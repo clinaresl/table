@@ -366,11 +366,11 @@ func (t *Table) AddRow(cells ...interface{}) error {
 		// necessary because for "cells" (i.e., generically speaking) to be
 		// properly processed they might need to know the current contents of
 		// the table
-		if len(t.cells) <= len(t.rows) {
-			t.cells = append(t.cells, icells)
-		} else {
-			t.cells = append(t.cells[:len(t.cells)-1], icells)
-		}
+		// if len(t.cells) <= len(t.rows) {
+		// 	t.cells = append(t.cells, icells)
+		// } else {
+		// 	t.cells = append(t.cells[:len(t.cells)-1], icells)
+		// }
 	}
 
 	// now, if not all columns were given then automatically add empty cells.
@@ -382,7 +382,8 @@ func (t *Table) AddRow(cells ...interface{}) error {
 
 	// add this cells to this table, along with the number of physical rows
 	// required to draw it
-	t.cells = append(t.cells[:len(t.cells)-1], icells)
+	// t.cells = append(t.cells[:len(t.cells)-1], icells)
+	t.cells = append(t.cells, icells)
 	t.rows = append(t.rows, row{height: height})
 
 	// and exit with no error

@@ -433,16 +433,16 @@ func ExampleTable_2() {
 // table
 func ExampleTable_3() {
 
-	t, _ := NewTable("\033[38;2;80;80;80ml | r \033[0m")
+	t, _ := NewTable("l | r ")
 	t.AddThickRule()
-	t.AddRow("\033[0mCountry\033[38;2;80;80;80m", "\033[0mPopulation")
+	t.AddRow("Country", "Population")
 	t.AddSingleRule()
-	t.AddRow("\033[0mChina\033[38;2;80;80;80m", "\033[0m1,394,015,977")
-	t.AddRow("\033[0mIndia\033[38;2;80;80;80m", "\033[0m1,326,093,247")
-	t.AddRow("\033[0mUnited States\033[38;2;80;80;80m", "\033[0m329,877,505")
-	t.AddRow("\033[0mIndonesia\033[38;2;80;80;80m", "\033[0m267,026,366")
-	t.AddRow("\033[0mPakistan\033[38;2;80;80;80m", "\033[0m233,500,636")
-	t.AddRow("\033[0mNigeria\033[38;2;80;80;80m", "\033[0m214,028,302")
+	t.AddRow("China", "1,394,015,977")
+	t.AddRow("India", "1,326,093,247")
+	t.AddRow("United States", "329,877,505")
+	t.AddRow("Indonesia", "267,026,366")
+	t.AddRow("Pakistan", "233,500,636")
+	t.AddRow("Nigeria", "214,028,302")
 	t.AddThickRule()
 	fmt.Printf("Output:\n%v", t)
 	// Output:
@@ -785,7 +785,7 @@ func ExampleTable_21() {
 	// Output:
 }
 
-// A wide variety of multicolumns
+// A wide variety of multicolumns that group table columns
 func ExampleTable_22() {
 
 	t, _ := NewTable("|c||c|||c|c||c|||c|")
@@ -838,8 +838,30 @@ func ExampleTable_22() {
 	t.AddThickRule()
 	t.AddRow(Multicolumn(3, "|c", "(24, 1)"), Multicolumn(3, "|c", "(24, 2)"))
 	t.AddSingleRule()
-	t.AddRow(Multicolumn(6, "|c", "(25, 1)"))
+	t.AddRow(Multicolumn(6, "|c", "Merging columns"))
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
+
+// A wide variety of multicolumns that split table columns
+func ExampleTable_23() {
+
+	t, _ := NewTable("|c|c|c|")
+	t.AddRow("Column #1", "Column #2", "Column #3")
+	t.AddSingleRule()
+	t.AddRow(Multicolumn(1, "|c||c|||", "(1, 1)", "(1, 2)"), "(1, 3)", "(1, 4)")
 	t.AddDoubleRule()
+	t.AddRow("(1, 1)", Multicolumn(1, "|c||c|||", "(1, 2)", "(1, 3)"), "(1, 4)")
+	t.AddThickRule()
+	t.AddRow("(1, 1)", "(1, 2)", Multicolumn(1, "|c||c|||", "(1, 3)", "(1, 4)"))
+	t.AddSingleRule()
+	t.AddRow(Multicolumn(1, "|c||c|c||", "(1, 1)", "(1, 2)", "(1, 3)"), "(1, 4)", "(1, 5)")
+	t.AddDoubleRule()
+	t.AddRow("(1, 1)", Multicolumn(1, "|c||c|c||", "(1, 2)", "(1, 3)", "(1, 4)"), "(1, 5)")
+	t.AddThickRule()
+	t.AddRow("(1, 1)", "(1, 2)", Multicolumn(1, "|c||c|c||", "(1, 3)", "(1, 4)", "(1, 5)"))
+	t.AddSingleRule()
+	t.AddRow(Multicolumn(3, "|c", "Splitting columns"))
 	fmt.Printf("Output:\n%v", t)
 	// Output:
 }
