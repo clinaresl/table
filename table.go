@@ -210,11 +210,11 @@ func (t *Table) getColumnsWidth(jinit, n int) (result int) {
 	return
 }
 
-// Evenly distribute all the space taken by all multicolumns among the columns
-// of the receiver table. This process requires, not only to widen the table
-// columns if necessary, but also to enlarge some multicolumns after if one or
-// more of the table columns they take have increased their width
-func (t *Table) distributeAllMulticolumns() {
+// Evenly distribute all the space taken by all binders among the columns of the
+// receiver table. This process requires, not only to widen the table columns if
+// necessary, but also to enlarge some binders after if one or more of the table
+// columns they take have increased their width
+func (t *Table) distributeAllBinders() {
 
 	// --- Table columns
 	// First, compute the definitive width of each table column. Note that the
@@ -222,14 +222,14 @@ func (t *Table) distributeAllMulticolumns() {
 	// the width of the separator is never modified
 
 	// Next, evenly distribute the width among all columns considering the
-	// multicolumns in descending order of their width
-	for _, mcolumn := range t.multicolumns {
+	// binders
+	for _, m := range t.binders {
 
 		// compute the space required by the column tables that take the space
-		// of this multicolumn, and also the space required to display the
-		// contents of the multicolumn
-		tWidth := t.getColumnsWidth(mcolumn.jinit, mcolumn.nbcolumns)
-		mWidth := mcolumn.table.getColumnsWidth(0, len(mcolumn.table.columns))
+		// of this binder, and also the space required to display the contents
+		// of the binder
+		tWidth := t.getColumnsWidth(m.getColumnInit(), m.getNbColumns())
+		mWidth := m.getTable().getColumnsWidth(0, len(m.getTable().columns))
 
 		// only in case the table columns are not large enough to show the
 		// contents of the multicolumn
@@ -237,26 +237,25 @@ func (t *Table) distributeAllMulticolumns() {
 
 			// evenly distribute the excess of the multicolumn among the table
 			// columns
-			distribute(mWidth-tWidth, t.columns[mcolumn.jinit:mcolumn.jinit+mcolumn.nbcolumns])
+			distribute(mWidth-tWidth, t.columns[m.getColumnInit():m.getColumnInit()+m.getNbColumns()])
 		}
 	}
 
 	// --- Multicolumns
 
 	// Second, as the width of some table columns might have been modified, it
-	// might now be required to update the width of all multicolumns
-	for _, mcolumn := range t.multicolumns {
+	// might now be required to update the width of all binders
+	for _, m := range t.binders {
 
-		tWidth := t.getColumnsWidth(mcolumn.jinit, mcolumn.nbcolumns)
-		mWidth := mcolumn.table.getColumnsWidth(0, len(mcolumn.table.columns))
+		tWidth := t.getColumnsWidth(m.getColumnInit(), m.getNbColumns())
+		mWidth := m.getTable().getColumnsWidth(0, len(m.getTable().columns))
 
 		// this time, if the overall width of the table columns does not match
-		// the width of the multicolumn
+		// the width of the binder
 		if tWidth > mWidth {
 
-			// then evenly distribute the excess among the columns of the
-			// multicolumn
-			distribute(tWidth-mWidth, mcolumn.table.columns)
+			// then evenly distribute the excess among the columns of the binder
+			distribute(tWidth-mWidth, m.getTable().columns)
 		}
 	}
 }
@@ -309,7 +308,7 @@ func (t *Table) AddRow(cells ...interface{}) error {
 			// be found
 			mcolumn.jinit = j
 			icells[j] = mcolumn
-			t.multicolumns = append(t.multicolumns, mcolumn)
+			t.binders = append(t.binders, binder(mcolumn))
 
 			// otherwise, process this multicolumn to know its height. Note that
 			// this row is added to the bottom of this table
@@ -361,16 +360,6 @@ func (t *Table) AddRow(cells ...interface{}) error {
 			// and move to the next column
 			j++
 		}
-
-		// add this item to the last row of the table iteratively. This is
-		// necessary because for "cells" (i.e., generically speaking) to be
-		// properly processed they might need to know the current contents of
-		// the table
-		// if len(t.cells) <= len(t.rows) {
-		// 	t.cells = append(t.cells, icells)
-		// } else {
-		// 	t.cells = append(t.cells[:len(t.cells)-1], icells)
-		// }
 	}
 
 	// now, if not all columns were given then automatically add empty cells.
@@ -446,10 +435,10 @@ func (t *Table) GetNbRows() int {
 // their contents into a string
 func (t Table) String() string {
 
-	// First things first, traverse all multicolumns in this table and
-	// re-distribute the width of columns (either those of the table or those in
-	// the multicolumn)
-	t.distributeAllMulticolumns()
+	// First things first, traverse all binders in this table and re-distribute
+	// the width of columns (either those of the table or those in the
+	// binder)
+	t.distributeAllBinders()
 
 	// Because of the presence of multicolumns, each line can print at once an
 	// arbitrary number of columns. Hence, it is required to keep track of how

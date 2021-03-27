@@ -19,6 +19,14 @@ import (
 // Functions
 // ----------------------------------------------------------------------------
 
+// Return the minimum of two integers
+func min(n, m int) int {
+	if n > m {
+		return m
+	}
+	return n
+}
+
 // Return the maximum of two integers
 func max(n, m int) int {
 	if n > m {
@@ -79,11 +87,12 @@ func separatorToUTF8(input *string) {
 	*input = strings.ReplaceAll(*input, "|", "│")
 }
 
-// process the given column specification and return: first, a new one which has
-// removed the specification of the last column if and only if a last column
-// with no column specifier was given; second, the separator of the last column
-// that was removed in the first place
-func stripLastSeparator(colspec string) (string, string) {
+// process the given specification according to the specified regex (which must
+// match either a column or row specification) and return: first, a new one
+// which has removed the specification of the last column/row if and only if a
+// last column/row with no column/row specifier was given; second, the separator
+// of the last column/row that was removed in the first place
+func stripLastSeparator(colspec string, rexp string) (string, string) {
 
 	// -- initialization
 	var output string
@@ -91,7 +100,7 @@ func stripLastSeparator(colspec string) (string, string) {
 	// the specification is processed with a regular expression. Only those
 	// parts matching the regular expression are returned so that if a last
 	// column with no specifier is given, it is not added to the result
-	re := regexp.MustCompile(colSpecRegex)
+	re := regexp.MustCompile(rexp)
 	for {
 
 		// get the next column and, if none is found, then exit
@@ -113,24 +122,24 @@ func stripLastSeparator(colspec string) (string, string) {
 	return output, colspec
 }
 
-// return a pointer to the multirow preceding the cell in the i-th row and j-th
+// return a pointer to the binder preceding the cell in the i-th row and j-th
 // column or nil if no multicolumn is found precisely before this cell
-func getPreviousMulticolumn(t *Table, i, j int) *multicolumn {
+func getPreviousBinder(t *Table, i, j int) binder {
 
 	// this function just iterates over all cells of the i-th row
 	idx := 0
 	for idx < len(t.cells[i]) {
 
-		// if a multirow is found at this location
-		if cell, ok := t.cells[i][idx].(multicolumn); ok {
+		// if a binder is found at this location
+		if cell, ok := t.cells[i][idx].(binder); ok {
 
 			// and it ends precisely at the j-th column
-			if cell.jinit+cell.nbcolumns == j {
-				return &cell
+			if cell.getColumnInit()+cell.getNbColumns() == j {
+				return cell
 			}
 
 			// otherwise, move forward
-			idx += cell.nbcolumns
+			idx += cell.getNbColumns()
 		} else {
 
 			// otherwise, just move one cell forward
