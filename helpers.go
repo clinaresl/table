@@ -387,7 +387,7 @@ func prepend(item content, data []content) []content {
 
 // Evenly increment the width of all columns given in the slice of columns so
 // that their accumulated sum is incremented by n
-func distribute(n int, columns []column) {
+func distributeColumns(n int, columns []column) {
 
 	// compute first the quotient (the amount of space to add to all columns)
 	// and the remainder (the additional space to add to a subset of the
@@ -407,6 +407,31 @@ func distribute(n int, columns []column) {
 	// and now distribute the remainder among the first columns
 	for idx := 0; idx < remainder; idx++ {
 		columns[idx].width++
+	}
+}
+
+// Evenly increment the height of all rows given in the slice of rows so that
+// their accumulated sum is incremented by n
+func distributeRows(n int, rows []row) {
+
+	// compute first the quotient (the amount of space to add to all rows)
+	// and the remainder (the additional space to add to a subset of the
+	// rows)
+	quotient, remainder := n/len(rows), n%len(rows)
+
+	// if and only if the space left to distribute is strictly larger or equal
+	// than the number of rows
+	if n >= len(rows) {
+
+		// distribute the quotient among all rows
+		for idx, _ := range rows {
+			rows[idx].height += quotient
+		}
+	}
+
+	// and now distribute the remainder among the first rows
+	for idx := 0; idx < remainder; idx++ {
+		rows[idx].height++
 	}
 }
 
@@ -616,12 +641,6 @@ func insertRune(s string, i int, r rune) string {
 // logical coordinate); jl is the j-th *rune* printable+graphic non ANSI color
 // code in the string, whereas jl is the j-th *rune* in the string
 func addSplitter(tab []string, i, jp, jl int) {
-
-	// log.Println(" Adding splitters to:")
-	// log.Printf("\t> line: '%v'\n", tab[i])
-	// log.Printf("\t> i: %v\n", i)
-	// log.Printf("\t> jp: %v\n", jp)
-	// log.Printf("\t> jl: %v\n\n", jl)
 
 	// define variables for storing the runes to the west, east, north and south
 	// of the current location

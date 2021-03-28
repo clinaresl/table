@@ -193,7 +193,7 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 }
 
 // return the total number of (physical) columns required to print out both the
-// contents and separators of all columns in the range [jinit, jint+n). For this
+// contents and separators of all columns in the range [jinit, jinit+n). For this
 // function to work properly contents should have been processed before so that
 // the width of each column is known
 func (t *Table) getColumnsWidth(jinit, n int) (result int) {
@@ -210,11 +210,34 @@ func (t *Table) getColumnsWidth(jinit, n int) (result int) {
 	return
 }
 
+// return the total number of (physical) rows required to print out both the
+// contents and separators of all rows in the range [iinit, iinit+n). For this
+// function to work properly contents should have been processed before so that
+// the height of each row is known
+func (t *Table) getRowsHeight(iinit, n int) (result int) {
+
+	// for all rows in the given range
+	for irow := iinit; irow < iinit+n; irow++ {
+
+		// if this row went beyond the limits of the table immediately panic
+		if irow >= len(t.rows) {
+			panic("A binder was found to go beyond the limits of the table!")
+		}
+
+		// and add the total number of (physical) lines required to display the
+		// contents of this row
+		result += t.rows[irow].height
+	}
+
+	// and return the number of physical rows computed so far
+	return
+}
+
 // Evenly distribute all the space taken by all binders among the columns of the
 // receiver table. This process requires, not only to widen the table columns if
 // necessary, but also to enlarge some binders after if one or more of the table
 // columns they take have increased their width
-func (t *Table) distributeAllBinders() {
+func (t *Table) distributeAllColumnsInBinders() {
 
 	// --- Table columns
 	// First, compute the definitive width of each table column. Note that the
@@ -237,7 +260,7 @@ func (t *Table) distributeAllBinders() {
 
 			// evenly distribute the excess of the multicolumn among the table
 			// columns
-			distribute(mWidth-tWidth, t.columns[m.getColumnInit():m.getColumnInit()+m.getNbColumns()])
+			distributeColumns(mWidth-tWidth, t.columns[m.getColumnInit():m.getColumnInit()+m.getNbColumns()])
 		}
 	}
 
@@ -255,9 +278,80 @@ func (t *Table) distributeAllBinders() {
 		if tWidth > mWidth {
 
 			// then evenly distribute the excess among the columns of the binder
-			distribute(tWidth-mWidth, m.getTable().columns)
+			distributeColumns(tWidth-mWidth, m.getTable().columns)
 		}
 	}
+}
+
+// Evenly distribute all the space taken by all binders among the rows of the
+// receiver table. This process requires, not only to widen the table rows if
+// necessary, but also to enlarge some binders after if one or more of the table
+// rows they take have increased their height
+func (t *Table) distributeAllRowsInBinders() {
+
+	// --- Table rows
+	// First, compute the definitive height of each table row. Note that the
+	// row height refers only to the space needed to print its contents, i.e.,
+	// the height of horizontal rules  is never modified
+
+	// Next, evenly distribute the height among all rows considering the binders
+	for _, m := range t.binders {
+
+		// if this binder is not attached to any logical row then skip it!
+		if m.getRowInit() < 0 {
+			continue
+		}
+
+		// compute the space required by the row tables that take the space of
+		// this binder, and also the space required to display the contents of
+		// the binder
+		tHeight := t.getRowsHeight(m.getRowInit(), m.getNbRows())
+		mHeight := m.getTable().getRowsHeight(0, len(m.getTable().rows))
+
+		// only in case the table columns are not large enough to show the
+		// contents of the multicolumn
+		if tHeight < mHeight {
+
+			// evenly distribute the excess of the multicolumn among the table
+			// columns
+			distributeRows(mHeight-tHeight, t.rows[m.getRowInit():m.getRowInit()+m.getNbRows()])
+		}
+	}
+
+	// --- Multicolumns
+
+	// Second, as the width of some table columns might have been modified, it
+	// might now be required to update the width of all binders
+	for _, m := range t.binders {
+
+		// if this binder is not attached to any logical row then skip it!
+		if m.getRowInit() < 0 {
+			continue
+		}
+
+		tHeight := t.getRowsHeight(m.getColumnInit(), m.getNbColumns())
+		mHeight := m.getTable().getRowsHeight(0, len(m.getTable().rows))
+
+		// this time, if the overall height of the table rows does not match the
+		// height of the binder
+		if tHeight > mHeight {
+
+			// then evenly distribute the excess among the rows of the binder
+			distributeRows(tHeight-mHeight, m.getTable().rows)
+		}
+	}
+}
+
+// Evenly distribute all the space taken by all binders among the columns and
+// rows of the receiver table. This process requires, not only to widen the
+// table columns and rows if necessary, but also to enlarge some binders after
+// if one or more of the table columns or rows they take have increased their
+// width/height
+func (t *Table) distributeAllBinders() {
+
+	// Separately distribute the space taken by the columns and rows
+	t.distributeAllColumnsInBinders()
+	t.distributeAllRowsInBinders()
 }
 
 // -- Public
@@ -296,8 +390,8 @@ func (t *Table) AddRow(cells ...interface{}) error {
 
 			// if this item is a multicolumn, verify first that it does not go
 			// beyond bounds
-			mcolumn := cells[idx].(multicolumn)
-			if j+mcolumn.nbcolumns > t.GetNbColumns() {
+			m := cells[idx].(multicolumn)
+			if j+m.nbcolumns > t.GetNbColumns() {
 				return errors.New("Invalid multicolumn specification. The number of available columns has been execeeded!")
 			}
 
@@ -306,17 +400,41 @@ func (t *Table) AddRow(cells ...interface{}) error {
 			// multicolumn in the table. Importantly, note that this cell is
 			// registered at the right physical column where it is expected to
 			// be found
-			mcolumn.jinit = j
-			icells[j] = mcolumn
-			t.binders = append(t.binders, binder(mcolumn))
+			m.jinit = j
+			icells[j] = m
+			t.binders = append(t.binders, binder(m))
 
 			// otherwise, process this multicolumn to know its height. Note that
 			// this row is added to the bottom of this table
-			contents := mcolumn.Process(t, len(t.rows), j)
+			contents := m.Process(t, len(t.rows), j)
 			height = max(height, len(contents))
 
 			// finally, now move forward the number of columns
-			j += mcolumn.nbcolumns
+			j += m.nbcolumns
+
+		case multicell:
+
+			// if this item is a multicell, verify first that it does not go
+			// beyond bounds
+			m := cells[idx].(multicell)
+			if j+m.nbcolumns > t.GetNbColumns() {
+				return errors.New("Invalid multicell specification. The number of available columns has been execeeded!")
+			}
+
+			// record this multicell as an ordinary formatter, copy the initial
+			// column and row where the multicell starts and register this
+			// multicell in the table.
+			m.jinit, m.iinit = j, len(t.rows)
+			icells[j] = m
+			t.binders = append(t.binders, binder(m))
+
+			// otherwise, process this multicell to know its height. Note that
+			// this row is added to the bottom of this table
+			contents := m.Process(t, len(t.rows), j)
+			height = max(height, len(contents))
+
+			// finally, now move forward the number of columns
+			j += m.nbcolumns
 
 		default:
 
@@ -371,7 +489,6 @@ func (t *Table) AddRow(cells ...interface{}) error {
 
 	// add this cells to this table, along with the number of physical rows
 	// required to draw it
-	// t.cells = append(t.cells[:len(t.cells)-1], icells)
 	t.cells = append(t.cells, icells)
 	t.rows = append(t.rows, row{height: height})
 
@@ -488,8 +605,8 @@ func (t Table) String() string {
 			}
 
 			// Now, update the number of columns processed in this logical row
-			if mcolumn, ok := t.cells[i][j].(multicolumn); ok {
-				nbcolumns[i] += mcolumn.nbcolumns
+			if m, ok := t.cells[i][j].(binder); ok {
+				nbcolumns[i] += m.getNbColumns()
 			} else {
 
 				// If this is not a multicolumn, the next column to process in

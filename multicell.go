@@ -42,11 +42,18 @@ func NewMulticell(nbcolumns, nbrows int, cspec, rspec string, args ...interface{
 	rnewspec, rlastsep := stripLastSeparator(rspec, rowSpecRegex)
 
 	// create a table with the processed column and row specifications
-	t, err := NewTable(cnewspec, rspec)
+	t, err := NewTable(cnewspec, rnewspec)
 	if err != nil {
 
 		// Of course, if creating the table produces any error abort immediately
 		return multicell{}, err
+	}
+
+	// add all arguments to the multicell table. Note that in the case of
+	// multicells, arguments are given for the whole table so that it is
+	// necessary now to arrange them by rows
+	for iditem := 0; iditem < len(args); iditem += len(t.columns) {
+		t.AddRow(args[iditem:min(iditem+len(t.columns), len(args))]...)
 	}
 
 	// finally, return an instance of a multicell with no error. Note that the
@@ -157,14 +164,7 @@ func (m multicell) Process(t *Table, irow, jcol int) []formatter {
 		}
 	}
 
-	// add all arguments to the multicell table. Note that in the case of
-	// multicells, arguments are given for the whole table so that it is
-	// necessary now to arrange them by rows
-	for iditem := 0; iditem < len(m.args); iditem += len(m.table.columns) {
-		m.table.AddRow(m.args[iditem:min(iditem+len(m.table.columns), len(m.args))]...)
-	}
-
-	// and store all lines as different multicells where only the output of each
+	// store all lines as different multicells where only the output of each
 	// line is stored separately
 	for _, line := range strings.Split(fmt.Sprintf("%v", m.table), "\n") {
 
