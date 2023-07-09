@@ -11,6 +11,7 @@ package table
 import (
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 )
@@ -556,11 +557,14 @@ func (t Table) String() string {
 	// the width of columns (either those of the table or those in the
 	// binder)
 	t.distributeAllBinders()
+	log.Printf("rows: %v\n", t.rows)
 
-	// Because of the presence of multicolumns, each line can print at once an
-	// arbitrary number of columns. Hence, it is required to keep track of how
-	// many columns are printed in each row
+	// Because of the presence of multicells, each line can print at once an
+	// arbitrary number of columns and rows. Hence, it is required to keep track
+	// of how many columns are printed in each row and how many rows are printed
+	// in each column
 	nbcolumns := make([]int, len(t.rows))
+	nbrows := make([]int, len(t.columns))
 
 	// Tables are formatted iterating over columns and thus the content of each
 	// row is stored separately in a slice of strings which are then
@@ -578,8 +582,8 @@ func (t Table) String() string {
 		for i, row := range t.rows {
 
 			// Make sure to skip those columns that have been printed before as
-			// a result of a multicolumn
-			if nbcolumns[i] <= j {
+			// a result of a multicell
+			if nbcolumns[i] <= j && nbrows[j] <= i {
 
 				// Process the contents of this cell
 				contents := t.cells[i][j].Process(&t, i, j)
@@ -605,15 +609,23 @@ func (t Table) String() string {
 			}
 
 			// Now, update the number of columns processed in this logical row
+			// and the number of rows processed in this column
 			if m, ok := t.cells[i][j].(binder); ok {
 				nbcolumns[i] += m.getNbColumns()
+				nbrows[j] += m.getNbRows()
 			} else {
 
-				// If this is not a multicolumn, the next column to process in
+				// If this is not a multicell, the next column to process in
 				// this row should be updated only in case that we already
 				// reached the last one
 				if nbcolumns[i] <= j {
 					nbcolumns[i]++
+				}
+
+				// Likewise, the next row to process in this column is updated
+				// only if we already reached the last one
+				if nbrows[j] <= i {
+					nbrows[j]++
 				}
 			}
 		}

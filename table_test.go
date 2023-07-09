@@ -872,7 +872,7 @@ func ExampleTable_24() {
 	t, _ := NewTable("|c|c|c|", "tcc")
 	t.AddRow("Column #1", "Column #2", "Column #3")
 	t.AddSingleRule()
-	t.AddRow(Multicell(1, 1, "|c||c|||", "tc", "(1, 1)\nFirst row\nSecond column", "(1, 2)"), "(1, 3)", "(1, 4)")
+	t.AddRow(Multicell(1, 1, "|c||c|||", "tc", "(1, 1)\nFirst row\nFirst column", "(1, 2)"), "(1, 3)", "(1, 4)")
 	t.AddDoubleRule()
 	t.AddRow("(1, 1)", Multicolumn(1, "|c||c|||", "(1, 2)", "(1, 3)"), "(1, 4)")
 	t.AddThickRule()
@@ -885,6 +885,18 @@ func ExampleTable_24() {
 	t.AddRow("(1, 1)", "(1, 2)", Multicell(1, 1, "|c||c|c||", "ctc", "(1, 3)", "(1, 4)\nSixth row\nThird column", "(1, 5)"))
 	t.AddSingleRule()
 	t.AddRow(Multicell(3, 1, "|c", "", "Splitting columns\nMulticolumns as multicells"))
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
+
+// A wide variety of multicells
+func ExampleTable_25() {
+
+	t, _ := NewTable("|c|c|c|")
+	t.AddRow("Column #1", "Column #2", "Column #3")
+	t.AddRow(Multicell(2, 3, "|c|", "c", "(1, 1)"), "(1, 2)")
+	t.AddRow("", "", "(2, 1)")
+	t.AddRow("", "", "(3, 1)")
 	fmt.Printf("Output:\n%v", t)
 	// Output:
 }
