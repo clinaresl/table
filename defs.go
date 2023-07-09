@@ -6,16 +6,6 @@
 // Carlos Linares López <carlos.linares@uc3m.es>
 //
 
-// This package implements means for drawing data in tabular form. It is
-// strongly based on the definition of tables in LaTeX but extends its
-// functionality in various ways through a very simple interface
-//
-// It honours UTF-8 characters, ANSI color escape sequences, full/partial
-// horizontal rules, various vertical and horizontal alignment options, and
-// multicolumns.
-//
-// Remarkably, it prints any stringer and as tables are stringers, tables can be
-// nested to any degree.
 package table
 
 // ----------------------------------------------------------------------------
@@ -37,20 +27,27 @@ const vertical_thick = '\u2503'  // ┃
 // The splitter is defined as an association of four different runes: the west,
 // east, north and south runes of the splitter:
 //
-//        north
-// west  splitter  east
-//        south
+//		    north
+//	          |
+//
+// west - splitter - east
+//
+//	          |
+//		     south
 //
 // this creates an association of ASCII/UTF-8 characters defined by hand below.
+// For example, with the four runes shown in the diagram above, the splitter
+// would be a single cross ┼ (\u253c). Importantly, some of these four runes
+// might be empty and the associations given in the map below are then used to
+// draw different types of corners.
 //
 // note that some combinations below are commented out. This is important as
 // those combinations which are not recognized are then properly substituted by
 // the algorithm.
 //
-// Importantly, 'none' has to be recognized at every level of the tree. The
-// reason is that if a query is performed to this nested map with a character
-// which is not found, then none is used, so that it must exist as a key in all
-// entries
+// 'none' has to be recognized at every level of the tree. The reason is that if
+// a query is performed to this nested map with a character which is not found,
+// then none is used, so that it must exist as a key in all entries
 var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 
 	none: {
@@ -513,9 +510,9 @@ const ansiColorRegex = `\033([\[;]\d+)+m`
 // ----------------------------------------------------------------------------
 
 // Table is the main type provided by this package. In order to draw data in
-// tabular form it is necessary first to create a table with table.NewTable.
-// Once a Table has been created, it is then possible to use all services
-// provided for them
+// tabular form it is necessary first to create a table with NewTable. Once a
+// Table has been created, it is then possible to use all services provided for
+// them
 type Table struct {
 
 	// A table consists of a slice of columns, each one with its own
@@ -609,12 +606,12 @@ type multicell struct {
 // The procedure is always the same: for any formatter, it is first "Process"ed
 // and each resulting formatter is then "Format"ted. As a result:
 //
-//    a. All implementation of formatters X shall guarantee that each item in
-//    the output slice []formatter can be casted back into its corresponding
-//    type X, so that they can then be formatted accordingly.
+//		a. All implementation of formatters X shall guarantee that each item in
+//		   the output slice []formatter can be casted back into its corresponding
+//		   type X, so that they can then be formatted accordingly.
 //
-//	  b. Tables print directly the result of formatting each item in the result
-//	  of the processing step
+//	    b. Tables print directly the result of formatting each item in the result
+//	       of the processing step
 type formatter interface {
 
 	// Processing a cell means transforming logical rows into physical ones by

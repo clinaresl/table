@@ -6,6 +6,16 @@
 // Carlos Linares López <carlos.linares@uc3m.es>
 //
 
+// This package provides means for drawing data in tabular form. It is
+// strongly based on the definition of tables in LaTeX but extends its
+// functionality in various ways through a very simple interface
+//
+// It honours UTF-8 characters, ANSI color escape sequences, full/partial
+// horizontal rules, various vertical and horizontal alignment options, and
+// multicolumns.
+//
+// Remarkably, it prints any stringer and as tables are stringers, tables can be
+// nested to any degree.
 package table
 
 import (
@@ -30,18 +40,18 @@ import (
 // and style of each column, i.e., the horizontal alignment. The different
 // available horizontal alignments are given below:
 //
-// 1. 'l': the contents of the column are ragged left
+// 1. 'l': the contents of the column are ragged right
 //
 // 2. 'c': the contents of the column are horizontally centered
 //
-// 3. 'r': the contents of the column are ragged right
+// 3. 'r': the contents of the column are ragged left
 //
-// 4. 'p{NUMBER}': the width of the column is fixed to NUMBER and the contents
-// are split across various lines if needed
+//  4. 'p{NUMBER}': the width of the column is fixed to NUMBER positions and the
+//     contents are split across various lines if needed
 //
-// 5. 'L{NUMBER}'/'C{NUMBER}'/'R{NUMBER}': the width of the column does not
-// exceed NUMBER columns and the contents are ragged left/centered/ragged right
-// respectively
+//  5. 'L{NUMBER}'/'C{NUMBER}'/'R{NUMBER}': the width of the column does not
+//     exceed NUMBER columns and the contents are ragged left/centered/ragged
+//     right respectively
 //
 // In addition, the column specification might contain other characters which are
 // then added to the contents as well.
@@ -62,7 +72,7 @@ import (
 // specification, the row specification can use only the specifiers given above
 // and only those. Otherwise, an error is returned.
 //
-// It returns a pointer to a table which can then be used to access its
+// NewTable returns a pointer to a table which can then be used to access its
 // services. In case either the column or row specification could not be
 // processed it returns an error.
 func NewTable(spec ...string) (*Table, error) {
