@@ -282,14 +282,14 @@ func justifyLine(line string, alignment rune, width int) (prefix, suffix string)
 	return
 }
 
-// // return the rune that splits the four regions north-west, north-east,
-// // south-west and south-east as stored in the map of splitters with no error. In
-// // case that any of the runes given to the west, east, north and south is not
-// // defined in the map of runes, then it is automatically substituted by none
+// return the rune that splits the four regions north-west, north-east,
+// south-west and south-east as stored in the map of splitters with no error. In
+// case that any of the runes given to the west, east, north and south is not
+// defined in the map of runes, then it is automatically substituted by none
 func getSingleSplitter(west, east, north, south rune) rune {
 
 	// check for the existence of the west rune. In case it does not exist,
-	// return an error
+	// take none
 	if _, ok := splitterUTF8[west]; !ok {
 		west = none
 	}
@@ -312,18 +312,6 @@ func getSingleSplitter(west, east, north, south rune) rune {
 	// and return the corresponding splitter which, at this point, is guaranteed
 	// to exist
 	return splitterUTF8[west][east][north][south]
-}
-
-// return a slice with all runes in a string
-func getRunes(s string) (runes []rune) {
-
-	// for all runes in the string
-	for _, r := range s {
-
-		// add this rune to the slice of runes to return
-		runes = append(runes, r)
-	}
-	return
 }
 
 // return a slice of vertical specifications as a slice of styles. In case the
@@ -416,48 +404,48 @@ func prepend(item content, data []content) []content {
 // account control codes such as ANSI color codes; it is logical otherwise. If
 // such position does not exist (e.g., it falls within an ANSI color code), it
 // returns -1
-func physicalToLogical(s string, pi int) (li int) {
+// func physicalToLogical(s string, pi int) (li int) {
 
-	// -- initialization: idx is used to count physical runes, i.e., the
-	// physical location of each rune considering also the ANSI color codes
-	idx := 0
+// 	// -- initialization: idx is used to count physical runes, i.e., the
+// 	// physical location of each rune considering also the ANSI color codes
+// 	idx := 0
 
-	// regular expression used to recognize ANSI color codes
-	re := regexp.MustCompile(ansiColorRegex)
+// 	// regular expression used to recognize ANSI color codes
+// 	re := regexp.MustCompile(ansiColorRegex)
 
-	// get the indices to all matches of the regular expression for recognizing
-	// ANSI color codes, and go then over all runes in the given string until
-	// the current physical location goes beyond the physical location requested
-	for colind, colindexes := 0, re.FindAllStringIndex(s, -1); idx < len(s) && idx <= pi; {
+// 	// get the indices to all matches of the regular expression for recognizing
+// 	// ANSI color codes, and go then over all runes in the given string until
+// 	// the current physical location goes beyond the physical location requested
+// 	for colind, colindexes := 0, re.FindAllStringIndex(s, -1); idx < len(s) && idx <= pi; {
 
-		// verify if a ANSI color code starts right at this position
-		if colind < len(colindexes) && idx == colindexes[colind][0] {
+// 		// verify if a ANSI color code starts right at this position
+// 		if colind < len(colindexes) && idx == colindexes[colind][0] {
 
-			// then jump to the first location after the regular expression, and
-			// move to the next match of the ANSI color codes
-			idx = colindexes[colind][1]
-			colind++
-		} else {
+// 			// then jump to the first location after the regular expression, and
+// 			// move to the next match of the ANSI color codes
+// 			idx = colindexes[colind][1]
+// 			colind++
+// 		} else {
 
-			// if this is the rune taking the pi-th logical position then return
-			// it immediately
-			if idx == pi {
-				return li
-			}
+// 			// if this is the rune taking the pi-th logical position then return
+// 			// it immediately
+// 			if idx == pi {
+// 				return li
+// 			}
 
-			// get the rune at the current position
-			_, size := utf8.DecodeRuneInString(s)
+// 			// get the rune at the current position
+// 			_, size := utf8.DecodeRuneInString(s)
 
-			// and move forward
-			idx += size
-			li++
-		}
-	}
+// 			// and move forward
+// 			idx += size
+// 			li++
+// 		}
+// 	}
 
-	// if we get here is because the given physical location has not been found.
-	// Thus, an impossible value is returned as a token to signal this case
-	return -1
-}
+// 	// if we get here is because the given physical location has not been found.
+// 	// Thus, an impossible value is returned as a token to signal this case
+// 	return -1
+// }
 
 // return the pi-th physical rune which is known to take the li-th logical
 // position. A position is said to be physical if and only if it also takes into
@@ -527,9 +515,9 @@ func logicalToPhysical(s string, li int, force bool) (pi int, sout string) {
 	return -1, s
 }
 
-// // return the i-th printable and graphic rune in the given string, if it exists.
-// // Otherwise, return an emtpy rune along with an error. It skips color ANSI
-// // codes
+// return the i-th printable and graphic rune in the given string, if it exists.
+// Otherwise, return an emtpy rune along with an error. It skips color ANSI
+// codes
 func getRune(s string, i int) (rune, error) {
 
 	// -- initialization: idx is used to count physical runes, i.e., the

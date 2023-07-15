@@ -11,8 +11,8 @@
 // functionality in various ways through a very simple interface
 //
 // It honours UTF-8 characters, ANSI color escape sequences, full/partial
-// horizontal rules, various vertical and horizontal alignment options, and
-// multicolumns.
+// horizontal rules, and a wide variety of vertical and horizontal alignment
+// options.
 //
 // Remarkably, it prints any stringer and as tables are stringers, tables can be
 // nested to any degree.
@@ -140,10 +140,10 @@ func NewTable(spec ...string) (*Table, error) {
 	return &Table{columns: columns}, nil
 }
 
-// // Methods
-// // ----------------------------------------------------------------------------
+// Methods
+// ----------------------------------------------------------------------------
 
-// // -- Private
+// -- Private
 
 // Add the given horizontal rule to the table from a start column to and end
 // column. Any number of pairs (start, end) can be given. If no column is given,

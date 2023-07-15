@@ -48,7 +48,7 @@ func (h hrule) Process(t *Table, irow, jcol int) []formatter {
 	offset := -1
 
 	// process all runes in the current separator
-	for idx, irune := range getRunes(sep) {
+	for idx, irune := range sep {
 
 		// ANSI color escape sequences have to be directly copied to the
 		// splitters
