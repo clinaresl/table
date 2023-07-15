@@ -202,6 +202,85 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 	return nil
 }
 
+// return the total number of (physical) columns required to print out both the
+// contents and separators of all columns in the range [jinit, jinit+n). For
+// this function to work properly contents should have been processed before so
+// that the width of each column is known
+func (t *Table) getColumnsWidth(jinit, n int) (result int) {
+
+	// for all columns in the given range
+	for jcol := jinit; jcol < jinit+n; jcol++ {
+
+		// and add the total number of runes required to display the separator
+		// and also the width of each column.
+		result += countPrintableRuneInString(t.columns[jcol].sep) + t.columns[jcol].width
+	}
+
+	// and return the number of physical columns computed so far
+	return
+}
+
+// Evenly distribute all the space taken by all cells (both contents and
+// multicell) among the columns of the receiver table. This process requires,
+// not only to widen the table columns if necessary, but also to enlarge some
+// multicells if one or more of the table columns they take have increased their
+// width
+func (t *Table) distributeAllColumns() {
+
+	// --- Table columns
+	// First, compute the definitive width of each table column. Note that the
+	// column width refers only to the space needed to print its contents, i.e.,
+	// the width of the separator is never modified
+	for jcol := 0; jcol < len(t.columns); jcol++ {
+
+		// and for all rows in this column
+		for irow := 0; irow < len(t.rows); irow++ {
+
+			// if and only if a multicell is found at this location
+			if m, ok := t.cells[irow][jcol].(multicell); ok {
+
+				// compute the space required by the column tables that take the space
+				// of this multicell, and also the space required to display the contents
+				// of the multicell
+				tWidth := t.getColumnsWidth(m.getColumnInit(), m.getNbColumns())
+				mWidth := m.getTable().getColumnsWidth(0, len(m.getTable().columns))
+
+				// only in case the table columns are not large enough to show the
+				// contents of the multicolumn
+				if tWidth < mWidth {
+
+					// evenly distribute the excess of the multicolumn among the table
+					// columns
+					distributeColumns(mWidth-tWidth, t.columns[m.getColumnInit():m.getColumnInit()+m.getNbColumns()])
+				}
+			}
+		}
+	}
+
+	// --- Multicolumns
+
+	// Second, as the width of some table columns might have been modified, it
+	// might now be required to update the width of some multicells.
+	for jcol := 0; jcol < len(t.columns); jcol++ {
+		for irow := 0; irow < len(t.rows); irow++ {
+			if m, ok := t.cells[irow][jcol].(multicell); ok {
+
+				tWidth := t.getColumnsWidth(m.getColumnInit(), m.getNbColumns())
+				mWidth := m.getTable().getColumnsWidth(0, len(m.getTable().columns))
+
+				// this time, if the overall width of the table columns does not match
+				// the width of the multicell
+				if tWidth > mWidth {
+
+					// then evenly distribute the excess among the columns of
+					// the multicell
+					distributeColumns(tWidth-mWidth, m.getTable().columns)
+				}
+			}
+		}
+	}
+}
+
 // -- Public
 
 // Add a new line of data to the bottom of the column. This function accepts an
@@ -212,7 +291,7 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 // are left empty, unless no argument is given at all in which case no row is
 // inserted. Finally, if the number of elements given exceeds the number of
 // columns an error is immediately issued
-func (t *Table) AddRow(cells ...interface{}) error {
+func (t *Table) AddRow(cells ...any) error {
 
 	// if the number of elements given exceeds the number of columns then
 	// immediately raised an error
@@ -340,6 +419,11 @@ func (t *Table) GetNbRows() int {
 // their contents into a string
 func (t Table) String() string {
 
+	// First things first, traverse all muulticells in this table and
+	// re-distribute the width of columns (either those of the table or those in
+	// the multicell)
+	t.distributeAllColumns()
+
 	// Because of the presence of multicells, each line can print at once an
 	// arbitrary number of columns and rows. Hence, it is required to keep track
 	// of how many columns are printed in each row and how many rows are printed
@@ -391,18 +475,23 @@ func (t Table) String() string {
 
 			// Now, update the number of columns processed in this logical row
 			// and the number of rows processed in this column
+			if m, ok := t.cells[i][j].(multicell); ok {
+				nbcolumns[i] += m.getNbColumns()
+				nbrows[j] += m.getNbRows()
+			} else {
 
-			// If this is not a multicell, the next column to process in
-			// this row should be updated only in case that we already
-			// reached the last one
-			if nbcolumns[i] <= j {
-				nbcolumns[i]++
-			}
+				// If this is not a multicell, the next column to process in
+				// this row should be updated only in case that we already
+				// reached the last one
+				if nbcolumns[i] <= j {
+					nbcolumns[i]++
+				}
 
-			// Likewise, the next row to process in this column is updated
-			// only if we already reached the last one
-			if nbrows[j] <= i {
-				nbrows[j]++
+				// Likewise, the next row to process in this column is updated
+				// only if we already reached the last one
+				if nbrows[j] <= i {
+					nbrows[j]++
+				}
 			}
 		}
 	}

@@ -379,30 +379,30 @@ func prepend(item content, data []content) []content {
 	return data
 }
 
-// // Evenly increment the width of all columns given in the slice of columns so
-// // that their accumulated sum is incremented by n
-// func distributeColumns(n int, columns []column) {
+// Evenly increment the width of all columns given in the slice of columns so
+// that their accumulated sum is incremented by n
+func distributeColumns(n int, columns []column) {
 
-// 	// compute first the quotient (the amount of space to add to all columns)
-// 	// and the remainder (the additional space to add to a subset of the
-// 	// columns)
-// 	quotient, remainder := n/len(columns), n%len(columns)
+	// compute first the quotient (the amount of space to add to all columns)
+	// and the remainder (the additional space to add to a subset of the
+	// columns)
+	quotient, remainder := n/len(columns), n%len(columns)
 
-// 	// if and only if the space left to distribute is strictly larger or equal
-// 	// than the number of columns
-// 	if n >= len(columns) {
+	// if and only if the space left to distribute is strictly larger or equal
+	// than the number of columns
+	if n >= len(columns) {
 
-// 		// distribute the quotient among all columns
-// 		for idx, _ := range columns {
-// 			columns[idx].width += quotient
-// 		}
-// 	}
+		// distribute the quotient among all columns
+		for idx, _ := range columns {
+			columns[idx].width += quotient
+		}
+	}
 
-// 	// and now distribute the remainder among the first columns
-// 	for idx := 0; idx < remainder; idx++ {
-// 		columns[idx].width++
-// 	}
-// }
+	// and now distribute the remainder among the first columns
+	for idx := 0; idx < remainder; idx++ {
+		columns[idx].width++
+	}
+}
 
 // // Evenly increment the height of all rows given in the slice of rows so that
 // // their accumulated sum is incremented by n

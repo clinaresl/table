@@ -202,30 +202,15 @@ func (m multicell) Format(t *Table, irow, jcol int) string {
 	return m.output + m.clastsep
 }
 
-// Multicells are also binders. Binders are any content that either merges
-// cells/rows or that splits them such as multicells. The main difference
-// between binders and ordinary contents is that the contents of a binder are
-// formatted with the assitance of a nested table
-
-// Binders are allowed to modify the vertical horizontal separator of the next
-// cell in the table. This applies only if a binder is formatted with a last
-// column which contains no column specification, i.e., no data. The following
-// service provides such separator or an empty string if none is given
+// Public services to access the contents of a multicell
 func (m multicell) getLastVerticalSep() string {
 	return m.clastsep
 }
 
-// Likewise, they are allowed also to modify the horizontal separator of the
-// next horizontal rule. This applies only if a binder is formatted with a last
-// row which contains no row specification, i.e., no data. The following service
-// provides such separator or an empty string if none is given
 func (m multicell) getLastHorizontalSep() string {
 	return m.rlastsep
 }
 
-// Binders span over an arbitrary number of consecutive columns. The
-// following services provide the first column they take and the number of
-// consecutive columns they span over
 func (m multicell) getColumnInit() int {
 	return m.jinit
 }
@@ -233,9 +218,6 @@ func (m multicell) getNbColumns() int {
 	return m.nbcolumns
 }
 
-// In the same vain, binders span over an arbitrary number of consecutive
-// rows. The following services provide the first row they take and the
-// number of consecutive rows they span over
 func (m multicell) getRowInit() int {
 	return m.iinit
 }
@@ -243,8 +225,6 @@ func (m multicell) getNbRows() int {
 	return m.nbrows
 }
 
-// The key difference with contents is that binders are processed with the
-// contents of a nested table which is returned with the following service
 func (m multicell) getTable() *Table {
 	return &m.table
 }
