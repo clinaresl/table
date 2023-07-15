@@ -92,40 +92,70 @@ func separatorToUTF8(input *string) {
 	*input = strings.ReplaceAll(*input, "|", "│")
 }
 
-// // process the given specification according to the specified regex (which must
-// // match either a column or row specification) and return: first, a new one
-// // which has removed the specification of the last column/row if and only if a
-// // last column/row with no column/row specifier was given; second, the separator
-// // of the last column/row that was removed in the first place
-// func stripLastSeparator(colspec string, rexp string) (string, string) {
+// process the given specification according to the specified regex (which must
+// match either a column or row specification) and return: first, a new one
+// which has removed the specification of the last column/row if and only if a
+// last column/row with no column/row specifier was given; second, the separator
+// of the last column/row that was removed in the first place
+func stripLastSeparator(colspec string, rexp string) (string, string) {
 
-// 	// -- initialization
-// 	var output string
+	// -- initialization
+	var output string
 
-// 	// the specification is processed with a regular expression. Only those
-// 	// parts matching the regular expression are returned so that if a last
-// 	// column with no specifier is given, it is not added to the result
-// 	re := regexp.MustCompile(rexp)
-// 	for {
+	// the specification is processed with a regular expression. Only those
+	// parts matching the regular expression are returned so that if a last
+	// column with no specifier is given, it is not added to the result
+	re := regexp.MustCompile(rexp)
+	for {
 
-// 		// get the next column and, if none is found, then exit
-// 		recol := re.FindStringIndex(colspec)
-// 		if recol == nil {
-// 			break
-// 		}
+		// get the next column and, if none is found, then exit
+		recol := re.FindStringIndex(colspec)
+		if recol == nil {
+			break
+		}
 
-// 		// copy this part into the output
-// 		output += colspec[recol[0]:recol[1]]
+		// copy this part into the output
+		output += colspec[recol[0]:recol[1]]
 
-// 		// and move forward in the column specification string
-// 		colspec = colspec[recol[1]:]
-// 	}
+		// and move forward in the column specification string
+		colspec = colspec[recol[1]:]
+	}
 
-// 	// and return the string computed so far substituting the last separator by
-// 	// its corresponding UTF-8 runes
-// 	separatorToUTF8(&colspec)
-// 	return output, colspec
-// }
+	// and return the string computed so far substituting the last separator by
+	// its corresponding UTF-8 runes
+	separatorToUTF8(&colspec)
+	return output, colspec
+}
+
+// return a pointer to the preceding multicell in the i-th row which reaches the
+// j-th column or nil if no multicell is found.
+func getPreviousHorizontalMerger(t *Table, i, j int) *multicell {
+
+	// this function just iterates over all cells of the i-th row until the j-th
+	// column
+	idx := 0
+	for idx < j && idx < len(t.cells[i]) {
+
+		// if a multicell is found at this location
+		if cell, ok := t.cells[i][idx].(multicell); ok {
+
+			// and it ends precisely at the j-th column
+			if cell.getColumnInit()+cell.getNbColumns() == j {
+				return &cell
+			}
+
+			// otherwise, move forward
+			idx += cell.getNbColumns()
+		} else {
+
+			// otherwise, just move one cell forward
+			idx += 1
+		}
+	}
+
+	// at this point, no multirow has been found so that just return nil
+	return nil
+}
 
 // return true if and only if the given rune is recognized as a vertical
 // separator as defined in this package and false otherwise

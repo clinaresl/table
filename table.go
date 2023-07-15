@@ -248,11 +248,11 @@ func (t *Table) AddRow(cells ...interface{}) error {
 			t.columns[j].hformat.alignment == 'L' ||
 			t.columns[j].hformat.alignment == 'R' {
 
-			// Importantly, the width of this column should be modified if
-			// and only if it is less than the argument given. The reason is
-			// that the width of this column might have been increased
-			// (e.g., because it is part of a multicolumn) so that it should
-			// not be modified now!!
+			// Importantly, the width of this column should be modified if and
+			// only if it is less than the argument given. The reason is that
+			// the width of this column might have been increased (e.g., because
+			// it is part of a multicell) so that it should not be modified
+			// now!!
 			if t.columns[j].width < t.columns[j].hformat.arg {
 				t.columns[j].width = t.columns[j].hformat.arg
 			}

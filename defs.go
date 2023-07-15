@@ -137,6 +137,30 @@ type formatter interface {
 	Format(t *Table, irow, jcol int) string
 }
 
+// Multicells are used to merge several cells (along rows and/or columns) into
+// one single cell. They are essentially tables with an arbitrary number of
+// columns and rows whose specification is given by the user.
+//
+// They are formatters, i.e., they can be inserted into a table to merge
+// nbcolumns columns and nbrows rows from an initial row/column under a
+// different format explicitly given by the user as a row and column
+// specifications that are processed to produce a table which is filled in with
+// data from a number of arguments.
+//
+// Multicells allow the row and column specification to contain a last
+// separator. If a last separator is given in the column specification, it is
+// used as the separator of the next cell; if one is given in the row
+// specification, it is then used as the horizontal rule of the next row.
+type multicell struct {
+	jinit, nbcolumns   int    // initial column and # columns
+	iinit, nbrows      int    // initial row and # rows
+	cspec, rspec       string // column and row specification
+	clastsep, rlastsep string // column and row last separator
+	table              Table  // table used to render its contents
+	args               []any  // arguments given to the multicell
+	output             string // rendered contents of the multicell
+}
+
 // The splitter is defined as an association of four different runes: the west,
 // east, north and south runes of the splitter:
 //

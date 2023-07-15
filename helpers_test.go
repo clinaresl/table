@@ -13,381 +13,381 @@ import (
 	"testing"
 )
 
-// func Test_stripLastSeparator(t *testing.T) {
-// 	type args struct {
-// 		spec, rexp string
-// 	}
-// 	tests := []struct {
-// 		name  string
-// 		args  args
-// 		want  string
-// 		want1 string
-// 	}{
-
-// 		// COLUMN SPECIFICATION
-
-// 		// No vertical separator in the last column
-
-// 		// One column
-// 		{args: args{spec: "l",
-// 			rexp: colSpecRegex},
-// 			want:  "l",
-// 			want1: ""},
-
-// 		{args: args{spec: "c",
-// 			rexp: colSpecRegex},
-// 			want:  "c",
-// 			want1: ""},
-
-// 		{args: args{spec: "r",
-// 			rexp: colSpecRegex},
-// 			want:  "r",
-// 			want1: ""},
-
-// 		{args: args{spec: "p{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "p{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "L{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "L{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "C{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "C{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "R{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "R{120}",
-// 			want1: ""},
-
-// 		// Two columns
-// 		{args: args{spec: "l|c",
-// 			rexp: colSpecRegex},
-// 			want:  "l|c",
-// 			want1: ""},
-
-// 		{args: args{spec: "|l|c",
-// 			rexp: colSpecRegex},
-// 			want:  "|l|c",
-// 			want1: ""},
-
-// 		{args: args{spec: "c|l",
-// 			rexp: colSpecRegex},
-// 			want:  "c|l",
-// 			want1: ""},
-
-// 		{args: args{spec: "|c|l",
-// 			rexp: colSpecRegex},
-// 			want:  "|c|l",
-// 			want1: ""},
-
-// 		{args: args{spec: "r|p{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "r|p{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "|r|p{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "|r|p{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "p{120}|L{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "p{120}|L{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "|p{120}|L{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "|p{120}|L{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "L{120}|C{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "L{120}|C{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "|L{120}|C{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "|L{120}|C{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "C{120}|R{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "C{120}|R{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "|C{120}|R{120}",
-// 			rexp: colSpecRegex},
-// 			want:  "|C{120}|R{120}",
-// 			want1: ""},
-
-// 		{args: args{spec: "R{120}|l",
-// 			rexp: colSpecRegex},
-// 			want:  "R{120}|l",
-// 			want1: ""},
-
-// 		{args: args{spec: "|R{120}|l",
-// 			rexp: colSpecRegex},
-// 			want:  "|R{120}|l",
-// 			want1: ""},
-
-// 		// With a vertical separator in the last column
-
-// 		// One column
-// 		{args: args{spec: "l|",
-// 			rexp: colSpecRegex},
-// 			want:  "l",
-// 			want1: "│"},
-
-// 		{args: args{spec: "c||",
-// 			rexp: colSpecRegex},
-// 			want:  "c",
-// 			want1: "║"},
-
-// 		{args: args{spec: "r|||",
-// 			rexp: colSpecRegex},
-// 			want:  "r",
-// 			want1: "┃"},
-
-// 		{args: args{spec: "p{120} | ",
-// 			rexp: colSpecRegex},
-// 			want:  "p{120}",
-// 			want1: " │ "},
-
-// 		{args: args{spec: "L{120} || ",
-// 			rexp: colSpecRegex},
-// 			want:  "L{120}",
-// 			want1: " ║ "},
-
-// 		{args: args{spec: "C{120} ||| ",
-// 			rexp: colSpecRegex},
-// 			want:  "C{120}",
-// 			want1: " ┃ "},
-
-// 		{args: args{spec: "R{120}  |",
-// 			rexp: colSpecRegex},
-// 			want:  "R{120}",
-// 			want1: "  │"},
-
-// 		// Two columns
-// 		{args: args{spec: "l|c ",
-// 			rexp: colSpecRegex},
-// 			want:  "l|c",
-// 			want1: " "},
-
-// 		{args: args{spec: "|l|c |",
-// 			rexp: colSpecRegex},
-// 			want:  "|l|c",
-// 			want1: " │"},
-
-// 		{args: args{spec: "c|l||",
-// 			rexp: colSpecRegex},
-// 			want:  "c|l",
-// 			want1: "║"},
-
-// 		{args: args{spec: "|c|l||| ",
-// 			rexp: colSpecRegex},
-// 			want:  "|c|l",
-// 			want1: "┃ "},
-
-// 		{args: args{spec: "r|p{120}    |    ",
-// 			rexp: colSpecRegex},
-// 			want:  "r|p{120}",
-// 			want1: "    │    "},
-
-// 		{args: args{spec: "|r|p{120}||  ",
-// 			rexp: colSpecRegex},
-// 			want:  "|r|p{120}",
-// 			want1: "║  "},
-
-// 		{args: args{spec: "p{120}|L{120}   |||",
-// 			rexp: colSpecRegex},
-// 			want:  "p{120}|L{120}",
-// 			want1: "   ┃"},
-
-// 		{args: args{spec: "|p{120}|L{120} | ",
-// 			rexp: colSpecRegex},
-// 			want:  "|p{120}|L{120}",
-// 			want1: " │ "},
-
-// 		{args: args{spec: "L{120}|C{120} ||",
-// 			rexp: colSpecRegex},
-// 			want:  "L{120}|C{120}",
-// 			want1: " ║"},
-
-// 		{args: args{spec: "|L{120}|C{120}||   ",
-// 			rexp: colSpecRegex},
-// 			want:  "|L{120}|C{120}",
-// 			want1: "║   "},
-
-// 		{args: args{spec: "C{120}|R{120}   |||      ",
-// 			rexp: colSpecRegex},
-// 			want:  "C{120}|R{120}",
-// 			want1: "   ┃      "},
-
-// 		{args: args{spec: "|C{120}|R{120} |",
-// 			rexp: colSpecRegex},
-// 			want:  "|C{120}|R{120}",
-// 			want1: " │"},
-
-// 		{args: args{spec: "R{120}|l| ",
-// 			rexp: colSpecRegex},
-// 			want:  "R{120}|l",
-// 			want1: "│ "},
-
-// 		{args: args{spec: "|R{120}|l | ",
-// 			rexp: colSpecRegex},
-// 			want:  "|R{120}|l",
-// 			want1: " │ "},
-
-// 		// ROW SPECIFICATION
-
-// 		// No horizontal separator in the last row
-
-// 		// One row
-// 		{args: args{spec: "t",
-// 			rexp: rowSpecRegex},
-// 			want:  "t",
-// 			want1: ""},
-
-// 		{args: args{spec: "c",
-// 			rexp: rowSpecRegex},
-// 			want:  "c",
-// 			want1: ""},
-
-// 		{args: args{spec: "b",
-// 			rexp: rowSpecRegex},
-// 			want:  "b",
-// 			want1: ""},
-
-// 		// Two rows
-
-// 		{args: args{spec: "t|t",
-// 			rexp: rowSpecRegex},
-// 			want:  "t|t",
-// 			want1: ""},
-
-// 		{args: args{spec: "c|t",
-// 			rexp: rowSpecRegex},
-// 			want:  "c|t",
-// 			want1: ""},
-
-// 		{args: args{spec: "b|t",
-// 			rexp: rowSpecRegex},
-// 			want:  "b|t",
-// 			want1: ""},
-
-// 		{args: args{spec: "t|c",
-// 			rexp: rowSpecRegex},
-// 			want:  "t|c",
-// 			want1: ""},
-
-// 		{args: args{spec: "c|c",
-// 			rexp: rowSpecRegex},
-// 			want:  "c|c",
-// 			want1: ""},
-
-// 		{args: args{spec: "b|c",
-// 			rexp: rowSpecRegex},
-// 			want:  "b|c",
-// 			want1: ""},
-
-// 		{args: args{spec: "t|b",
-// 			rexp: rowSpecRegex},
-// 			want:  "t|b",
-// 			want1: ""},
-
-// 		{args: args{spec: "c|b",
-// 			rexp: rowSpecRegex},
-// 			want:  "c|b",
-// 			want1: ""},
-
-// 		{args: args{spec: "b|b",
-// 			rexp: rowSpecRegex},
-// 			want:  "b|b",
-// 			want1: ""},
-
-// 		// With a horizontal separator in the last row
-
-// 		// One row
-// 		{args: args{spec: "t|",
-// 			rexp: rowSpecRegex},
-// 			want:  "t",
-// 			want1: "│"},
-
-// 		{args: args{spec: "c||",
-// 			rexp: rowSpecRegex},
-// 			want:  "c",
-// 			want1: "║"},
-
-// 		{args: args{spec: "b|||",
-// 			rexp: rowSpecRegex},
-// 			want:  "b",
-// 			want1: "┃"},
-
-// 		// Two rows
-
-// 		{args: args{spec: "t|t |",
-// 			rexp: rowSpecRegex},
-// 			want:  "t|t",
-// 			want1: " │"},
-
-// 		{args: args{spec: "c|t|| ",
-// 			rexp: rowSpecRegex},
-// 			want:  "c|t",
-// 			want1: "║ "},
-
-// 		{args: args{spec: "b|t ||| ",
-// 			rexp: rowSpecRegex},
-// 			want:  "b|t",
-// 			want1: " ┃ "},
-
-// 		{args: args{spec: "t|c|  ",
-// 			rexp: rowSpecRegex},
-// 			want:  "t|c",
-// 			want1: "│  "},
-
-// 		{args: args{spec: "c|c  || ",
-// 			rexp: rowSpecRegex},
-// 			want:  "c|c",
-// 			want1: "  ║ "},
-
-// 		{args: args{spec: "b|c   |||",
-// 			rexp: rowSpecRegex},
-// 			want:  "b|c",
-// 			want1: "   ┃"},
-
-// 		{args: args{spec: "t|b |    ",
-// 			rexp: rowSpecRegex},
-// 			want:  "t|b",
-// 			want1: " │    "},
-
-// 		{args: args{spec: "c|b>>||<<",
-// 			rexp: rowSpecRegex},
-// 			want:  "c|b",
-// 			want1: ">>║<<"},
-
-// 		{args: args{spec: "b|b····",
-// 			rexp: rowSpecRegex},
-// 			want:  "b|b",
-// 			want1: "····"},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			got, got1 := stripLastSeparator(tt.args.spec, tt.args.rexp)
-// 			if got != tt.want {
-// 				t.Errorf("stripLastSeparator() got = %v, want %v", got, tt.want)
-// 			}
-// 			if got1 != tt.want1 {
-// 				t.Errorf("stripLastSeparator() got1 = %v, want %v", got1, tt.want1)
-// 			}
-// 		})
-// 	}
-// }
+func Test_stripLastSeparator(t *testing.T) {
+	type args struct {
+		spec, rexp string
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  string
+		want1 string
+	}{
+
+		// COLUMN SPECIFICATION
+
+		// No vertical separator in the last column
+
+		// One column
+		{args: args{spec: "l",
+			rexp: colSpecRegex},
+			want:  "l",
+			want1: ""},
+
+		{args: args{spec: "c",
+			rexp: colSpecRegex},
+			want:  "c",
+			want1: ""},
+
+		{args: args{spec: "r",
+			rexp: colSpecRegex},
+			want:  "r",
+			want1: ""},
+
+		{args: args{spec: "p{120}",
+			rexp: colSpecRegex},
+			want:  "p{120}",
+			want1: ""},
+
+		{args: args{spec: "L{120}",
+			rexp: colSpecRegex},
+			want:  "L{120}",
+			want1: ""},
+
+		{args: args{spec: "C{120}",
+			rexp: colSpecRegex},
+			want:  "C{120}",
+			want1: ""},
+
+		{args: args{spec: "R{120}",
+			rexp: colSpecRegex},
+			want:  "R{120}",
+			want1: ""},
+
+		// Two columns
+		{args: args{spec: "l|c",
+			rexp: colSpecRegex},
+			want:  "l|c",
+			want1: ""},
+
+		{args: args{spec: "|l|c",
+			rexp: colSpecRegex},
+			want:  "|l|c",
+			want1: ""},
+
+		{args: args{spec: "c|l",
+			rexp: colSpecRegex},
+			want:  "c|l",
+			want1: ""},
+
+		{args: args{spec: "|c|l",
+			rexp: colSpecRegex},
+			want:  "|c|l",
+			want1: ""},
+
+		{args: args{spec: "r|p{120}",
+			rexp: colSpecRegex},
+			want:  "r|p{120}",
+			want1: ""},
+
+		{args: args{spec: "|r|p{120}",
+			rexp: colSpecRegex},
+			want:  "|r|p{120}",
+			want1: ""},
+
+		{args: args{spec: "p{120}|L{120}",
+			rexp: colSpecRegex},
+			want:  "p{120}|L{120}",
+			want1: ""},
+
+		{args: args{spec: "|p{120}|L{120}",
+			rexp: colSpecRegex},
+			want:  "|p{120}|L{120}",
+			want1: ""},
+
+		{args: args{spec: "L{120}|C{120}",
+			rexp: colSpecRegex},
+			want:  "L{120}|C{120}",
+			want1: ""},
+
+		{args: args{spec: "|L{120}|C{120}",
+			rexp: colSpecRegex},
+			want:  "|L{120}|C{120}",
+			want1: ""},
+
+		{args: args{spec: "C{120}|R{120}",
+			rexp: colSpecRegex},
+			want:  "C{120}|R{120}",
+			want1: ""},
+
+		{args: args{spec: "|C{120}|R{120}",
+			rexp: colSpecRegex},
+			want:  "|C{120}|R{120}",
+			want1: ""},
+
+		{args: args{spec: "R{120}|l",
+			rexp: colSpecRegex},
+			want:  "R{120}|l",
+			want1: ""},
+
+		{args: args{spec: "|R{120}|l",
+			rexp: colSpecRegex},
+			want:  "|R{120}|l",
+			want1: ""},
+
+		// With a vertical separator in the last column
+
+		// One column
+		{args: args{spec: "l|",
+			rexp: colSpecRegex},
+			want:  "l",
+			want1: "│"},
+
+		{args: args{spec: "c||",
+			rexp: colSpecRegex},
+			want:  "c",
+			want1: "║"},
+
+		{args: args{spec: "r|||",
+			rexp: colSpecRegex},
+			want:  "r",
+			want1: "┃"},
+
+		{args: args{spec: "p{120} | ",
+			rexp: colSpecRegex},
+			want:  "p{120}",
+			want1: " │ "},
+
+		{args: args{spec: "L{120} || ",
+			rexp: colSpecRegex},
+			want:  "L{120}",
+			want1: " ║ "},
+
+		{args: args{spec: "C{120} ||| ",
+			rexp: colSpecRegex},
+			want:  "C{120}",
+			want1: " ┃ "},
+
+		{args: args{spec: "R{120}  |",
+			rexp: colSpecRegex},
+			want:  "R{120}",
+			want1: "  │"},
+
+		// Two columns
+		{args: args{spec: "l|c ",
+			rexp: colSpecRegex},
+			want:  "l|c",
+			want1: " "},
+
+		{args: args{spec: "|l|c |",
+			rexp: colSpecRegex},
+			want:  "|l|c",
+			want1: " │"},
+
+		{args: args{spec: "c|l||",
+			rexp: colSpecRegex},
+			want:  "c|l",
+			want1: "║"},
+
+		{args: args{spec: "|c|l||| ",
+			rexp: colSpecRegex},
+			want:  "|c|l",
+			want1: "┃ "},
+
+		{args: args{spec: "r|p{120}    |    ",
+			rexp: colSpecRegex},
+			want:  "r|p{120}",
+			want1: "    │    "},
+
+		{args: args{spec: "|r|p{120}||  ",
+			rexp: colSpecRegex},
+			want:  "|r|p{120}",
+			want1: "║  "},
+
+		{args: args{spec: "p{120}|L{120}   |||",
+			rexp: colSpecRegex},
+			want:  "p{120}|L{120}",
+			want1: "   ┃"},
+
+		{args: args{spec: "|p{120}|L{120} | ",
+			rexp: colSpecRegex},
+			want:  "|p{120}|L{120}",
+			want1: " │ "},
+
+		{args: args{spec: "L{120}|C{120} ||",
+			rexp: colSpecRegex},
+			want:  "L{120}|C{120}",
+			want1: " ║"},
+
+		{args: args{spec: "|L{120}|C{120}||   ",
+			rexp: colSpecRegex},
+			want:  "|L{120}|C{120}",
+			want1: "║   "},
+
+		{args: args{spec: "C{120}|R{120}   |||      ",
+			rexp: colSpecRegex},
+			want:  "C{120}|R{120}",
+			want1: "   ┃      "},
+
+		{args: args{spec: "|C{120}|R{120} |",
+			rexp: colSpecRegex},
+			want:  "|C{120}|R{120}",
+			want1: " │"},
+
+		{args: args{spec: "R{120}|l| ",
+			rexp: colSpecRegex},
+			want:  "R{120}|l",
+			want1: "│ "},
+
+		{args: args{spec: "|R{120}|l | ",
+			rexp: colSpecRegex},
+			want:  "|R{120}|l",
+			want1: " │ "},
+
+		// ROW SPECIFICATION
+
+		// No horizontal separator in the last row
+
+		// One row
+		{args: args{spec: "t",
+			rexp: rowSpecRegex},
+			want:  "t",
+			want1: ""},
+
+		{args: args{spec: "c",
+			rexp: rowSpecRegex},
+			want:  "c",
+			want1: ""},
+
+		{args: args{spec: "b",
+			rexp: rowSpecRegex},
+			want:  "b",
+			want1: ""},
+
+		// Two rows
+
+		{args: args{spec: "t|t",
+			rexp: rowSpecRegex},
+			want:  "t|t",
+			want1: ""},
+
+		{args: args{spec: "c|t",
+			rexp: rowSpecRegex},
+			want:  "c|t",
+			want1: ""},
+
+		{args: args{spec: "b|t",
+			rexp: rowSpecRegex},
+			want:  "b|t",
+			want1: ""},
+
+		{args: args{spec: "t|c",
+			rexp: rowSpecRegex},
+			want:  "t|c",
+			want1: ""},
+
+		{args: args{spec: "c|c",
+			rexp: rowSpecRegex},
+			want:  "c|c",
+			want1: ""},
+
+		{args: args{spec: "b|c",
+			rexp: rowSpecRegex},
+			want:  "b|c",
+			want1: ""},
+
+		{args: args{spec: "t|b",
+			rexp: rowSpecRegex},
+			want:  "t|b",
+			want1: ""},
+
+		{args: args{spec: "c|b",
+			rexp: rowSpecRegex},
+			want:  "c|b",
+			want1: ""},
+
+		{args: args{spec: "b|b",
+			rexp: rowSpecRegex},
+			want:  "b|b",
+			want1: ""},
+
+		// With a horizontal separator in the last row
+
+		// One row
+		{args: args{spec: "t|",
+			rexp: rowSpecRegex},
+			want:  "t",
+			want1: "│"},
+
+		{args: args{spec: "c||",
+			rexp: rowSpecRegex},
+			want:  "c",
+			want1: "║"},
+
+		{args: args{spec: "b|||",
+			rexp: rowSpecRegex},
+			want:  "b",
+			want1: "┃"},
+
+		// Two rows
+
+		{args: args{spec: "t|t |",
+			rexp: rowSpecRegex},
+			want:  "t|t",
+			want1: " │"},
+
+		{args: args{spec: "c|t|| ",
+			rexp: rowSpecRegex},
+			want:  "c|t",
+			want1: "║ "},
+
+		{args: args{spec: "b|t ||| ",
+			rexp: rowSpecRegex},
+			want:  "b|t",
+			want1: " ┃ "},
+
+		{args: args{spec: "t|c|  ",
+			rexp: rowSpecRegex},
+			want:  "t|c",
+			want1: "│  "},
+
+		{args: args{spec: "c|c  || ",
+			rexp: rowSpecRegex},
+			want:  "c|c",
+			want1: "  ║ "},
+
+		{args: args{spec: "b|c   |||",
+			rexp: rowSpecRegex},
+			want:  "b|c",
+			want1: "   ┃"},
+
+		{args: args{spec: "t|b |    ",
+			rexp: rowSpecRegex},
+			want:  "t|b",
+			want1: " │    "},
+
+		{args: args{spec: "c|b>>||<<",
+			rexp: rowSpecRegex},
+			want:  "c|b",
+			want1: ">>║<<"},
+
+		{args: args{spec: "b|b····",
+			rexp: rowSpecRegex},
+			want:  "b|b",
+			want1: "····"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := stripLastSeparator(tt.args.spec, tt.args.rexp)
+			if got != tt.want {
+				t.Errorf("stripLastSeparator() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("stripLastSeparator() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
 
 func TestSplitParagraph(t *testing.T) {
 	type args struct {
