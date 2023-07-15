@@ -20,15 +20,16 @@ import (
 // has to be shown, if and only if the height of the corresponding row is larger
 // than the number of physical rows necessary to display the contents of the
 // cell. To properly process a cell it is necessary to get a pointer to the
-// table, and also the integer indices to the row and column of the cell
+// table, and also the integer indices to the (logical) row and column of the
+// cell
 func (c content) Process(t *Table, irow, jcol int) []formatter {
 
 	// Processing a content involves splitting it across as many physical rows
-	// as needed (which is the case if a "paragraph" alignment is given for this
-	// column). In case the number of physical lines is strictly less than the
-	// number of physical rows of this logical row, then compute the vertical
-	// alignment. The result is given as a slice of contents so that they can be
-	// each properly formatted.
+	// as needed (e.g., if a "paragraph" alignment is given for this column). In
+	// case the number of physical lines is strictly less than the number of
+	// physical rows of this logical row, then compute the vertical alignment.
+	// The result is given as a slice of contents so that they can be each
+	// properly formatted.
 	var result []content
 
 	// If the rightmost column is required to be processed and it contains no
@@ -37,7 +38,7 @@ func (c content) Process(t *Table, irow, jcol int) []formatter {
 
 		// if the height of this row is known, then return as many copies of the
 		// separator as required. Otherwise, return the separator only once
-		for iline := 0; iline < max(1, t.rows[irow].height); iline++ {
+		for iline := 0; iline < max[int](1, t.rows[irow].height); iline++ {
 			result = append(result, content(horizontal_empty))
 		}
 	} else {
@@ -55,7 +56,7 @@ func (c content) Process(t *Table, irow, jcol int) []formatter {
 		}
 
 		// if a paragraph alignment (p, C, L, R) modifier is used for this specific
-		// column, then split it the content
+		// column, then split the content
 		if col.hformat.alignment == 'p' ||
 			col.hformat.alignment == 'C' ||
 			col.hformat.alignment == 'L' ||
@@ -75,6 +76,9 @@ func (c content) Process(t *Table, irow, jcol int) []formatter {
 		if nbrows > len(result) {
 
 			var prefix, suffix int
+
+			// computation of the prefix: number of blank lines before the
+			// content
 			if unicode.ToLower(rune(col.vformat.alignment)) == 'c' {
 				prefix = (nbrows - len(result)) / 2
 			}
@@ -85,6 +89,13 @@ func (c content) Process(t *Table, irow, jcol int) []formatter {
 			if unicode.ToLower(rune(col.vformat.alignment)) == 't' {
 				suffix = nbrows - len(result)
 			}
+			if unicode.ToLower(rune(col.vformat.alignment)) == 'c' {
+				suffix = (nbrows - len(result)) / 2
+				suffix += (nbrows - len(result)) % 2
+			}
+
+			// computation of the suffix: number of blank lines after the
+			// content
 			if unicode.ToLower(rune(col.vformat.alignment)) == 'c' {
 				suffix = (nbrows - len(result)) / 2
 				suffix += (nbrows - len(result)) % 2
@@ -131,14 +142,8 @@ func (c content) Format(t *Table, irow, jcol int) string {
 	// this column
 	prefix, suffix := justifyLine(string(c), rune(col.hformat.alignment), col.width)
 
-	// compute now the separator to use. If this specific cell is preceded by a
-	// multicolumn with a last vertical separator (i.e., a vertical separator
-	// with no column attached to it), then use it. Otherwise, use the separator
-	// given in the column specification of this table
+	// get the separator to use
 	sep := t.columns[jcol].sep
-	if m := getPreviousBinder(t, irow, jcol); m != nil && m.getLastVerticalSep() != "" {
-		sep = m.getLastVerticalSep()
-	}
 
 	// and return the concatenation of the prefix, the content and the suffix,
 	// all prefixed with the horizontal separator of the jcol-th column

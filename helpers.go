@@ -14,21 +14,23 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"golang.org/x/exp/constraints"
 )
 
 // Functions
 // ----------------------------------------------------------------------------
 
-// Return the minimum of two integers
-func min(n, m int) int {
+// Return the minimum of two ordered items
+func min[T constraints.Ordered](n, m T) T {
 	if n > m {
 		return m
 	}
 	return n
 }
 
-// Return the maximum of two integers
-func max(n, m int) int {
+// Return the maximum of two ordered items
+func max[T constraints.Ordered](n, m int) int {
 	if n > m {
 		return n
 	}
@@ -53,12 +55,15 @@ func getColumns(colspec string) ([]column, error) {
 		if recol == nil {
 			break
 		}
+
+		// in case creating the new column raises an error then return the
+		// provisional columns and the error
 		nxtcol, err := newColumn(colspec[recol[0]:recol[1]])
 		if err != nil {
 			return []column{}, err
 		}
 
-		// and add it to the columns of this table
+		// add the new column to the slice of columns to return
 		columns = append(columns, *nxtcol)
 
 		// and now move forward in the column specification string
@@ -75,7 +80,7 @@ func getColumns(colspec string) ([]column, error) {
 				vformat: style{}})
 	}
 
-	// and return the slice of columns along with no error
+	// return the slice of columns along with no error
 	return columns, nil
 }
 
@@ -87,69 +92,40 @@ func separatorToUTF8(input *string) {
 	*input = strings.ReplaceAll(*input, "|", "│")
 }
 
-// process the given specification according to the specified regex (which must
-// match either a column or row specification) and return: first, a new one
-// which has removed the specification of the last column/row if and only if a
-// last column/row with no column/row specifier was given; second, the separator
-// of the last column/row that was removed in the first place
-func stripLastSeparator(colspec string, rexp string) (string, string) {
+// // process the given specification according to the specified regex (which must
+// // match either a column or row specification) and return: first, a new one
+// // which has removed the specification of the last column/row if and only if a
+// // last column/row with no column/row specifier was given; second, the separator
+// // of the last column/row that was removed in the first place
+// func stripLastSeparator(colspec string, rexp string) (string, string) {
 
-	// -- initialization
-	var output string
+// 	// -- initialization
+// 	var output string
 
-	// the specification is processed with a regular expression. Only those
-	// parts matching the regular expression are returned so that if a last
-	// column with no specifier is given, it is not added to the result
-	re := regexp.MustCompile(rexp)
-	for {
+// 	// the specification is processed with a regular expression. Only those
+// 	// parts matching the regular expression are returned so that if a last
+// 	// column with no specifier is given, it is not added to the result
+// 	re := regexp.MustCompile(rexp)
+// 	for {
 
-		// get the next column and, if none is found, then exit
-		recol := re.FindStringIndex(colspec)
-		if recol == nil {
-			break
-		}
+// 		// get the next column and, if none is found, then exit
+// 		recol := re.FindStringIndex(colspec)
+// 		if recol == nil {
+// 			break
+// 		}
 
-		// copy this part into the output
-		output += colspec[recol[0]:recol[1]]
+// 		// copy this part into the output
+// 		output += colspec[recol[0]:recol[1]]
 
-		// and move forward in the column specification string
-		colspec = colspec[recol[1]:]
-	}
+// 		// and move forward in the column specification string
+// 		colspec = colspec[recol[1]:]
+// 	}
 
-	// and return the string computed so far substituting the last separator by
-	// its corresponding UTF-8 runes
-	separatorToUTF8(&colspec)
-	return output, colspec
-}
-
-// return a pointer to the binder preceding the cell in the i-th row and j-th
-// column or nil if no multicolumn is found precisely before this cell
-func getPreviousBinder(t *Table, i, j int) binder {
-
-	// this function just iterates over all cells of the i-th row
-	idx := 0
-	for idx < len(t.cells[i]) {
-
-		// if a binder is found at this location
-		if cell, ok := t.cells[i][idx].(binder); ok {
-
-			// and it ends precisely at the j-th column
-			if cell.getColumnInit()+cell.getNbColumns() == j {
-				return cell
-			}
-
-			// otherwise, move forward
-			idx += cell.getNbColumns()
-		} else {
-
-			// otherwise, just move one cell forward
-			idx += 1
-		}
-	}
-
-	// at this point, no multirow has been found so that just return nil
-	return nil
-}
+// 	// and return the string computed so far substituting the last separator by
+// 	// its corresponding UTF-8 runes
+// 	separatorToUTF8(&colspec)
+// 	return output, colspec
+// }
 
 // return true if and only if the given rune is recognized as a vertical
 // separator as defined in this package and false otherwise
@@ -306,10 +282,10 @@ func justifyLine(line string, alignment rune, width int) (prefix, suffix string)
 	return
 }
 
-// return the rune that splits the four regions north-west, north-east,
-// south-west and south-east as stored in the map of splitters with no error. In
-// case that any of the runes given to the west, east, north and south is not
-// defined in the map of runes, then it is automatically substituted by none
+// // return the rune that splits the four regions north-west, north-east,
+// // south-west and south-east as stored in the map of splitters with no error. In
+// // case that any of the runes given to the west, east, north and south is not
+// // defined in the map of runes, then it is automatically substituted by none
 func getSingleSplitter(west, east, north, south rune) rune {
 
 	// check for the existence of the west rune. In case it does not exist,
@@ -385,55 +361,55 @@ func prepend(item content, data []content) []content {
 	return data
 }
 
-// Evenly increment the width of all columns given in the slice of columns so
-// that their accumulated sum is incremented by n
-func distributeColumns(n int, columns []column) {
+// // Evenly increment the width of all columns given in the slice of columns so
+// // that their accumulated sum is incremented by n
+// func distributeColumns(n int, columns []column) {
 
-	// compute first the quotient (the amount of space to add to all columns)
-	// and the remainder (the additional space to add to a subset of the
-	// columns)
-	quotient, remainder := n/len(columns), n%len(columns)
+// 	// compute first the quotient (the amount of space to add to all columns)
+// 	// and the remainder (the additional space to add to a subset of the
+// 	// columns)
+// 	quotient, remainder := n/len(columns), n%len(columns)
 
-	// if and only if the space left to distribute is strictly larger or equal
-	// than the number of columns
-	if n >= len(columns) {
+// 	// if and only if the space left to distribute is strictly larger or equal
+// 	// than the number of columns
+// 	if n >= len(columns) {
 
-		// distribute the quotient among all columns
-		for idx, _ := range columns {
-			columns[idx].width += quotient
-		}
-	}
+// 		// distribute the quotient among all columns
+// 		for idx, _ := range columns {
+// 			columns[idx].width += quotient
+// 		}
+// 	}
 
-	// and now distribute the remainder among the first columns
-	for idx := 0; idx < remainder; idx++ {
-		columns[idx].width++
-	}
-}
+// 	// and now distribute the remainder among the first columns
+// 	for idx := 0; idx < remainder; idx++ {
+// 		columns[idx].width++
+// 	}
+// }
 
-// Evenly increment the height of all rows given in the slice of rows so that
-// their accumulated sum is incremented by n
-func distributeRows(n int, rows []row) {
+// // Evenly increment the height of all rows given in the slice of rows so that
+// // their accumulated sum is incremented by n
+// func distributeRows(n int, rows []row) {
 
-	// compute first the quotient (the amount of space to add to all rows)
-	// and the remainder (the additional space to add to a subset of the
-	// rows)
-	quotient, remainder := n/len(rows), n%len(rows)
+// 	// compute first the quotient (the amount of space to add to all rows)
+// 	// and the remainder (the additional space to add to a subset of the
+// 	// rows)
+// 	quotient, remainder := n/len(rows), n%len(rows)
 
-	// if and only if the space left to distribute is strictly larger or equal
-	// than the number of rows
-	if n >= len(rows) {
+// 	// if and only if the space left to distribute is strictly larger or equal
+// 	// than the number of rows
+// 	if n >= len(rows) {
 
-		// distribute the quotient among all rows
-		for idx, _ := range rows {
-			rows[idx].height += quotient
-		}
-	}
+// 		// distribute the quotient among all rows
+// 		for idx, _ := range rows {
+// 			rows[idx].height += quotient
+// 		}
+// 	}
 
-	// and now distribute the remainder among the first rows
-	for idx := 0; idx < remainder; idx++ {
-		rows[idx].height++
-	}
-}
+// 	// and now distribute the remainder among the first rows
+// 	for idx := 0; idx < remainder; idx++ {
+// 		rows[idx].height++
+// 	}
+// }
 
 // return the li-th logical rune which is known to take the pi-th physical
 // position. A position is said to be physical if and only if it also takes into
@@ -551,9 +527,9 @@ func logicalToPhysical(s string, li int, force bool) (pi int, sout string) {
 	return -1, s
 }
 
-// return the i-th printable and graphic rune in the given string, if it exists.
-// Otherwise, return an emtpy rune along with an error. It skips color ANSI
-// codes
+// // return the i-th printable and graphic rune in the given string, if it exists.
+// // Otherwise, return an emtpy rune along with an error. It skips color ANSI
+// // codes
 func getRune(s string, i int) (rune, error) {
 
 	// -- initialization: idx is used to count physical runes, i.e., the

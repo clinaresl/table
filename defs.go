@@ -1,5 +1,5 @@
-// -*- coding: utf-8 -*-
 // defs.go
+// -*- coding: utf-8 -*-
 // -----------------------------------------------------------------------------
 //
 // Started on <sáb 19-12-2020 22:45:26.735542876 (1608414326)>
@@ -23,6 +23,119 @@ const horizontal_thick = '\u2501'  // ━
 const vertical_single = '\u2502' // │
 const vertical_double = '\u2551' // ║
 const vertical_thick = '\u2503'  // ┃
+
+// Regexps
+
+// the following regexp is used to mach an entire column specification string
+const colSpecRegexAll = `^([^clrCLRp]*(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\}))+`
+
+// and the following regexp is used to match the specification of a single
+// column
+const colSpecRegex = `^[^clrCLRp]*(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\})`
+
+// and the following regexp is used to match the specification of a single
+// row
+const rowSpecRegex = `^[^cbt]*(c|b|t)`
+
+// to extract the format of a single column the following regexp is used
+const columnSpecRegex = `(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\})`
+
+// in case a paragraph style is used, the following regexp serves to extract the
+// numerical argument
+const pRegex = `^(C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\})$`
+
+// to split strings using the newline as a separator
+const newlineRegex = `\n`
+
+// the following regexp is used to start and end ANSI color escape sequences
+const ansiColorRegex = `\033([\[;]\d+)+m`
+
+// ----------------------------------------------------------------------------
+// Types
+// ----------------------------------------------------------------------------
+
+// Table is the main type provided by this package. In order to draw data in
+// tabular form it is necessary first to create a table with NewTable. Once a
+// Table has been created, it is then possible to use all services provided for
+// them
+type Table struct {
+
+	// A table consists of a slice of columns, each one with its own
+	// specification, and a number of rows where the height of each row is
+	// stored. Note that the last separator (if any) is stored as a column
+	// without content. They also store the cells of the table as a
+	// bidimensional matrix that can be both processed and formatted, i.e., as
+	// formatters.
+	columns []column
+	rows    []row
+	cells   [][]formatter
+}
+
+// columns do not store contents. A column consists then of a vertical separator
+// (to be inserted before its text), their width (number of physical columns),
+// and the corresponding styles for showing its contents both horizontally and
+// vertically.
+type column struct {
+	sep              string
+	width            int
+	hformat, vformat style
+}
+
+// rows do not store contents. A row consists then of a number of physical lines
+// for displaying its contents
+type row struct {
+	height int
+}
+
+// The style of a cell specifies how to draw it and it is represented typically
+// with a string and, additionally, with a numerical value in case a specific
+// style (such as 'p') requires it
+type style struct {
+	alignment byte
+	arg       int
+}
+
+// Contents are simply strings to be shown on each cell
+type content string
+
+// Both splitters (between horizontal and vertical rules) along with other
+// surrounding characters, and the rune used as a separator above/below other
+// contents are defined as horizontal rules
+type hrule string
+
+// Tables can draw cells provided that they can be both processed and formatted:
+// cells are first formatted to generate the physical lines required to display
+// its contents in the form of formatters, which are then formatted one by one
+// to generate a single string which is shown on the table.
+//
+// The procedure is always the same: for any formatter, it is first "Process"ed
+// and each resulting formatter is then "Format"ted. As a result:
+//
+//		a. All implementation of formatters X shall guarantee that each item in
+//		   the output slice []formatter can be casted back into its corresponding
+//		   type X, so that they can then be formatted accordingly.
+//
+//	    b. Tables print directly the result of formatting each item in the result
+//	       of the processing step
+type formatter interface {
+
+	// Processing a cell means transforming logical rows into physical ones by
+	// splitting its contents across several (physical) rows, and also adding
+	// blank lines so that the result satisfies the vertical format of the
+	// column where it has to be shown, if and only if the height of the
+	// corresponding row is larger than the number of physical rows necessary to
+	// display the contents of the cell. To properly process a cell it is
+	// necessary to get a pointer to the table, and also the integer indices to
+	// the row and column of the cell
+	Process(t *Table, irow, jcol int) []formatter
+
+	// Cells are also formatted (physical) line by line where each physical line
+	// is the result of processing cell (irow, jcol) and should be given in the
+	// receiver of this method. Each invocation returns a string where each
+	// (physical) line is forrmatted according to the horizontal format
+	// specification of the j-th column.
+	Format(t *Table, irow, jcol int) string
+}
 
 // The splitter is defined as an association of four different runes: the west,
 // east, north and south runes of the splitter:
@@ -477,194 +590,4 @@ var splitterUTF8 = map[rune]map[rune]map[rune]map[rune]rune{
 			},
 		},
 	},
-}
-
-// Regexps
-
-// the following regexp is used to mach an entire column specification string
-const colSpecRegexAll = `^([^clrCLRp]*(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\}))+`
-
-// and the following regexp is used to match the specification of a single
-// column
-const colSpecRegex = `^[^clrCLRp]*(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\})`
-
-// and the following regexp is used to match the specification of a single
-// row
-const rowSpecRegex = `^[^cbt]*(c|b|t)`
-
-// to extract the format of a single column the following regexp is used
-const columnSpecRegex = `(c|l|r|C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\})`
-
-// in case a paragraph style is used, the following regexp serves to extract the
-// numerical argument
-const pRegex = `^(C\{\d+\}|L\{\d+\}|R\{\d+\}|p\{\d+\})$`
-
-// to split strings using the newline as a separator
-const newlineRegex = `\n`
-
-// the following regexp is used to start and end ANSI color escape sequences
-const ansiColorRegex = `\033([\[;]\d+)+m`
-
-// ----------------------------------------------------------------------------
-// Types
-// ----------------------------------------------------------------------------
-
-// Table is the main type provided by this package. In order to draw data in
-// tabular form it is necessary first to create a table with NewTable. Once a
-// Table has been created, it is then possible to use all services provided for
-// them
-type Table struct {
-
-	// A table consists of a slice of columns, each one with its own
-	// specification, and a number of rows where the height of each row is
-	// stored. Note that the last separator (if any) is stored as a column
-	// without content. They also store the cells of the table as a
-	// bidimensional matrix that can be both processed and formatted, i.e., as
-	// formatters. To ease access, all binders inserted are stored separately in
-	// the table definition
-	columns []column
-	rows    []row
-	cells   [][]formatter
-	binders []binder
-}
-
-// columns do not store contents. A column consists then of a vertical
-// separator, their width (number of physical columns), and the corresponding
-// styles for showing its contents both horizontally and vertically.
-type column struct {
-	sep              string
-	width            int
-	hformat, vformat style
-}
-
-// rows do not store contents. A row consists then of a number of physical lines
-// for displaying its contents
-type row struct {
-	height int
-}
-
-// The style of a cell specifies how to draw it and it is represented typically
-// with a string and, additionally, with a numerical value in case a specific
-// style (such as 'p') requires it
-type style struct {
-	alignment byte
-	arg       int
-}
-
-// Contents are simply strings to be shown on each cell
-type content string
-
-// Both splitters (between horizontal and vertical rules) along with other
-// surrounding characters, and the rune used as a separator above/below other
-// contents are defined as horizontal rules
-type hrule string
-
-// Multicolumns are essentially tables with only one row. They are formatters,
-// i.e., they can be inserted into a table to merge nbcolumns columns from an
-// initial column under a different format explicitly given by the user as a
-// column specification that is processed to produce a table (with just one row)
-// which is filled in with data from a number of arguments.
-//
-// Multicolumns accept a column specification which contains a last separator.
-// If any is given, it is used as the separator of the next cell.
-type multicolumn struct {
-	jinit, nbcolumns int
-	spec             string
-	lastsep          string
-	table            Table
-	args             []interface{}
-	output           string
-}
-
-// Multicells are a generalization of multicolumns which also allow the creation
-// of multirows. They are essentially tables with an arbitrary number of columns
-// and rows whose specification is given by the user. They are formatters, i.e.,
-// they can be inserted into a table to merge nbcolumns columns and nbrows rows
-// from an initial row/column under a different format explicitly given by the
-// user as a row and column specifications that are processed to produce a table
-// which is filled in with data from a number of arguments.
-//
-// Multicells allow the row and column specification to contain a last
-// separator. If a last separator is given in the column specification, it is
-// used as the separator of the next cell; if one is given in the row
-// specification, it is then used as the horizontal rule of the next row.
-type multicell struct {
-	jinit, nbcolumns   int
-	iinit, nbrows      int
-	cspec, rspec       string
-	clastsep, rlastsep string
-	table              Table
-	args               []interface{}
-	output             string
-}
-
-// Tables can draw cells provided that they can be both processed and formatted:
-// cells are first formatted to generate the physical lines required to display
-// its contents in the form of formatters, which are then formatted one by one
-// to generate a single string which is shown on the table.
-//
-// The procedure is always the same: for any formatter, it is first "Process"ed
-// and each resulting formatter is then "Format"ted. As a result:
-//
-//		a. All implementation of formatters X shall guarantee that each item in
-//		   the output slice []formatter can be casted back into its corresponding
-//		   type X, so that they can then be formatted accordingly.
-//
-//	    b. Tables print directly the result of formatting each item in the result
-//	       of the processing step
-type formatter interface {
-
-	// Processing a cell means transforming logical rows into physical ones by
-	// splitting its contents across several (physical) rows, and also adding
-	// blank lines so that the result satisfies the vertical format of the
-	// column where it has to be shown, if and only if the height of the
-	// corresponding row is larger than the number of physical rows necessary to
-	// display the contents of the cell. To properly process a cell it is
-	// necessary to get a pointer to the table, and also the integer indices to
-	// the row and column of the cell
-	Process(t *Table, irow, jcol int) []formatter
-
-	// Cells are also formatted (physical) line by line where each physical line
-	// is the result of processing cell (irow, jcol) and should be given in the
-	// receiver of this method. Each invocation returns a string where each
-	// (physical) line is forrmatted according to the horizontal format
-	// specification of the j-th column.
-	Format(t *Table, irow, jcol int) string
-}
-
-// Binders are any content that either merges cells/rows or that splits them
-// such as multicolumns and multicells. The main difference between binders and
-// ordinary contents is that the contents of a binder are formatted with the
-// assitance of a nested table
-type binder interface {
-
-	// Binders are allowed to modify the vertical horizontal separator of the
-	// next cell in the table. This applies only if a binder is formatted with a
-	// last column which contains no column specification, i.e., no data. The
-	// following service provides such separator or an empty string if none is
-	// given
-	getLastVerticalSep() string
-
-	// Likewise, they are allowed also to modify the horizontal separator of the
-	// next horizontal rule. This applies only if a binder is formatted with a
-	// last row which contains no row specification, i.e., no data. The
-	// following service provides such separator or an empty string if none is
-	// given
-	getLastHorizontalSep() string
-
-	// Binders span over an arbitrary number of consecutive columns. The
-	// following services provide the first column they take and the number of
-	// consecutive columns they span over
-	getColumnInit() int
-	getNbColumns() int
-
-	// In the same vain, binders span over an arbitrary number of consecutive
-	// rows. The following services provide the first row they take and the
-	// number of consecutive rows they span over
-	getRowInit() int
-	getNbRows() int
-
-	// The key difference with contents is that binders are processed with the
-	// contents of a nested table which are returned with the following service
-	getTable() *Table
 }

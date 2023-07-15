@@ -21,7 +21,6 @@ package table
 import (
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 )
@@ -141,10 +140,10 @@ func NewTable(spec ...string) (*Table, error) {
 	return &Table{columns: columns}, nil
 }
 
-// Methods
-// ----------------------------------------------------------------------------
+// // Methods
+// // ----------------------------------------------------------------------------
 
-// -- Private
+// // -- Private
 
 // Add the given horizontal rule to the table from a start column to and end
 // column. Any number of pairs (start, end) can be given. If no column is given,
@@ -203,175 +202,11 @@ func (t *Table) addRule(rule hrule, cols ...int) error {
 	return nil
 }
 
-// return the total number of (physical) columns required to print out both the
-// contents and separators of all columns in the range [jinit, jinit+n). For this
-// function to work properly contents should have been processed before so that
-// the width of each column is known
-func (t *Table) getColumnsWidth(jinit, n int) (result int) {
-
-	// for all columns in the given range
-	for jcol := jinit; jcol < jinit+n; jcol++ {
-
-		// and add the total number of runes required to display the separator
-		// and also the width of each column.
-		result += countPrintableRuneInString(t.columns[jcol].sep) + t.columns[jcol].width
-	}
-
-	// and return the number of physical columns computed so far
-	return
-}
-
-// return the total number of (physical) rows required to print out both the
-// contents and separators of all rows in the range [iinit, iinit+n). For this
-// function to work properly contents should have been processed before so that
-// the height of each row is known
-func (t *Table) getRowsHeight(iinit, n int) (result int) {
-
-	// for all rows in the given range
-	for irow := iinit; irow < iinit+n; irow++ {
-
-		// if this row went beyond the limits of the table immediately panic
-		if irow >= len(t.rows) {
-			panic("A binder was found to go beyond the limits of the table!")
-		}
-
-		// and add the total number of (physical) lines required to display the
-		// contents of this row
-		result += t.rows[irow].height
-	}
-
-	// and return the number of physical rows computed so far
-	return
-}
-
-// Evenly distribute all the space taken by all binders among the columns of the
-// receiver table. This process requires, not only to widen the table columns if
-// necessary, but also to enlarge some binders after if one or more of the table
-// columns they take have increased their width
-func (t *Table) distributeAllColumnsInBinders() {
-
-	// --- Table columns
-	// First, compute the definitive width of each table column. Note that the
-	// column width refers only to the space needed to print its contents, i.e.,
-	// the width of the separator is never modified
-
-	// Next, evenly distribute the width among all columns considering the
-	// binders
-	for _, m := range t.binders {
-
-		// compute the space required by the column tables that take the space
-		// of this binder, and also the space required to display the contents
-		// of the binder
-		tWidth := t.getColumnsWidth(m.getColumnInit(), m.getNbColumns())
-		mWidth := m.getTable().getColumnsWidth(0, len(m.getTable().columns))
-
-		// only in case the table columns are not large enough to show the
-		// contents of the multicolumn
-		if tWidth < mWidth {
-
-			// evenly distribute the excess of the multicolumn among the table
-			// columns
-			distributeColumns(mWidth-tWidth, t.columns[m.getColumnInit():m.getColumnInit()+m.getNbColumns()])
-		}
-	}
-
-	// --- Multicolumns
-
-	// Second, as the width of some table columns might have been modified, it
-	// might now be required to update the width of all binders
-	for _, m := range t.binders {
-
-		tWidth := t.getColumnsWidth(m.getColumnInit(), m.getNbColumns())
-		mWidth := m.getTable().getColumnsWidth(0, len(m.getTable().columns))
-
-		// this time, if the overall width of the table columns does not match
-		// the width of the binder
-		if tWidth > mWidth {
-
-			// then evenly distribute the excess among the columns of the binder
-			distributeColumns(tWidth-mWidth, m.getTable().columns)
-		}
-	}
-}
-
-// Evenly distribute all the space taken by all binders among the rows of the
-// receiver table. This process requires, not only to widen the table rows if
-// necessary, but also to enlarge some binders after if one or more of the table
-// rows they take have increased their height
-func (t *Table) distributeAllRowsInBinders() {
-
-	// --- Table rows
-	// First, compute the definitive height of each table row. Note that the
-	// row height refers only to the space needed to print its contents, i.e.,
-	// the height of horizontal rules  is never modified
-
-	// Next, evenly distribute the height among all rows considering the binders
-	for _, m := range t.binders {
-
-		// if this binder is not attached to any logical row then skip it!
-		if m.getRowInit() < 0 {
-			continue
-		}
-
-		// compute the space required by the row tables that take the space of
-		// this binder, and also the space required to display the contents of
-		// the binder
-		tHeight := t.getRowsHeight(m.getRowInit(), m.getNbRows())
-		mHeight := m.getTable().getRowsHeight(0, len(m.getTable().rows))
-
-		// only in case the table columns are not large enough to show the
-		// contents of the multicolumn
-		if tHeight < mHeight {
-
-			// evenly distribute the excess of the multicolumn among the table
-			// columns
-			distributeRows(mHeight-tHeight, t.rows[m.getRowInit():m.getRowInit()+m.getNbRows()])
-		}
-	}
-
-	// --- Multicolumns
-
-	// Second, as the width of some table columns might have been modified, it
-	// might now be required to update the width of all binders
-	for _, m := range t.binders {
-
-		// if this binder is not attached to any logical row then skip it!
-		if m.getRowInit() < 0 {
-			continue
-		}
-
-		tHeight := t.getRowsHeight(m.getColumnInit(), m.getNbColumns())
-		mHeight := m.getTable().getRowsHeight(0, len(m.getTable().rows))
-
-		// this time, if the overall height of the table rows does not match the
-		// height of the binder
-		if tHeight > mHeight {
-
-			// then evenly distribute the excess among the rows of the binder
-			distributeRows(tHeight-mHeight, m.getTable().rows)
-		}
-	}
-}
-
-// Evenly distribute all the space taken by all binders among the columns and
-// rows of the receiver table. This process requires, not only to widen the
-// table columns and rows if necessary, but also to enlarge some binders after
-// if one or more of the table columns or rows they take have increased their
-// width/height
-func (t *Table) distributeAllBinders() {
-
-	// Separately distribute the space taken by the columns and rows
-	t.distributeAllColumnsInBinders()
-	t.distributeAllRowsInBinders()
-}
-
 // -- Public
 
 // Add a new line of data to the bottom of the column. This function accepts an
-// arbitrary number of arguments that satisfy the null interface. The content
-// shown on the table is the output of a Sprintf operation over each argument.
-// Among others arguments, it automatically acknowledges the presence of
-// multicolumns and process them accordingly
+// arbitrary number of arguments. The content shown on the table is the output
+// of a Sprintf operation over each argument
 //
 // If the number of arguments is less than the number of columns, the last cells
 // are left empty, unless no argument is given at all in which case no row is
@@ -394,103 +229,45 @@ func (t *Table) AddRow(cells ...interface{}) error {
 	icells := make([]formatter, len(t.columns))
 	for idx := 0; idx < t.GetNbColumns() && idx < len(cells); idx++ {
 
-		// depending upon the type of item
-		switch cells[idx].(type) {
+		// add the content of the i-th column with a string that represents it
+		icells[j] = content(fmt.Sprintf("%v", cells[idx]))
 
-		case multicolumn:
+		// process the contents of this cell, and update the number of physical
+		// rows required to show this line. Note that this row is added to the
+		// bottom of the table
+		contents := icells[j].Process(t, len(t.rows), j)
+		height = max[int](height, len(contents))
 
-			// if this item is a multicolumn, verify first that it does not go
-			// beyond bounds
-			m := cells[idx].(multicolumn)
-			if j+m.nbcolumns > t.GetNbColumns() {
-				return errors.New("Invalid multicolumn specification. The number of available columns has been execeeded!")
+		// in addition update the number of physical columns required to
+		// draw this cell.
+		//
+		// If this column is a paragraph (of any type) then use the width
+		// defined
+		if t.columns[j].hformat.alignment == 'p' ||
+			t.columns[j].hformat.alignment == 'C' ||
+			t.columns[j].hformat.alignment == 'L' ||
+			t.columns[j].hformat.alignment == 'R' {
+
+			// Importantly, the width of this column should be modified if
+			// and only if it is less than the argument given. The reason is
+			// that the width of this column might have been increased
+			// (e.g., because it is part of a multicolumn) so that it should
+			// not be modified now!!
+			if t.columns[j].width < t.columns[j].hformat.arg {
+				t.columns[j].width = t.columns[j].hformat.arg
 			}
+		} else {
 
-			// record this multicolumn as an ordinary formatter, copy the
-			// initial column where the multicolumn starts and register this
-			// multicolumn in the table. Importantly, note that this cell is
-			// registered at the right physical column where it is expected to
-			// be found
-			m.jinit = j
-			icells[j] = m
-			t.binders = append(t.binders, binder(m))
-
-			// otherwise, process this multicolumn to know its height. Note that
-			// this row is added to the bottom of this table
-			contents := m.Process(t, len(t.rows), j)
-			height = max(height, len(contents))
-
-			// finally, now move forward the number of columns
-			j += m.nbcolumns
-
-		case multicell:
-
-			// if this item is a multicell, verify first that it does not go
-			// beyond bounds
-			m := cells[idx].(multicell)
-			if j+m.nbcolumns > t.GetNbColumns() {
-				return errors.New("Invalid multicell specification. The number of available columns has been execeeded!")
+			// Otherwise, take the maximum width among all columns
+			for _, line := range contents {
+				t.columns[j].width = max[int](t.columns[j].width,
+					countPrintableRuneInString(string(line.(content))))
 			}
-
-			// record this multicell as an ordinary formatter, copy the initial
-			// column and row where the multicell starts and register this
-			// multicell in the table.
-			m.jinit, m.iinit = j, len(t.rows)
-			icells[j] = m
-			t.binders = append(t.binders, binder(m))
-
-			// otherwise, process this multicell to know its height. Note that
-			// this row is added to the bottom of this table
-			contents := m.Process(t, len(t.rows), j)
-			height = max(height, len(contents))
-
-			// finally, now move forward the number of columns
-			j += m.nbcolumns
-
-		default:
-
-			// if this item is an "ordinary" content of a cell, add the content
-			// of the i-th column with a string that represents it
-			icells[j] = content(fmt.Sprintf("%v", cells[idx]))
-
-			// process the contents of this cell, and update the number of physical
-			// rows required to show this line. Note that this row is added to the
-			// bottom of this table
-			contents := icells[j].Process(t, len(t.rows), j)
-			height = max(height, len(contents))
-
-			// in addition update the number of physical columns required to
-			// draw this cell.
-			//
-			// If this column is a paragraph (of any type) then use the width
-			// defined
-			if t.columns[j].hformat.alignment == 'p' ||
-				t.columns[j].hformat.alignment == 'C' ||
-				t.columns[j].hformat.alignment == 'L' ||
-				t.columns[j].hformat.alignment == 'R' {
-
-				// Importantly, the width of this column should be modified if
-				// and only if it is less than the argument given. The reason is
-				// that the width of this column might have been increased
-				// (e.g., because it is part of a multicolumn) so that it should
-				// not be modified now!!
-				if t.columns[j].width < t.columns[j].hformat.arg {
-					t.columns[j].width = t.columns[j].hformat.arg
-				}
-			} else {
-
-				// Otherwise, take the maximum width among all columns
-				for _, line := range contents {
-					t.columns[j].width = max(t.columns[j].width,
-						countPrintableRuneInString(string(line.(content))))
-				}
-			}
-
-			// and move to the next column
-			j++
 		}
-	}
 
+		// and move to the next column
+		j++
+	}
 	// now, if not all columns were given then automatically add empty cells.
 	// Note that an empty cell is added also to the last column even if it
 	// contains no data
@@ -563,12 +340,6 @@ func (t *Table) GetNbRows() int {
 // their contents into a string
 func (t Table) String() string {
 
-	// First things first, traverse all binders in this table and re-distribute
-	// the width of columns (either those of the table or those in the
-	// binder)
-	t.distributeAllBinders()
-	log.Printf("rows: %v\n", t.rows)
-
 	// Because of the presence of multicells, each line can print at once an
 	// arbitrary number of columns and rows. Hence, it is required to keep track
 	// of how many columns are printed in each row and how many rows are printed
@@ -620,23 +391,18 @@ func (t Table) String() string {
 
 			// Now, update the number of columns processed in this logical row
 			// and the number of rows processed in this column
-			if m, ok := t.cells[i][j].(binder); ok {
-				nbcolumns[i] += m.getNbColumns()
-				nbrows[j] += m.getNbRows()
-			} else {
 
-				// If this is not a multicell, the next column to process in
-				// this row should be updated only in case that we already
-				// reached the last one
-				if nbcolumns[i] <= j {
-					nbcolumns[i]++
-				}
+			// If this is not a multicell, the next column to process in
+			// this row should be updated only in case that we already
+			// reached the last one
+			if nbcolumns[i] <= j {
+				nbcolumns[i]++
+			}
 
-				// Likewise, the next row to process in this column is updated
-				// only if we already reached the last one
-				if nbrows[j] <= i {
-					nbrows[j]++
-				}
+			// Likewise, the next row to process in this column is updated
+			// only if we already reached the last one
+			if nbrows[j] <= i {
+				nbrows[j]++
 			}
 		}
 	}
