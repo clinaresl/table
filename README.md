@@ -255,30 +255,62 @@ the example shows this is not necessary at all.
 Multicolumns are defined as ordinary cells which span over several columns in
 the same row. Because `table` creates column-orientated tables, it is also
 possible to substitute an arbitrary number of columns in the table by a
-different number of columns with a different format.
+different number of columns with a different format:
 
-The simplest case consists of merging several columns into the same one, as in:
 
 ``` Go
-	t, _ := NewTable("l | r \033[0m")
+	t, _ := NewTable("l c c || c c")
+	t.AddRow(Multicolumn(5, "c", "Table 2: Overall Results"))
 	t.AddThickRule()
-	t.AddRow(Multicolumn(2, "c", "\033[38;2;166;166;0mDemographics 2020"))
-	t.AddRow("\033[38;2;206;10;0mCountry\033[0m", "\033[38;2;206;10;0mPopulation")
+	t.AddRow("", Multicolumn(2, "c", "Females"), Multicolumn(2, "c", "Males"))
+	t.AddSingleRule(1, 5)
+	t.AddRow("Treatment", "Mortality", "Mean\nPressure", "Mortality", "Mean\nPressure")
 	t.AddSingleRule()
-	t.AddRow("\033[48;2;20;20;160mChina", "1,394,015,977")
-	t.AddRow("\033[48;2;20;80;20mIndia", "1,326,093,247")
-	t.AddRow("\033[48;2;20;20;160mUnited States", "329,877,505")
-	t.AddRow("\033[48;2;20;80;20mIndonesia", "267,026,366")
-	t.AddRow("\033[48;2;20;20;160mPakistan", "233,500,636")
-	t.AddRow("\033[48;2;20;80;20mNigeria", "214,028,302")
-	t.AddRow(Multicolumn(2, "l", "\033[38;2;16;166;166mSource: https://www.worldometers.info/"))
+	t.AddRow("Placebo", 0.21, 163, 0.22, 164)
+	t.AddRow("ACE Inhibitor", 0.13, 142, 0.15, 144)
+	t.AddRow("Hydralazine", 0.17, 143, 0.16, 140)
 	t.AddThickRule()
+	t.AddRow(Multicolumn(5, "c", "Adapted from\nhttps://tex.stackexchange.com/questions/314025/making-stats-table-with-multicolumn-and-cline"))
+	t.AddSingleRule()
 	fmt.Printf("Output:\n%v", t)
 ```
 
 which enhances the presentation of the previous tables as follows:
 
 ![example-3](figs/example-3.png "example-3")
+
+Note that multicells are created with the function `Multicell` which expects
+first, the number of columns it has to take; their format which has to be given
+according to the rules discussed in [Create a
+table](#First-step:-Create-a-table); and finally, the contents to be shown in
+the multicolumn. Because `Multicell` accepts any valid column specification in
+its second argument, `Multicell` serves then also to modify the appearance of
+the table at selected points:
+
+``` Go
+	t, _ := NewTable("    r   l c")
+	t.AddRow(Multicolumn(3, "    c", "♁ Earth"))
+	t.AddThickRule()
+	t.AddRow(Multicolumn(3, "    C{30}", "\033[37;3mEarth is the third planet from the Sun and the only astronomical object known to harbor life\033[0m"))
+	t.AddSingleRule()
+	t.AddRow(Multicolumn(1, "   |c", "Feature"),
+		Multicolumn(1, "   c", "Measure"),
+		Multicolumn(1, "c|", "Unit"))
+	t.AddSingleRule()
+	t.AddRow("Aphelion", 152100000, "km")
+	t.AddRow("Perihelion", 147095000, "km")
+	t.AddRow("Eccentricity", 0.0167086)
+	t.AddRow("Orbital period", 365.256363004)
+	t.AddRow("Semi-major axis", 149598023, "km")
+	t.AddSingleRule()
+	t.AddRow(Multicolumn(3, "   │c│", "\033[37;3mData provided by Wikipedia\033[0m"))
+	t.AddSingleRule()
+	fmt.Printf("Output:\n%v", t)
+```
+
+which yields the following results:
+
+![example-4](figs/example-4.png "example-4")
 
 # License #
 
