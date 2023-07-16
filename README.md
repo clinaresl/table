@@ -236,7 +236,7 @@ ANSI color codes required to render each fragment:
 	t.AddRow(2, "3mo", "gii.cag", "video", "\033[33;1m2022-04-11\033[0m", "Create a video promoting UC3M", 14.4)
 	t.AddRow(3, "6w", "research.editorial.review", "aicomm", "\033[33;1m2023-05-30\033[0m", "Review the latest papers", 14.1)
 
-	fmt.Printf("Output:\n%v", t)
+	fmt.Printf("%v", t)
 ```
 
 which produces:
@@ -264,7 +264,7 @@ vertical separators and horizontal rules also:
 	t.AddRow("Roger Federer", "2007", "Australian Open\nWimbledon\nUS Open")
 	t.AddSingleRule()
 
-	fmt.Printf("Output:\n%v", t)	
+	fmt.Printf("%v", t)	
 ```
 
 which is rendered as follows:
@@ -299,7 +299,7 @@ different number of columns with a different format:
 	t.AddThickRule()
 	t.AddRow(Multicolumn(5, "c", "Adapted from\nhttps://tex.stackexchange.com/questions/314025/making-stats-table-with-multicolumn-and-cline"))
 	t.AddSingleRule()
-	fmt.Printf("Output:\n%v", t)
+	fmt.Printf("%v", t)
 ```
 
 which results in the following table:
@@ -331,7 +331,7 @@ modify the appearance of the table at selected points:
 	t.AddSingleRule()
 	t.AddRow(Multicolumn(3, "   │c│", "\033[37;3mData provided by Wikipedia\033[0m"))
 	t.AddSingleRule()
-	fmt.Printf("Output:\n%v", t)
+	fmt.Printf("%v", t)
 ```
 
 which yields the following results:
@@ -349,6 +349,53 @@ slanted.
 
 Other than this, this example shows also that tables can be indented by adding
 the same text (e.g., blanks) to the beginning of each row.
+
+## Nested tables ##
+
+`table` prints *stringers* and because tables as created by this package are
+also *stringers*, they can then be nested to any degree:
+
+``` Go
+	board1, _ := NewTable("||cccccccc||")
+	board1.AddDoubleRule()
+	board1.AddRow("\u265c", "\u265e", "\u265d", "\u265b", "\u265a", "\u265d", "", "\u265c")
+	board1.AddRow("\u265f", "\u265f", "\u265f", "\u265f", "\u2592", "\u265f", "\u265f", "\u265f")
+	board1.AddRow("", "\u2592", "", "\u2592", "", "\u265e", "", "\u2592")
+	board1.AddRow("\u2592", "", "\u2592", "", "\u265f", "", "\u2592", "")
+	board1.AddRow("", "\u2592", "", "\u2592", "\u2659", "\u2659", "", "\u2592")
+	board1.AddRow("\u2592", "", "\u2658", "", "\u2592", "", "\u2592", "")
+	board1.AddRow("\u2659", "\u2659", "\u2659", "\u2659", "", "\u2592", "\u2659", "\u2659")
+	board1.AddRow("\u2656", "", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656")
+	board1.AddDoubleRule()
+
+	board2, _ := NewTable("||cccccccc||")
+	board2.AddDoubleRule()
+	board2.AddRow("\u265c", "\u265e", "\u265d", "\u265b", "\u265a", "\u265d", "\u265e", "\u265c")
+	board2.AddRow("\u265f", "\u265f", "\u265f", "", "\u265f", "\u265f", "\u265f", "\u265f")
+	board2.AddRow("", "\u2592", "", "\u2592", "", "\u2592", "", "\u2592")
+	board2.AddRow("\u2592", "", "\u2592", "", "\u2592", "", "\u2592", "")
+	board2.AddRow("", "\u2592", "", "\u2659", "\u265f", "\u2592", "", "\u2592")
+	board2.AddRow("\u2592", "", "\u2592", "", "\u2592", "\u2659", "\u2592", "")
+	board2.AddRow("\u2659", "\u2659", "\u2659", "\u2592", "", "\u2592", "\u2659", "\u2659")
+	board2.AddRow("\u2656", "\u2658", "\u2657", "\u2655", "\u2654", "\u2657", "\u2658", "\u2656")
+	board2.AddDoubleRule()
+
+	t, _ := NewTable("| c | c  c |", "cct")
+	t.AddSingleRule()
+	t.AddRow("ECO Code", "Moves", "Board")
+	t.AddSingleRule()
+	t.AddRow("C26 Vienna Game: Vienna Gambit", "1.e4 e5 2.♘c3 ♞6 3.f4", board1)
+	t.AddRow("D00 Blackmar-Diemer Gambit: Gedult Gambit", "1.e4 d5 2.d4 exd4 3.f3", board2)
+	t.AddSingleRule()
+
+	fmt.Printf("%v", t)	
+```
+
+Both chess boards are tables so that the last table, named `t` just simply adds
+them to each row:
+
+![example-6](figs/example-6.png "example-6")
+
 
 # License #
 
