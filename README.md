@@ -36,7 +36,7 @@ This section provides various examples of usage with the hope of providing a
 flavour of the different capabilities of the package. For a full description of
 the package check out the technical documentation.
 
-## First step: Create a table ## {#First}
+## First step: Create a table {#First}
 
 Before inserting data to a new table it is necessary to create it first:
 
