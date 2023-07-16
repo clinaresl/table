@@ -97,6 +97,12 @@ func Multicell(nbcolumns, nbrows int, cspec, rspec string, args ...any) multicel
 	}
 }
 
+// Multicolumns are multicells which take only one row whose contents are top
+// aligned by default
+func Multicolumn(nbcolumns int, cspec string, args ...any) multicell {
+	return Multicell(nbcolumns, 1, cspec, "t", args...)
+}
+
 // Methods
 // ----------------------------------------------------------------------------
 

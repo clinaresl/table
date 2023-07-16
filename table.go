@@ -301,52 +301,83 @@ func (t *Table) AddRow(cells ...any) error {
 	}
 
 	// otherwise, process all cells given and add them to the table as cells
-	// which can be formatted. 'j' is the column index and height is the number
-	// of physical rows required to draw this row, whereas idx is the index of
-	// the next cell to process used in the loop that iterates over them
+	// which can be formatted. 'j' is the (logical) column index and height is
+	// the number of physical rows required to draw this row, whereas idx is the
+	// index of the next cell to process used in the loop that iterates over
+	// them
 	var j, height int
 	icells := make([]formatter, len(t.columns))
 	for idx := 0; idx < t.GetNbColumns() && idx < len(cells); idx++ {
 
-		// add the content of the i-th column with a string that represents it
-		icells[j] = content(fmt.Sprintf("%v", cells[idx]))
+		// depending upon the type of item
+		switch cells[idx].(type) {
 
-		// process the contents of this cell, and update the number of physical
-		// rows required to show this line. Note that this row is added to the
-		// bottom of the table
-		contents := icells[j].Process(t, len(t.rows), j)
-		height = max[int](height, len(contents))
+		case multicell:
 
-		// in addition update the number of physical columns required to
-		// draw this cell.
-		//
-		// If this column is a paragraph (of any type) then use the width
-		// defined
-		if t.columns[j].hformat.alignment == 'p' ||
-			t.columns[j].hformat.alignment == 'C' ||
-			t.columns[j].hformat.alignment == 'L' ||
-			t.columns[j].hformat.alignment == 'R' {
-
-			// Importantly, the width of this column should be modified if and
-			// only if it is less than the argument given. The reason is that
-			// the width of this column might have been increased (e.g., because
-			// it is part of a multicell) so that it should not be modified
-			// now!!
-			if t.columns[j].width < t.columns[j].hformat.arg {
-				t.columns[j].width = t.columns[j].hformat.arg
+			// if this item is a multicell, verify first that it does not go
+			// beyond bounds
+			m := cells[idx].(multicell)
+			if j+m.nbcolumns > t.GetNbColumns() {
+				return errors.New("Invalid multicell specification. The number of available columns has been execeeded!")
 			}
-		} else {
 
-			// Otherwise, take the maximum width among all columns
-			for _, line := range contents {
-				t.columns[j].width = max[int](t.columns[j].width,
-					countPrintableRuneInString(string(line.(content))))
+			// record this multicell as an ordinary formatter, copy the initial
+			// column and row where the multicell starts and register this
+			// multicell in the table.
+			m.jinit, m.iinit = j, len(t.rows)
+			icells[j] = m
+
+			// otherwise, process this multicell to know its height. Note that
+			// this row is added to the bottom of this table
+			contents := m.Process(t, len(t.rows), j)
+			height = max[int](height, len(contents))
+
+			// finally, now move forward the number of columns
+			j += m.nbcolumns
+
+		default:
+
+			// add the content of the j-th column with a string that represents it
+			icells[j] = content(fmt.Sprintf("%v", cells[idx]))
+
+			// process the contents of this cell, and update the number of physical
+			// rows required to show this line. Note that this row is added to the
+			// bottom of the table
+			contents := icells[j].Process(t, len(t.rows), j)
+			height = max[int](height, len(contents))
+
+			// in addition update the number of physical columns required to
+			// draw this cell.
+			//
+			// If this column is a paragraph (of any type) then use the width
+			// defined
+			if t.columns[j].hformat.alignment == 'p' ||
+				t.columns[j].hformat.alignment == 'C' ||
+				t.columns[j].hformat.alignment == 'L' ||
+				t.columns[j].hformat.alignment == 'R' {
+
+				// Importantly, the width of this column should be modified if and
+				// only if it is less than the argument given in the paragraph
+				// argument. The reason is that the width of this column might have
+				// been increased (e.g., because it is part of a multicell) so that
+				// it should not be modified now!!
+				if t.columns[j].width < t.columns[j].hformat.arg {
+					t.columns[j].width = t.columns[j].hformat.arg
+				}
+			} else {
+
+				// Otherwise, take the maximum width among all columns
+				for _, line := range contents {
+					t.columns[j].width = max[int](t.columns[j].width,
+						countPrintableRuneInString(string(line.(content))))
+				}
 			}
+
+			// and move to the next column
+			j++
 		}
-
-		// and move to the next column
-		j++
 	}
+
 	// now, if not all columns were given then automatically add empty cells.
 	// Note that an empty cell is added also to the last column even if it
 	// contains no data
@@ -354,7 +385,7 @@ func (t *Table) AddRow(cells ...any) error {
 		icells[j] = content(horizontal_empty)
 	}
 
-	// add this cells to this table, along with the number of physical rows
+	// add these cells to this table, along with the number of physical rows
 	// required to draw it
 	t.cells = append(t.cells, icells)
 	t.rows = append(t.rows, row{height: height})
