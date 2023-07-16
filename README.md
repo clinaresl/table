@@ -281,7 +281,7 @@ which results in the following table:
 
 Note that multicolumns are created with the function `Multicolumn` which expects
 first, the number of columns it has to take; their format which has to be given
-according to the rules discussed in [First step: Create a table](#Usage); and finally, the
+according to the rules discussed in [First step: Create a table](#usage); and finally, the
 contents to be shown in the multicolumn. Because `Multicolumn` accepts any valid
 column specification in its second argument, `Multicolumn` serves then also to
 modify the appearance of the table at selected points:
