@@ -227,26 +227,53 @@ is not tied to any, so that the following examples explicitly show the specific
 ANSI color codes required to render each fragment:
 
 ``` Go
-	t, _ := NewTable("l | r \033[0m")
-	t.AddThickRule()
-	t.AddRow("\033[38;2;206;10;0mCountry\033[0m", "\033[38;2;206;10;0mPopulation")
-	t.AddSingleRule()
-	t.AddRow("\033[48;2;20;20;160mChina", "1,394,015,977")
-	t.AddRow("\033[48;2;20;80;20mIndia", "1,326,093,247")
-	t.AddRow("\033[48;2;20;20;160mUnited States", "329,877,505")
-	t.AddRow("\033[48;2;20;80;20mIndonesia", "267,026,366")
-	t.AddRow("\033[48;2;20;20;160mPakistan", "233,500,636")
-	t.AddRow("\033[48;2;20;80;20mNigeria", "214,028,302")
-	t.AddThickRule()
-	fmt.Printf("%v", t)
+	t, err := NewTable("r l c c c l c")
+	if err != nil {
+		log.Fatalf(" NewTable: Fatal error (%v)", err)
+	}
+	t.AddRow("\033[36;3;4mID", "Age", "Project", "Tags", "Due", "Description", "Urg \033[0m")
+	t.AddRow(1, "8mo", "personal.programming.go", "program", "\033[33;1m2022-10-21\033[0m", "Document table", 15.3)
+	t.AddRow(2, "3mo", "gii.cag", "video", "\033[33;1m2022-04-11\033[0m", "Create a video promoting UC3M", 14.4)
+	t.AddRow(3, "6w", "research.editorial.review", "aicomm", "\033[33;1m2023-05-30\033[0m", "Review the latest papers", 14.1)
+
+	fmt.Printf("Output:\n%v", t)
 ```
 
 which produces:
 
 ![example-2](figs/example-2.png "example-2")
 
-Mind the trick! The ANSI color codes of each line including the headers is
-automatically ended with `\033[0m` just simply by adding it to the *column
+Mind the trick! The table contains no horizontal rule and the same effect is
+created by underlining the header as in [task warrior](https://taskwarrior.org/)
+---as a matter of fact, the example resembles the output of the command `task
+list` of task warrior. 
+
+Many other combinations and tricks are possible for improving presentations in
+tabular form. For example, the following snippet shows how to colour the
+vertical separators and horizontal rules also:
+
+``` Go
+	t, err := NewTable("\033[38;2;160;10;10m| c \033[38;2;10;160;10m| c \033[38;2;80;80;160m| c \033[38;2;160;80;40m|\033[0m", "cb")
+	if err != nil {
+		log.Fatalln(" NewTable: Fatal error!")
+	}
+	t.AddRow("\033[38;2;206;10;0mPlayer\033[0m", "\033[38;2;10;206;0mYear\033[0m", "\033[38;2;100;0;206mTournament\033[0m")
+	t.AddSingleRule()
+	t.AddRow("\033[38;5;206mRafa Nadal\033[0m", "2010", "French Open\nWimbledon\nUS Open")
+	t.AddSingleRule()
+	t.AddRow("Roger Federer", "2007", "Australian Open\nWimbledon\nUS Open")
+	t.AddSingleRule()
+
+	fmt.Printf("Output:\n%v", t)	
+```
+
+which is rendered as follows:
+
+![example-3](figs/example-3.png "example-3")
+
+
+Mind (again) the trick! The ANSI color codes of each line including the headers
+are automatically ended with `\033[0m` just simply by adding it to the *column
 specification* of the table. Of course, one could end each line manually but as
 the example shows this is not necessary at all.
 
@@ -277,7 +304,7 @@ different number of columns with a different format:
 
 which results in the following table:
 
-![example-3](figs/example-3.png "example-3")
+![example-4](figs/example-4.png "example-4")
 
 Note that multicolumns are created with the function `Multicolumn` which expects
 first, the number of columns it has to take; their format which has to be given
@@ -309,7 +336,7 @@ modify the appearance of the table at selected points:
 
 which yields the following results:
 
-![example-4](figs/example-4.png "example-4")
+![example-5](figs/example-5.png "example-5")
 
 The boxes shown in the middle and the bottom are created using multicolumns of
 width 1. In fact, these multicolumns are used just for modifying the vertical

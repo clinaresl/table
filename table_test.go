@@ -637,9 +637,25 @@ func ExampleTable_15() {
 	// Output: ""
 }
 
+// The following table tests the ANSI color escape sequences for contents
+func ExampleTable_16() {
+
+	t, err := NewTable("r l c c c l c")
+	if err != nil {
+		log.Fatalf(" NewTable: Fatal error (%v)", err)
+	}
+	t.AddRow("\033[36;3;4mID", "Age", "Project", "Tags", "Due", "Description", "Urg \033[0m")
+	t.AddRow(1, "8mo", "personal.programming.go", "program", "\033[33;1m2022-10-21\033[0m", "Document table", 15.3)
+	t.AddRow(2, "3mo", "gii.cag", "video", "\033[33;1m2022-04-11\033[0m", "Create a video promoting UC3M", 14.4)
+	t.AddRow(3, "6w", "research.editorial.review", "aicomm", "\033[33;1m2023-05-30\033[0m", "Review the latest papers", 14.1)
+
+	fmt.Printf("Output:\n%v", t)
+	// Output: ""
+}
+
 // The following table tests the vertical formatting and also ANSI color escape
 // sequences both for the contents and the separators
-func ExampleTable_16() {
+func ExampleTable_17() {
 
 	t, err := NewTable("\033[38;2;160;10;10m| c \033[38;2;10;160;10m| c \033[38;2;80;80;160m| c \033[38;2;160;80;40m|\033[0m", "cb")
 	if err != nil {
@@ -647,9 +663,9 @@ func ExampleTable_16() {
 	}
 	t.AddRow("\033[38;2;206;10;0mPlayer\033[0m", "\033[38;2;10;206;0mYear\033[0m", "\033[38;2;100;0;206mTournament\033[0m")
 	t.AddSingleRule()
-	t.AddRow("\033[38;5;206mRafa\033[0m \033[31;1;4mNadal\033[0m", "2010", "French Open\nWimbledon\nUS Open")
+	t.AddRow("\033[38;5;206mRafa Nadal\033[0m", "2010", "French Open\nWimbledon\nUS Open")
 	t.AddSingleRule()
-	t.AddRow("Roger Federer", "2007", "\033[38;2;255;82;197;48;2;155;106;0mAustralian Open\033[0m\nWimbledon\nUS Open")
+	t.AddRow("Roger Federer", "2007", "Australian Open\nWimbledon\nUS Open")
 	t.AddSingleRule()
 
 	fmt.Printf("Output:\n%v", t)
@@ -658,7 +674,7 @@ func ExampleTable_16() {
 
 // Tables are stringers and AddRow adds the output of a Sprintf operation. As a
 // result, tables can be nested
-func ExampleTable_17() {
+func ExampleTable_18() {
 
 	board1, _ := NewTable("||cccccccc||")
 	board1.AddDoubleRule()
@@ -698,7 +714,7 @@ func ExampleTable_17() {
 
 // Tables are stringers and AddRow adds the output of a Sprintf operation. As a
 // result, tables can be also stacked
-func ExampleTable_18() {
+func ExampleTable_19() {
 
 	example, _ := NewTable("|||c|||c|||c|||c|||c|||")
 	example.AddDoubleRule(1, 2, 3, 4)
@@ -728,7 +744,7 @@ func ExampleTable_18() {
 
 // The following table tests multicolumns where the width of the table columns
 // are enough to accommodate its contents and viceversa
-func ExampleTable_19() {
+func ExampleTable_20() {
 
 	t, _ := NewTable("l | r \033[0m")
 	t.AddThickRule()
@@ -751,7 +767,7 @@ func ExampleTable_19() {
 // Example taken from the TeX chapter of stack exchange:
 //
 // https://tex.stackexchange.com/questions/314025/making-stats-table-with-multicolumn-and-cline
-func ExampleTable_20() {
+func ExampleTable_21() {
 
 	t, _ := NewTable("l c c || c c")
 	t.AddRow(Multicolumn(5, "c", "Table 2: Overall Results"))
@@ -772,7 +788,7 @@ func ExampleTable_20() {
 
 // The next example shows how multicolumns can be used to modify the style of a
 // separator or the horizontal alignment of any cell
-func ExampleTable_21() {
+func ExampleTable_22() {
 
 	t, _ := NewTable("    r   l c")
 	t.AddRow(Multicolumn(3, "    c", "♁ Earth"))
@@ -796,7 +812,7 @@ func ExampleTable_21() {
 }
 
 // A wide variety of multicolumns that group table columns
-func ExampleTable_22() {
+func ExampleTable_23() {
 
 	t, _ := NewTable("|c||c|||c|c||c|||c|")
 	t.AddSingleRule()
@@ -854,7 +870,7 @@ func ExampleTable_22() {
 }
 
 // A wide variety of multicolumns that split table columns
-func ExampleTable_23() {
+func ExampleTable_24() {
 
 	t, _ := NewTable("|c|c|c|")
 	t.AddRow("Column #1", "Column #2", "Column #3")
