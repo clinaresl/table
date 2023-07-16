@@ -281,11 +281,10 @@ which results in the following table:
 
 Note that multicolumns are created with the function `Multicolumn` which expects
 first, the number of columns it has to take; their format which has to be given
-according to the rules discussed in [Create a
-table](#First-step:-Create-a-table); and finally, the contents to be shown in
-the multicolumn. Because `Multicolumn` accepts any valid column specification in
-its second argument, `Multicolumn` serves then also to modify the appearance of
-the table at selected points:
+according to the rules discussed in [Create a table](#Usage); and finally, the
+contents to be shown in the multicolumn. Because `Multicolumn` accepts any valid
+column specification in its second argument, `Multicolumn` serves then also to
+modify the appearance of the table at selected points:
 
 ``` Go
 	t, _ := NewTable("    r   l c")
@@ -316,7 +315,7 @@ The boxes shown in the middle and the bottom are created using multicolumns of
 width 1. In fact, these multicolumns are used just for modifying the vertical
 separators so that the boxes are correctly drawn. Much the same happens with the
 multicolumn created for showing the description of our planet below the thick
-rule: This line is create with a multicolumn of width 3 which also modifies the
+rule: This line is created with a multicolumn of width 3 which also modifies the
 column specification to `C{30}` so that it actually takes several lines ---note
 in passing that ANSI color escape sequences are used here to show the text
 slanted. 
