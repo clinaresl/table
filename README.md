@@ -50,9 +50,10 @@ Before inserting data to a new table it is necessary to create it first:
 This snippet creates a table with two columns. The first one displays its
 contents ragged left, whereas the second one takes a fixed width of 25
 characters to display the contents of each cell and, in case a cell exceeds the
-available width, its contents are shown left ragged in as many lines as needed.
-In case it was not possible to successfully process the *column specification*,
-an error is immediately returned.
+available width, its contents are shown left ragged in as many lines as needed
+---i.e., `table` supports multi-line cells. In case it was not possible to
+successfully process the *column specification*, an error is immediately
+returned.
 
 The following table shows all the different options for specifying the format of
 a single column:
@@ -152,16 +153,16 @@ A couple of examples follow:
 Data is added to the bottom of a table with:
 
 ``` Go
-    func (t *Table) AddRow(cells ...interface{}) error
+    func (t *Table) AddRow(cells ...any) error
 ```
 
-It accepts an arbitrary number of arguments satisfying the null interface and
-adds the result of the `Sprintf` operation of each argument to each cell of the
-last row of the table. If the number of arguments is strictly less than the
-number of columns given in the *column specification* then the remaining cells
-are left empty. Thus, if no argument is provided, an empty line of data is
-generated. However, if the number of arguments given is strictly larger than the
-number of columns of the table an error is returned. 
+It accepts an arbitrary number of *any* arguments and adds the result of the
+`Sprintf` operation of each argument to each cell of the last row of the table.
+If the number of arguments is strictly less than the number of columns given in
+the *column specification* then the remaining cells are left empty. Thus, if no
+argument is provided, an empty line of data is generated. However, if the number
+of arguments given is strictly larger than the number of columns of the table an
+error is returned.
 
 The following example adds data to a table with three columns: 
 
@@ -210,7 +211,7 @@ your browser to show unrealistic renderings as a result of your preferences):
 
 # Gotchas #
 
-Beyond the basic usage of tables, `table` provides many other features which are
+Beyond the basic usage of tables, `table` provides other features which are
 described next
 
 ## ANSI color codes ##
@@ -249,27 +250,35 @@ automatically ended with `\033[0m` just simply by adding it to the *column
 specification* of the table. Of course, one could end each line manually but as
 the example shows this is not necessary at all.
 
-<!-- Just by reversing the location of the codes it is also possible to colour only -->
-<!-- the splitters and rules: -->
+## Multicolumns ##
 
-<!-- ``` Go -->
-<!--     t, _ := NewTable("\033[38;2;80;80;80ml | r \033[0m") -->
-<!-- 	t.AddThickRule() -->
-<!-- 	t.AddRow("\033[0mCountry\033[38;2;80;80;80m", "\033[0mPopulation") -->
-<!-- 	t.AddSingleRule() -->
-<!-- 	t.AddRow("\033[0mChina\033[38;2;80;80;80m", "\033[0m1,394,015,977") -->
-<!-- 	t.AddRow("\033[0mIndia\033[38;2;80;80;80m", "\033[0m1,326,093,247") -->
-<!-- 	t.AddRow("\033[0mUnited States\033[38;2;80;80;80m", "\033[0m329,877,505") -->
-<!-- 	t.AddRow("\033[0mIndonesia\033[38;2;80;80;80m", "\033[0m267,026,366") -->
-<!-- 	t.AddRow("\033[0mPakistan\033[38;2;80;80;80m", "\033[0m233,500,636") -->
-<!-- 	t.AddRow("\033[0mNigeria\033[38;2;80;80;80m", "\033[0m214,028,302") -->
-<!-- 	t.AddThickRule() -->
-<!-- 	fmt.Printf("%v", t) -->
-<!-- ``` -->
+Multicolumns are defined as ordinary cells which span over several columns in
+the same row. Because `table` creates column-orientated tables, it is also
+possible to substitute an arbitrary number of columns in the table by a
+different number of columns with a different format.
 
-<!-- for producing: -->
+The simplest case consists of merging several columns into the same one, as in:
 
-<!-- ![example-3](figs/example-3.png "example-3") -->
+``` Go
+	t, _ := NewTable("l | r \033[0m")
+	t.AddThickRule()
+	t.AddRow(Multicolumn(2, "c", "\033[38;2;166;166;0mDemographics 2020"))
+	t.AddRow("\033[38;2;206;10;0mCountry\033[0m", "\033[38;2;206;10;0mPopulation")
+	t.AddSingleRule()
+	t.AddRow("\033[48;2;20;20;160mChina", "1,394,015,977")
+	t.AddRow("\033[48;2;20;80;20mIndia", "1,326,093,247")
+	t.AddRow("\033[48;2;20;20;160mUnited States", "329,877,505")
+	t.AddRow("\033[48;2;20;80;20mIndonesia", "267,026,366")
+	t.AddRow("\033[48;2;20;20;160mPakistan", "233,500,636")
+	t.AddRow("\033[48;2;20;80;20mNigeria", "214,028,302")
+	t.AddRow(Multicolumn(2, "l", "\033[38;2;16;166;166mSource: https://www.worldometers.info/"))
+	t.AddThickRule()
+	fmt.Printf("Output:\n%v", t)
+```
+
+which enhances the presentation of the previous tables as follows:
+
+![example-3](figs/example-3.png "example-3")
 
 # License #
 
