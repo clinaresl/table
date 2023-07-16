@@ -36,7 +36,7 @@ This section provides various examples of usage with the hope of providing a
 flavour of the different capabilities of the package. For a full description of
 the package check out the technical documentation.
 
-## First step: Create a table {#First}
+## First step: Create a table ##
 
 Before inserting data to a new table it is necessary to create it first:
 
@@ -281,7 +281,7 @@ which results in the following table:
 
 Note that multicolumns are created with the function `Multicolumn` which expects
 first, the number of columns it has to take; their format which has to be given
-according to the rules discussed in [Create a table](#First); and finally, the
+according to the rules discussed in [First step: Create a table](#Usage); and finally, the
 contents to be shown in the multicolumn. Because `Multicolumn` accepts any valid
 column specification in its second argument, `Multicolumn` serves then also to
 modify the appearance of the table at selected points:
