@@ -1,4 +1,4 @@
-module github.com/clinaresl/_table
+module github.com/clinaresl/table
 
 go 1.20
 
