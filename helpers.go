@@ -404,6 +404,30 @@ func distributeColumns(n int, columns []column) {
 	}
 }
 
+// Evenly increment the height of all rows given in the slice of rows so that
+// their accumulated sum is incremented by n
+func distributeRows(n int, rows []row) {
+
+	// compute first the quotient (the amount of space to add to all rows) and
+	// the remainder (the additional space to add to a subset of the rows)
+	quotient, remainder := n/len(rows), n%len(rows)
+
+	// if and only if the space left to distribute is strictly larger or equal
+	// than the number of rows
+	if n >= len(rows) {
+
+		// distribute the quotient among all rows
+		for idx, _ := range rows {
+			rows[idx].height += quotient
+		}
+	}
+
+	// and now distribute the remainder among the first columns
+	for idx := 0; idx < remainder; idx++ {
+		rows[idx].height++
+	}
+}
+
 // // Evenly increment the height of all rows given in the slice of rows so that
 // // their accumulated sum is incremented by n
 // func distributeRows(n int, rows []row) {

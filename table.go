@@ -223,8 +223,7 @@ func (t *Table) getColumnsWidth(jinit, n int) (result int) {
 // Evenly distribute all the space taken by all cells (both contents and
 // multicell) among the columns of the receiver table. This process requires,
 // not only to widen the table columns if necessary, but also to enlarge some
-// multicells if one or more of the table columns they take have increased their
-// width
+// multicells if one or more of the table columns have increased their width
 func (t *Table) distributeAllColumns() {
 
 	// --- Table columns
@@ -257,7 +256,7 @@ func (t *Table) distributeAllColumns() {
 		}
 	}
 
-	// --- Multicolumns
+	// --- Multicells
 
 	// Second, as the width of some table columns might have been modified, it
 	// might now be required to update the width of some multicells.
@@ -276,6 +275,103 @@ func (t *Table) distributeAllColumns() {
 					// the multicell
 					distributeColumns(tWidth-mWidth, m.getTable().columns)
 				}
+			}
+		}
+	}
+}
+
+// return the total number of (physical) rows required to print out both the
+// contents and rules of all rows in the range [iinit, iint+n). For this
+// function to work properly contents should have been processed before so that
+// the height of each row is known
+func (t *Table) getRowsHeight(iinit, n int) (result int) {
+
+	// for all rows in the given range
+	irow := iinit
+	for irow < iinit+n {
+
+		// add the height of this row row
+		result += t.rows[irow].height
+
+		// next, add also the horizontal rules if any bearing in mind that these
+		// are not counted for when defining a multicell, i.e., when the user
+		// asks for a multicell of height x all rules in between are assumed to
+		// be automatically included so that x refers to the number of logical
+		// rows
+		irow++
+		for irow < iinit+n {
+
+			// horizontal rules span all columns so we can use any to verify
+			// whether the irow-th is a horizontal rule or not
+			if _, ok := t.cells[irow][0].(hrule); !ok {
+
+				// if it is not, exit the loop
+				break
+			}
+
+			// otherwise, go to the next row after adding one physical row to
+			// the result because horizontal rules take exactly one physical
+			// row. Note that (strange as it may seem) horizontal rules can be
+			// stacked one of top of another
+			result++
+			irow++
+		}
+	}
+
+	// return the result
+	return
+}
+
+// Evenly distribute all the space taken by all cells (both contents and
+// multicells) among the rows of the receiver table. This process requires, not
+// only to widen the table rows if necessary, but also to enalrge some
+// multicells if one or more of the table rows have increased their height
+func (t *Table) distributeAllRows() {
+
+	// -- Table rows
+	// First, compute the definitive height of each table row. Note that the row
+	// height refers only to the space needed to print its contents, i.e., the
+	// height of the horizonal rules is never modified
+	for jcol := 0; jcol < len(t.columns); jcol++ {
+
+		// and for all rows in this column
+		for irow := 0; irow < len(t.rows); irow++ {
+
+			// if and only if a multicell is found at this location
+			if m, ok := t.cells[irow][jcol].(multicell); ok {
+
+				// compute the space required by the row tables that take the space
+				// of this multicell, and also the space required to display the contents
+				// of the multicell
+				tHeight := t.getRowsHeight(m.getRowInit(), m.getNbRows())
+				mHeight := m.getTable().getRowsHeight(0, len(m.getTable().rows))
+
+				// only in case the table rows are not large enough to show the
+				// contents of the multicolumn
+				if tHeight < mHeight {
+
+					// evenly distribute the excess of the multicolumn among the table
+					// rows
+					distributeRows(mHeight-tHeight, t.rows[m.getRowInit():m.getRowInit()+m.getNbRows()])
+				}
+			}
+		}
+	}
+
+	// -- Multicells
+
+	// Second, as the height of some table rows might have been modified, it
+	// might now be required to update the width of some multicells.
+	for jcol := 0; jcol < len(t.columns); jcol++ {
+		for irow := 0; irow < len(t.rows); irow++ {
+			if m, ok := t.cells[irow][jcol].(multicell); ok {
+
+				tHeight := t.getRowsHeight(m.getRowInit(), m.getNbRows())
+				mHeight := m.getTable().getRowsHeight(0, len(m.getTable().rows))
+
+				// this time, if the overall height of the table rows does not match
+				// the height of the multicell
+				distributeRows(tHeight-mHeight, m.getTable().rows)
 			}
 		}
 	}
@@ -452,8 +548,9 @@ func (t Table) String() string {
 
 	// First things first, traverse all muulticells in this table and
 	// re-distribute the width of columns (either those of the table or those in
-	// the multicell)
+	// the multicell) and the height of all rows
 	t.distributeAllColumns()
+	// t.distributeAllRows()
 
 	// Because of the presence of multicells, each line can print at once an
 	// arbitrary number of columns and rows. Hence, it is required to keep track
