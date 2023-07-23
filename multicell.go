@@ -103,6 +103,13 @@ func Multicolumn(nbcolumns int, cspec string, args ...any) multicell {
 	return Multicell(nbcolumns, 1, cspec, "t", args...)
 }
 
+// Likewise, Multirows are multicells which take only one column whose contents
+// are left justified by default. In contraposition, multirows only contain one
+// logical row and thus, only one arg can be given
+func Multirow(nbrows int, rspec string, arg any) multicell {
+	return Multicell(1, nbrows, "l", rspec, arg)
+}
+
 // Methods
 // ----------------------------------------------------------------------------
 

@@ -891,3 +891,14 @@ func ExampleTable_24() {
 	fmt.Printf("Output:\n%v", t)
 	// Output:
 }
+
+// A simple case with only one multirow in the left column
+func ExampleTable_25() {
+
+	t, _ := NewTable("|c|c|")
+	t.AddRow(Multirow(2, "c", "Row #1\nRow #2"), "(1, 2)")
+	t.AddRow("(2, 2)")
+	t.AddRow("(3, 1)", "(3, 2)")
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}

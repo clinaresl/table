@@ -371,10 +371,31 @@ func (t *Table) distributeAllRows() {
 
 				// this time, if the overall height of the table rows does not match
 				// the height of the multicell
-				distributeRows(tHeight-mHeight, m.getTable().rows)
+				if tHeight > mHeight {
+					distributeRows(tHeight-mHeight, m.getTable().rows)
+				}
 			}
 		}
 	}
+}
+
+// return true if there is a multicell in the given column which reaches the
+// specified row, and false otherwise
+func (t *Table) hasMulticell(irow, jcol int) bool {
+
+	// for all rows in this column
+	for i := 0; i < len(t.rows); i++ {
+
+		// if a multicell is found which reaches the given row
+		if m, ok := t.cells[i][jcol].(multicell); ok && m.getRowInit()+m.getNbRows() > irow {
+
+			// then return true
+			return true
+		}
+	}
+
+	// if no multicell is found which reaches the given row, then return false
+	return false
 }
 
 // -- Public
@@ -405,6 +426,21 @@ func (t *Table) AddRow(cells ...any) error {
 	icells := make([]formatter, len(t.columns))
 	for idx := 0; idx < t.GetNbColumns() && idx < len(cells); idx++ {
 
+		// before adding the next item (either an ordinary content or a
+		// multicell) make sure that the j-th column is not already occupied by
+		// a multicell inserted previously. This allows the user to provide only
+		// the contents to be shown
+		for t.hasMulticell(len(t.rows), j) {
+			j++
+		}
+
+		// if j already reached the right margin (i.e., if all columns were
+		// traversed when considering multicells previously inserted), then
+		// return an error
+		if j >= t.GetNbColumns() {
+			return errors.New("Invalid multicell specification. The number of available columns has been execeeded!")
+		}
+
 		// depending upon the type of item
 		switch cells[idx].(type) {
 
@@ -424,9 +460,13 @@ func (t *Table) AddRow(cells ...any) error {
 			icells[j] = m
 
 			// otherwise, process this multicell to know its height. Note that
-			// this row is added to the bottom of this table
+			// multicells have an arbitrary number of rows. Because we are
+			// interested in the height of this logical row, the number of lines
+			// taken by the multicell has to be divided by the number of logical
+			// rows it occupies. Finally, observe that this row is necessarily
+			// added to the bottomo of the table
 			contents := m.Process(t, len(t.rows), j)
-			height = max[int](height, len(contents))
+			height = max[int](height, len(contents)/m.nbrows)
 
 			// finally, now move forward the number of columns
 			j += m.nbcolumns
@@ -542,6 +582,27 @@ func (t *Table) GetNbRows() int {
 	return len(t.cells)
 }
 
+func (t *Table) describe() {
+
+	for irow := 0; irow < len(t.cells); irow++ {
+		for jcol := 0; jcol < len(t.cells[irow]); jcol++ {
+
+			switch t.cells[irow][jcol].(type) {
+			case content:
+				fmt.Printf("(%d,%d) content\n", irow, jcol)
+			case hrule:
+				fmt.Printf("(%d,%d) hrule\n", irow, jcol)
+			case multicell:
+				fmt.Printf("(%d,%d) multicell\n", irow, jcol)
+			}
+		}
+	}
+
+	for irow := 0; irow < len(t.rows); irow++ {
+		fmt.Printf("row %d: height %d\n", irow, t.rows[irow].height)
+	}
+}
+
 // Tables are stringers and thus they provide a method to conveniently transform
 // their contents into a string
 func (t Table) String() string {
@@ -550,7 +611,7 @@ func (t Table) String() string {
 	// re-distribute the width of columns (either those of the table or those in
 	// the multicell) and the height of all rows
 	t.distributeAllColumns()
-	// t.distributeAllRows()
+	t.distributeAllRows()
 
 	// Because of the presence of multicells, each line can print at once an
 	// arbitrary number of columns and rows. Hence, it is required to keep track
@@ -582,7 +643,8 @@ func (t Table) String() string {
 				contents := t.cells[i][j].Process(&t, i, j)
 
 				// and now for each physical row of this line
-				for line := 0; line < row.height; line++ {
+				for line := 0; line < len(contents); line++ {
+					// for line := 0; line < row.height; line++ {
 
 					// add this line to the output
 					if idx >= len(output) {
