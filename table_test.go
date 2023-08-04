@@ -1074,12 +1074,22 @@ func ExampleTable_33() {
 // Use multi-row to affect the vertical alignment of a cell
 func ExampleTable_34() {
 
-	t, _ := NewTable("| c | c | c | p{10} |")
+	t, _ := NewTable("| c | l | l | p{18} |")
 	t.AddThickRule()
-	t.AddRow("Miguel",
-		Multirow(1, "c", "de"),
-		Multirow(1, "b", "Cervantes"),
-		"En un lugar de la Mancha de cuyo nombre no quiero acordarme")
+	t.AddRow("Spain",
+		Multirow(1, "c", "Miguel"),
+		Multirow(1, "b", "de Cervantes"),
+		"En un lugar de la Mancha de cuyo nombre no quiero acordarme ...")
+	t.AddSingleRule()
+	t.AddRow(Multirow(1, "c", "England"),
+		Multirow(1, "b", "William"),
+		Multirow(1, "t", "Shakespeare"),
+		"In sooth I know not why I am so sad.\nIt wearies me, you say it wearies you ...")
+	t.AddSingleRule()
+	t.AddRow(Multirow(1, "b", "Germany"),
+		Multirow(1, "t", "Johann Wolfgang"),
+		Multirow(1, "c", "von Goethe"),
+		"Ihr naht euch wieder, schwankende Gestalten!\nDie früh sich einst dem trüben Blick gezeigt ...")
 	t.AddThickRule()
 	fmt.Printf("Output:\n%v", t)
 	// Output:
