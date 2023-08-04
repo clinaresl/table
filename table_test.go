@@ -1070,3 +1070,17 @@ func ExampleTable_33() {
 	fmt.Printf("Output:\n%v", t)
 	// Output:
 }
+
+// Use multi-row to affect the vertical alignment of a cell
+func ExampleTable_34() {
+
+	t, _ := NewTable("| c | c | c | p{10} |")
+	t.AddThickRule()
+	t.AddRow("Miguel",
+		Multirow(1, "c", "de"),
+		Multirow(1, "b", "Cervantes"),
+		"En un lugar de la Mancha de cuyo nombre no quiero acordarme")
+	t.AddThickRule()
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
