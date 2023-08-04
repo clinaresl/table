@@ -948,7 +948,7 @@ func ExampleTable_24() {
 // 	// Output:
 // }
 
-// A simple case with only one multirow length 2 in the upper-left column
+// A simple case with only one multirow length 2 in the upper-left pos
 func ExampleTable_25() {
 
 	t, _ := NewTable("|c|c|c|")
@@ -962,7 +962,7 @@ func ExampleTable_25() {
 	// Output:
 }
 
-// A simple case with only one multirow length 2 in the upper-mid column
+// A simple case with only one multirow length 2 in the upper-mid pos
 func ExampleTable_26() {
 
 	t, _ := NewTable("|c|c|c|")
@@ -976,7 +976,7 @@ func ExampleTable_26() {
 	// Output:
 }
 
-// A simple case with only one multirow length 2 in the upper-right column
+// A simple case with only one multirow length 2 in the upper-right pos
 func ExampleTable_27() {
 
 	t, _ := NewTable("|c|c|c|")
@@ -990,7 +990,7 @@ func ExampleTable_27() {
 	// Output:
 }
 
-// A simple case with only one multirow length 2 in the mid-left column
+// A simple case with only one multirow length 2 in the mid-left pos
 func ExampleTable_28() {
 
 	t, _ := NewTable("|c|c|c|")
@@ -1004,7 +1004,7 @@ func ExampleTable_28() {
 	// Output:
 }
 
-// A simple case with only one multirow length 2 in the mid-mid column
+// A simple case with only one multirow length 2 in the mid-mid pos
 func ExampleTable_29() {
 
 	t, _ := NewTable("|c|c|c|")
@@ -1018,7 +1018,7 @@ func ExampleTable_29() {
 	// Output:
 }
 
-// A simple case with only one multirow length 2 in the mid-right column
+// A simple case with only one multirow length 2 in the mid-right pos
 func ExampleTable_30() {
 
 	t, _ := NewTable("|c|c|c|")
@@ -1026,6 +1026,45 @@ func ExampleTable_30() {
 	t.AddRow("(1, 1)", "(1, 2)", "(1, 3)")
 	t.AddSingleRule()
 	t.AddRow("(2, 1)", "(2, 2)", Multirow(2, "t", "(2, 3) I\n(2, 3) II"))
+	t.AddRow("(3, 1)", "(3, 2)")
+	t.AddThickRule()
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
+
+// A simple case with only one multirow length 3 in the upper-left pos
+func ExampleTable_31() {
+
+	t, _ := NewTable("|c|c|c|")
+	t.AddThickRule()
+	t.AddRow(Multirow(3, "t", "(1, 1) I\n(1, 1) II\n(1, 1) III"), "(1, 2)", "(1, 3)")
+	t.AddRow("(2, 2)", "(2, 3)")
+	t.AddRow("(3, 2)", "(3, 3)")
+	t.AddThickRule()
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
+
+// A simple case with only one multirow length 3 in the upper-mid pos
+func ExampleTable_32() {
+
+	t, _ := NewTable("|c|c|c|")
+	t.AddThickRule()
+	t.AddRow("(1, 1)", Multirow(3, "t", "(1, 2) I\n(1, 2) II\n(1, 2) III"), "(1, 3)")
+	t.AddRow("(2, 1)", "(2, 3)")
+	t.AddRow("(3, 1)", "(3, 3)")
+	t.AddThickRule()
+	fmt.Printf("Output:\n%v", t)
+	// Output:
+}
+
+// A simple case with only one multirow length 3 in the upper-right pos
+func ExampleTable_33() {
+
+	t, _ := NewTable("|c|c|c|")
+	t.AddThickRule()
+	t.AddRow("(1, 1)", "(1, 2)", Multirow(3, "t", "(1, 3) I\n(1, 3) II\n(1, 3) III"))
+	t.AddRow("(2, 1)", "(2, 2)")
 	t.AddRow("(3, 1)", "(3, 2)")
 	t.AddThickRule()
 	fmt.Printf("Output:\n%v", t)
