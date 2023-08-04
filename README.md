@@ -282,7 +282,8 @@ the example shows this is not necessary at all.
 Multicolumns are defined as ordinary cells which span over several columns in
 the same row. Because `table` creates column-orientated tables, it is also
 possible to substitute an arbitrary number of columns in the table by a
-different number of columns with a different format:
+different number of columns with a different format or, in other words,
+multicolumns can be used both for *merging* or *splitting* columns. For example:
 
 
 ``` Go
@@ -302,16 +303,58 @@ different number of columns with a different format:
 	fmt.Printf("%v", t)
 ```
 
-which results in the following table:
+results in the following table:
 
 ![example-4](figs/example-4.png "example-4")
 
 Note that multicolumns are created with the function `Multicolumn` which expects
 first, the number of columns it has to take; their format which has to be given
-according to the rules discussed in [First step: Create a table](#usage); and finally, the
-contents to be shown in the multicolumn. Because `Multicolumn` accepts any valid
-column specification in its second argument, `Multicolumn` serves then also to
-modify the appearance of the table at selected points:
+according to the rules discussed in [First step: Create a table](#usage); and
+finally, the contents to be shown in the multicolumn. Because `Multicolumn`
+accepts any valid column specification in its second argument, `Multicolumn`
+serves to various purposes:
+
+1. *Merging* columns: the previous example shows how to *merge* different
+   columns into one. The table is originally defined with 5 different columns so
+   that the first, second and last row merge a number of columns into one whose
+   specification is given in the definition of the multicolumn.
+
+2. *Splitting* columns: the following example shows how to use `Multicolumn` to
+   create a single multicolumn which, however, consists of various columns,
+   effectively splitting the original column into others:
+   
+``` Go
+	t, _ := NewTable("r|c|")
+	t.AddThickRule(1, 5)
+	t.AddRow("", Multicolumn(1, "|c|c|c|c|c|", "Mon", "Tue", "Wed", "Thu", "Fri"))
+	t.AddSingleRule()
+	t.AddRow("9:00", "Enter school")
+	t.AddSingleRule()
+	t.AddRow("13:00", "Lunch")
+	t.AddSingleRule()
+	t.AddRow("14:30", "More classes")
+	t.AddSingleRule()
+	t.AddRow("17:00",
+		Multicolumn(1, "|c|c|", "Basketball", "Guitar"))
+	t.AddSingleRule()
+	t.AddRow("18:30", "Go home!")
+	t.AddThickRule()
+	fmt.Printf("%v", t)
+```
+  
+  which produces:
+  
+![example-5](figs/example-5.png "example-5")  
+
+3. Also to selectively *modify the appearance* of the table at selected points.
+   In the following example, the boxes shown in the middle and the bottom are
+   created using multicolumns of width 1. In fact, these multicolumns are used
+   just for modifying the vertical separators so that the boxes are correctly
+   drawn. Much the same happens with the multicolumn created for showing the
+   description of our planet below the thick rule: This line is created with a
+   multicolumn of width 3 which also modifies the column specification to
+   `C{30}` so that it actually takes several lines ---note in passing that ANSI
+   color escape sequences are used here to show the text slanted.
 
 ``` Go
 	t, _ := NewTable("    r   l c")
@@ -334,21 +377,23 @@ modify the appearance of the table at selected points:
 	fmt.Printf("%v", t)
 ```
 
-which yields the following results:
+  which yields the following results:
 
-![example-5](figs/example-5.png "example-5")
+![example-6](figs/example-6.png "example-6")
 
-The boxes shown in the middle and the bottom are created using multicolumns of
-width 1. In fact, these multicolumns are used just for modifying the vertical
-separators so that the boxes are correctly drawn. Much the same happens with the
-multicolumn created for showing the description of our planet below the thick
-rule: This line is created with a multicolumn of width 3 which also modifies the
-column specification to `C{30}` so that it actually takes several lines ---note
-in passing that ANSI color escape sequences are used here to show the text
-slanted. 
+ 
+  Other than this, this example shows also that tables can be indented by adding
+  the same text (e.g., blanks) to the beginning of each row.
 
-Other than this, this example shows also that tables can be indented by adding
-the same text (e.g., blanks) to the beginning of each row.
+## Multirows ##
+
+Multirows are defined analogously to multicolumns, i.e., as ordinary cells which
+span over an arbitrary number of rows in the same column. An important
+difference with multicolumns though is that multirows *merge* several lines into
+one, but they do not provide means for *splitting* a specific line into others.
+A couple of usages follow:
+
+
 
 ## Nested tables ##
 
@@ -394,7 +439,7 @@ also *stringers*, they can then be nested to any degree:
 Both chess boards are tables so that the last table, named `t` just simply adds
 them to each row:
 
-![example-6](figs/example-6.png "example-6")
+![example-7](figs/example-7.png "example-7")
 
 
 # License #

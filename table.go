@@ -640,6 +640,9 @@ func (t Table) String() string {
 		// for each logical row
 		for i, row := range t.rows {
 
+			// if this row has been already written, then skip it. This is the
+			// case when a multicell with more than one row has been already
+			// printed in this column
 			if i < nbrows[j] {
 				continue
 			}
