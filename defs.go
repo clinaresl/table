@@ -137,6 +137,21 @@ type formatter interface {
 	Format(t *Table, irow, jcol int) string
 }
 
+// Multicells, defined next, are a general case of multicolumns and multirows.
+// Muluticolumns are defined as multicells with just one logical row, whereas
+// the latter are defined as multicells with just a single logical column. The
+// following enum is created to distinguish the different types of multicells
+// ---note the user can specifically create multicells (as such) with one column
+// and/or one row just to selectively update the horizontal/vertical format of a
+// cell!
+type multicellType int
+
+const (
+	multicolumn_t multicellType = iota
+	multirow_t
+	multicell_t
+)
+
 // Multicells are used to merge several cells (along rows and/or columns) into
 // one single cell. They are essentially tables with an arbitrary number of
 // columns and rows whose specification is given by the user.
@@ -152,13 +167,14 @@ type formatter interface {
 // used as the separator of the next cell; if one is given in the row
 // specification, it is then used as the horizontal rule of the next row.
 type multicell struct {
-	jinit, nbcolumns   int    // initial column and # columns
-	iinit, nbrows      int    // initial row and # rows
-	cspec, rspec       string // column and row specification
-	clastsep, rlastsep string // column and row last separator
-	table              Table  // table used to render its contents
-	args               []any  // arguments given to the multicell
-	output             string // rendered contents of the multicell
+	mtype              multicellType // type of multicell
+	jinit, nbcolumns   int           // initial column and # columns
+	iinit, nbrows      int           // initial row and # rows
+	cspec, rspec       string        // column and row specification
+	clastsep, rlastsep string        // column and row last separator
+	table              Table         // table used to render its contents
+	args               []any         // arguments given to the multicell
+	output             string        // rendered contents of the multicell
 }
 
 // The splitter is defined as an association of four different runes: the west,

@@ -21,6 +21,7 @@ package table
 import (
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 )
@@ -459,12 +460,30 @@ func (t *Table) AddRow(cells ...any) error {
 			m.jinit, m.iinit = j, len(t.rows)
 			icells[j] = m
 
+			// Modify the column/row specification of this multicell if
+			// necessary
+			switch m.mtype {
+
+			case multicolumn_t:
+
+				// In case this is a multicolumn then make sure to use the row
+				// specification given to the table
+				m.table.columns[0].vformat = t.columns[j].vformat
+
+			case multirow_t:
+
+				// In case this is a multirow then make sure to use the column
+				// specification given to the table
+				m.table.columns[0].sep = t.columns[j].sep
+				m.table.columns[0].hformat = t.columns[j].hformat
+			}
+
 			// otherwise, process this multicell to know its height. Note that
 			// multicells have an arbitrary number of rows. Because we are
 			// interested in the height of this logical row, the number of lines
 			// taken by the multicell has to be divided by the number of logical
-			// rows it occupies. Finally, observe that this row is necessarily
-			// added to the bottomo of the table
+			// rows it occupies. Observe that this row is necessarily added to
+			// the bottom of the table
 			contents := m.Process(t, len(t.rows), j)
 			height = max[int](height, len(contents)/m.nbrows)
 
@@ -582,25 +601,11 @@ func (t *Table) GetNbRows() int {
 	return len(t.cells)
 }
 
-func (t *Table) describe() {
+func (t *Table) Describe() {
 
-	for irow := 0; irow < len(t.cells); irow++ {
-		for jcol := 0; jcol < len(t.cells[irow]); jcol++ {
+	log.Printf(" # Columns: %d\n", len(t.columns))
+	log.Printf(" # Rows   : %d\n", len(t.columns))
 
-			switch t.cells[irow][jcol].(type) {
-			case content:
-				fmt.Printf("(%d,%d) content\n", irow, jcol)
-			case hrule:
-				fmt.Printf("(%d,%d) hrule\n", irow, jcol)
-			case multicell:
-				fmt.Printf("(%d,%d) multicell\n", irow, jcol)
-			}
-		}
-	}
-
-	for irow := 0; irow < len(t.rows); irow++ {
-		fmt.Printf("row %d: height %d\n", irow, t.rows[irow].height)
-	}
 }
 
 // Tables are stringers and thus they provide a method to conveniently transform
@@ -635,6 +640,10 @@ func (t Table) String() string {
 		// for each logical row
 		for i, row := range t.rows {
 
+			if i < nbrows[j] {
+				continue
+			}
+
 			// Make sure to skip those columns that have been printed before as
 			// a result of a multicell
 			if nbcolumns[i] <= j && nbrows[j] <= i {
@@ -644,7 +653,6 @@ func (t Table) String() string {
 
 				// and now for each physical row of this line
 				for line := 0; line < len(contents); line++ {
-					// for line := 0; line < row.height; line++ {
 
 					// add this line to the output
 					if idx >= len(output) {

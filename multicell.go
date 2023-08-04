@@ -25,10 +25,10 @@ import (
 // function is inteded to create and separately store multicells for further use.
 //
 // Return a new instance of a multicell. The first two parameters are the number
-// of columns and rows that are grouped under the multicells which is is
-// formatted according to the column and row specifications given next.
-// Immediately after an arbitrary number of arguments can be given which are
-// formatted according to the specifications given.
+// of columns and rows that are grouped under the multicells which is formatted
+// according to the column and row specifications given next. Immediately after
+// an arbitrary number of arguments can be given which are formatted according
+// to the column specifications given.
 //
 // Importantly, both the column and row specifications are allowed to end with a
 // last separator (i.e., a separator with no content specifier following
@@ -58,8 +58,10 @@ func NewMulticell(nbcolumns, nbrows int, cspec, rspec string, args ...any) (mult
 	}
 
 	// finally, return an instance of a multicell with no error. Note that the
-	// initial column/row and the output are initially empty
+	// initial column/row and the output are initially empty and that this
+	// instance is declared to be of type multicell indeed
 	return multicell{
+		mtype:     multicell_t,
 		nbcolumns: nbcolumns,
 		nbrows:    nbrows,
 		cspec:     cnewspec,
@@ -98,16 +100,31 @@ func Multicell(nbcolumns, nbrows int, cspec, rspec string, args ...any) multicel
 }
 
 // Multicolumns are multicells which take only one row whose contents are top
-// aligned by default
+// aligned by default. In case a different alignment was given in the row
+// specification of the table, the user-defined value will be used instead
 func Multicolumn(nbcolumns int, cspec string, args ...any) multicell {
-	return Multicell(nbcolumns, 1, cspec, "t", args...)
+
+	m := Multicell(nbcolumns, 1, cspec, "t", args...)
+
+	// update the type of this multicell to be a multicolumn and return it
+	m.mtype = multicolumn_t
+	return m
 }
 
 // Likewise, Multirows are multicells which take only one column whose contents
-// are left justified by default. In contraposition, multirows only contain one
-// logical row and thus, only one arg can be given
+// are centered by default. In case a different alignment was given in the
+// column specification of the table, the user-defined value will be used
+// instead.
+//
+// In contraposition, multirows only contain one logical row and thus,
+// only one arg can be given
 func Multirow(nbrows int, rspec string, arg any) multicell {
-	return Multicell(1, nbrows, "l", rspec, arg)
+
+	m := Multicell(1, nbrows, "c", rspec, arg)
+
+	// update the type of this multicell to be a multirow and return it
+	m.mtype = multirow_t
+	return m
 }
 
 // Methods
@@ -156,10 +173,9 @@ func (m multicell) Process(t *Table, irow, jcol int) []formatter {
 		if mprev := getPreviousHorizontalMerger(t, irow, jcol); mprev != nil && mprev.getLastVerticalSep() != "" {
 
 			// redo the table using as first separator the one provided in the
-			// previous multicell. In case of error (which is
-			// unlikely as we are only adding the separator found in the
-			// previous multicell) a panic is generated, there's not
-			// much we could do at this stage
+			// previous multicell. In case of error (which is unlikely as we are
+			// only adding the separator found in the previous multicell) a
+			// panic is generated, there's not much we could do at this stage
 			if tm, err := NewTable(mprev.getLastVerticalSep() + m.cspec); err != nil {
 				panic(err)
 			} else {
@@ -169,7 +185,7 @@ func (m multicell) Process(t *Table, irow, jcol int) []formatter {
 				// space among its columns. Thus, if we are re-creating the
 				// inner table of a multicell, it is more than a good idea to
 				// preserve the widths of all its columns
-				for idx, _ := range tm.columns {
+				for idx := range tm.columns {
 					tm.columns[idx].width = m.table.columns[idx].width
 				}
 				tm.columns[0].width -= countPrintableRuneInString(mprev.getLastVerticalSep())
@@ -216,6 +232,10 @@ func (m multicell) Format(t *Table, irow, jcol int) string {
 }
 
 // Public services to access the contents of a multicell
+func (m multicell) getType() multicellType {
+	return m.mtype
+}
+
 func (m multicell) getLastVerticalSep() string {
 	return m.clastsep
 }
